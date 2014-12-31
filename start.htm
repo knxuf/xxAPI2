@@ -10,10 +10,12 @@ var get_query_parameter = function(item) {
     var svalue = location.search.match(new RegExp("[\?\&]" + item + "=([^\&]*)(\&?)","i"));
     return svalue ? svalue[1] : svalue;
 }
-var html_baseurl = get_query_parameter('base') || '';
-if (html_baseurl != '') {
+var gitversion = get_query_parameter('git') || '';
+var gitbaseurl = "https://raw.github.com/knxuf/xxAPI2/";
+if (gitversion != '') {
+    gitbaseurl += gitversion + "/";
     window.document.documentElement.removeAttribute('manifest');
-    document.getElementById("htmlbase").setAttribute('href',html_baseurl);
+    document.getElementById("htmlbase").setAttribute('href', gitbaseurl);
 }
 </script>
 <meta id="meta_viewport" name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -82,12 +84,12 @@ if (html_baseurl != '') {
 -->
 <style id='PRELOAD_CSS' type='text/css'> body { background-color: #000000; }</style>
 <script type="text/javascript">
-if (html_baseurl) {
-    $("#PRELOAD_CSS").attr('href',html_baseurl + 'libs/xxapi.css');
+if (gitversion) {
+    $("#PRELOAD_CSS").attr('href',gitbaseurl + 'libs/xxapi.css');
 } else {
     $.ajax({ url:"libs/xxapi.css", cache: true, complete: function(xhttpobj) { $("#PRELOAD_CSS").html(xhttpobj.responseText); } });
 }
-$("base").attr("href",location.href);
+$("base").attr("href","");
 </script>
 
 
