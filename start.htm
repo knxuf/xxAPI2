@@ -85,7 +85,8 @@ if (gitversion != '') {
 <style id='PRELOAD_CSS' type='text/css'> body { background-color: #000000; }</style>
 <script type="text/javascript">
 if (gitversion) {
-    $("#PRELOAD_CSS").attr('href',gitbaseurl + 'libs/xxapi.css');
+    // FIXME alles unschön
+    $("head").append($("<link rel='stylesheet' href='https://knxuf.github.io/xxAPI2/libs/xxapi.css' type='text/css'>"));
 } else {
     $.ajax({ url:"libs/xxapi.css", cache: true, complete: function(xhttpobj) { $("#PRELOAD_CSS").html(xhttpobj.responseText); } });
 }
