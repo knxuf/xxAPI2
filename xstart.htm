@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="xxapi.appcache">
+<html>
 <head>
 <title>xxAPI</title>
 <meta charset="utf-8">
@@ -42,7 +42,12 @@
 <!-- Tile icon for Win8  -->
 <meta name="msapplication-TileImage" content="img/144x144.png">
 <meta name="msapplication-TileColor" content="#f0f0f0">
-
+<script type='text/javascript'>
+get_query_parameter = function(item) {
+    var svalue = location.search.match(new RegExp("[\?\&]" + item + "=([^\&]*)(\&?)","i"));
+    return svalue ? svalue[1] : svalue;
+}
+</script>
 
 
 <!--
