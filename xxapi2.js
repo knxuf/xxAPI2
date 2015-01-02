@@ -800,6 +800,7 @@ hs.functions.error_handler = function( oarg ) {
                     return _json;
                 } catch (e) {
                     _error = e.toString();
+                    alert(oarg.xhttpobj.responseText);
                 }
             }
         }
