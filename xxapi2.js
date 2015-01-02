@@ -367,7 +367,7 @@ hs.functions.hs_item = function( oarg ) {
             }
             
             if (this.type == "CAM") {
-                var _url = typeof this.url != 'undefined' ? "http://" + this.url : 
+                var _url = _url != null ? "http://" + this.url : 
                     hs.functions.get_url ({ 
                         "session"   : this.session, 
                         "url"       : "/guicamv?id=" + this.id, 
@@ -641,8 +641,9 @@ hs.functions.make_request = function ( oarg ) {
         dfd = $.Deferred(),
         promise = dfd.promise();
     var ajaxOpts = {
-        datatype : "xml",
-        complete : function(xhttpobj) {
+        "datatype"      : "xml",
+        "contentType"   : "application/x-www-form-urlencoded;charset=ISO-8859-1",
+        "complete"      : function(xhttpobj) {
             oarg.xhttpobj = xhttpobj;
             hs.functions.async.handler( oarg );
         }
@@ -769,6 +770,7 @@ hs.functions.error_handler = function( oarg ) {
         case "auth_error"       : hs.functions.login_dialog("Benutzer falsch"); break;
         case "pass_error"       : hs.functions.login_dialog("Password falsch"); break;
         case "timeout !!"       : hs.functions.login_init( oarg ); break;
+        case "handle error !!"  : hs.functions.login_init( oarg ); break;
         case "user kidnapped !!": hs.functions.login_init( oarg ); break;
         case "99"               : alert("Visuseite nicht gefunden"); break;
         default                 : alert("Error " + _error); break
