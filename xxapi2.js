@@ -5,10 +5,12 @@ $.x2js = new X2JS();
 $.xml2json = $.x2js.xml2json;
 
 var xxAPI = {};
+xxAPI.version = "2.011";
 xxAPI.functions = {};
 xxAPI.XXLINKURL = "";
 xxAPI.registered_icons = {};
-xxAPI.version = "2.011";
+xxAPI.geolocation = {}
+
 
 // Homeserver Object
 var hs = {};
@@ -179,6 +181,44 @@ xxAPI.functions.XXREGICON = function ( oarg ) {
     }
 }
 
+xxAPI.functions.geolocation_callback = function ( position ) {
+    debug(2,"GEOLOCATION Received",position);
+    xxAPI.functions.geolocation_send("timestamp",position.timestamp);
+    $.each(position.coords, function( attribute, value ) {
+        xxAPI.functions.geolocation_send(attribute, value);
+    });
+}
+
+xxAPI.functions.geolocation_send = function ( attribute, value) {
+    debug(5,"Attribute: " + attribute + "=" + value);
+    if (xxAPI.geolocation.hasOwnProperty(attribute)) {
+        debug(2,"XXGEOLOCATE send: " + attribute + " auf ID " + xxAPI.geolocation[attribute] + " Wert " + value);
+    }
+}
+
+xxAPI.functions.geolocation_error = function ( err ) {
+    debug(1,"Geolocation Failed", err);
+}
+
+xxAPI.functions.XXGEOLOCATE = function ( oarg ) {
+    debug(2,"XXGEOLOCATE",oarg)
+    var _options = {
+        enableHighAccuracy: true,
+    };
+    navigator.geolocation.getCurrentPosition(
+        xxAPI.functions.geolocation_callback,
+        xxAPI.functions.geolocation_error,
+        _options
+    );
+}
+
+xxAPI.functions.XXGEOLOCATION = function ( oarg ) {
+    debug(2,"XXGEOLOCATION",oarg)
+    if (oarg.item.action_id != 9) {
+        debug(1,"ERROR: " + oarg.item.text + " Keine Werteingabe");
+    }
+    xxAPI.geolocation[oarg.args[1]] = oarg.item.id;
+}
 
 xxAPI.functions.geturl = function ( url ) {
     if (url.match(/^HSLIST:.*/) == null) {
