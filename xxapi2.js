@@ -5,7 +5,7 @@ $.x2js = new X2JS();
 $.xml2json = $.x2js.xml2json;
 
 var xxAPI = {};
-xxAPI.version = "2.011";
+xxAPI.version = "2.012";
 xxAPI.functions = {};
 xxAPI.XXLINKURL = "";
 xxAPI.registered_icons = {};
@@ -979,6 +979,13 @@ hs.functions.async.gv = function( oarg ) {
     var _page = new hs.functions.hs_page( oarg );
 };
 
+
+hs.functions.async.gvu = function( oarg ) {
+    debug(5,"async.gvu (" + oarg.session.target + "): ",oarg);
+    if (oarg.json.HS == "") {
+        return false;
+    }
+}
 hs.functions.check_click = function( oarg ) {
     debug(3,"check_click",oarg);
     var _item = oarg.item;
