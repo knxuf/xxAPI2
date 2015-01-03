@@ -1248,15 +1248,17 @@ hs.functions.login_dialog = function(errortype) {
 }
 
 hs.functions.async.parse_designs = function(xhttpobj,errortype) {
-    var _regex = new RegExp("(<select name=\"cl\".*?<\/select>)");
+    var _regex = new RegExp('.*<td>(.*?name="cl".*?)<\/td>');
     try {
         var _result = _regex.exec(xhttpobj.responseText);
         hs.gui.designs_html = _result[1];
-        hs.functions.login_form(errortype)
 
     } catch (e) {
-        alert(e);
+        debug(0,"Error parsing Designs from /hs",xhttpobj);
+        hs.gui.designs_html = "<input name='cl' type='text'>";
     }
+    hs.functions.login_form(errortype)
+
 }
 
 hs.functions.login_form = function(errortype) {
