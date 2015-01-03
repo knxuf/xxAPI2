@@ -84,7 +84,7 @@ xxAPI.functions.XXAPICONFIG = function ( oarg ) {
     _html += "<tr><td colspan='2'><button class='simplemodal-close' onclick='hs.functions.logout();'>Logout</button><td><tr>";
     //_html += "<tr><td colspan='2'><button class='simplemodal-close'>Close</button><td><tr>";
     _html += "</table>";
-    _html += "<footer style='position: absolute; bottom: 1em;'>Copyright © 2015 knx-user-forum e.V.<footer>";
+    _html += "<footer style='position: absolute; bottom: 1em;'>Copyright © 2015 <a href='http://www.knx-user-forum.de'>knx-user-forum e.V.</a>&#160;<a rel='license' href='https://github.com/knxuf/xxAPI2/blob/master/LICENSE'>licensed LGPL</a><footer>";
     var _div = $('<div />').html(_html);
     _div.css( {
         "font-size"         :"small",
