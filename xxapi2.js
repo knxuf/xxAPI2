@@ -1238,9 +1238,10 @@ hs.functions.login_dialog = function(errortype) {
         
     }
     $.ajax({ 
-        url     : "/hs",
-        dataType: "html",
-        complete: function(xhttpobj) {
+        "url"           : "/hs",
+        "contentType"   : "application/x-www-form-urlencoded;charset=ISO-8859-1",
+        "dataType"      : "html",
+        "complete"      : function(xhttpobj) {
             hs.functions.async.parse_designs(xhttpobj,errortype);
         }
     });
@@ -1254,7 +1255,7 @@ hs.functions.async.parse_designs = function(xhttpobj,errortype) {
         hs.functions.login_form(errortype)
 
     } catch (e) {
-        
+        alert(e);
     }
 }
 
