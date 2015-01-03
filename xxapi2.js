@@ -281,7 +281,7 @@ hs.functions.xxapi_check = function( oarg ) {
     if (oarg.item.type == "ICO") {
         oarg.text = xxAPI.registered_icons[oarg.item.image] || '';
     }
-    debug(3,"xxAPI Check: (" + oarg.item.uuid + ") " + oarg.text ,oarg);
+    debug(3,"xxAPI Check: (" + oarg.item.uid + ") " + oarg.text ,oarg);
     if (oarg.text.match(/^XX.*\*/) == null) {
         return;
     }
@@ -339,22 +339,17 @@ hs.functions.hs_item = function( oarg ) {
     this.json = _json;
     this.id     = _json._pos || _json._id;
     this.type   = oarg.item_type;
-    this.uid = this.type + "_" + this.id;
-    this.uuid = this.uid;
-    
-    this.page_id = oarg.page_id
-    this.page = oarg.page;
     this.session = oarg.session;
+
+    this.page_id = oarg.page_id;
+    this.page = oarg.page;
+    this.uid = this.session.target + "_PAGE_" + this.page_id + "_" + this.type + "_" + this.id;
     
     var _item = this;
     
-//    if (this.type == "BOX") {
-        this.uuid = "PAGE_" + this.page_id + "_" + this.uuid;
-//    }
+    if (this.page.items.hasOwnProperty(this.uid)) {
 
-    if (this.page.items.hasOwnProperty(this.uuid)) {
-
-        _item = this.page.items[this.uuid];
+        _item = this.page.items[this.uid];
         hs.functions.update_item( {
             "json"  : _json,
             "item"  : _item,
@@ -399,7 +394,7 @@ hs.functions.hs_item = function( oarg ) {
         if (this.object == null) {
             debug(5,"Create HTML Element " + this.uid,_json);
             this.object = $("<div />", {
-                "id"        : this.session.target + "_PAGE_" + this.page_id + "_" + this.uid,
+                "id"        : this.uid,
                 css         : {
                     "position"      : "absolute",
                     "display"       : "block",
@@ -471,7 +466,7 @@ hs.functions.hs_item = function( oarg ) {
                 });
             }
         }
-        this.page.items[this.uuid] = this;
+        this.page.items[this.uid] = this;
         if(!this.hidden) {
             this.page.object.append(this.object);
         }
@@ -490,8 +485,8 @@ hs.functions.update_item = function ( oarg ) {
     $.each(hs.gui.pages, function() {
         var _tmp = null;
 
-        if (this.items.hasOwnProperty(oarg.item.uuid)) {
-            var _item = this.items[oarg.item.uuid];
+        if (this.items.hasOwnProperty(oarg.item.uid)) {
+            var _item = this.items[oarg.item.uid];
             
             // xxAPI update check
 
