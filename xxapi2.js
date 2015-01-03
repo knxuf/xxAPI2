@@ -367,8 +367,8 @@ hs.functions.hs_item = function( oarg ) {
         _item.indent      = parseInt(_json._bord  ||  0);
     }
     
-    _item.color       = hs.functions.get_hexcolor( _json._fcol                || -1);
-    _item.bg_color    = hs.functions.get_hexcolor( _json._bgcol || _json._col || -1);
+    _item.color       = hs.functions.get_hexcolor( _json._fcol ) || _item.color || "transparent";
+    _item.bg_color    = hs.functions.get_hexcolor( _json._bgcol || _json._col) || _item.bg_color || "transparent";
     _item.text        = _json._txt ||   "";
     _item.image       = _json._ico || null;
     _item.url         = _json._url || null;
@@ -1338,6 +1338,9 @@ hs.functions.css_align = function(align) {
 }
 hs.functions.get_hexcolor = function(numcolor) {
     var _hex = "";
+    if (typeof numcolor == 'undefined') {
+        return;
+    }
     if (numcolor*1 >= 0) {
         _hex = "#" + ("000000" + parseInt(numcolor).toString(16).toUpperCase()).substr(-6);
         //debug(5,"get_hexcolor: " + numcolor + " = " + _hex);
