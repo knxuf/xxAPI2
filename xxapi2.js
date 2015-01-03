@@ -1305,7 +1305,7 @@ hs.functions.login_form = function(errortype) {
                 e.preventDefault();
                 hs.auth.username = $('#login_form > input[name="username"]').val();
                 hs.auth.password = $('#login_form > input[name="password"]').val();
-                hs.auth.gui_design = $('#login_form > select[name="cl"]').val();
+                hs.auth.gui_design = $('#login_form > [name="cl"]').val();
                 debug(5,"CHECKED: ",$('#login_form  input[name="remember"]').prop("checked"));
                 if ($('#login_form  input[name="remember"]').prop("checked")) {
                     localStorage.setItem('username',hs.auth.username);
