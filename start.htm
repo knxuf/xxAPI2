@@ -41,21 +41,6 @@
 <head>
 <title>xxAPI</title>
 <meta charset="utf-8">
-<base id='htmlbase' href="" target="_self">
-<script type='text/javascript'>
-"use strict";
-var get_query_parameter = function(item) {
-    var svalue = location.search.match(new RegExp("[\?\&]" + item + "=([^\&]*)(\&?)","i"));
-    return svalue ? svalue[1] : svalue;
-}
-var gitversion = get_query_parameter('git') || '';
-var gitbaseurl = "https://raw.github.com/knxuf/xxAPI2/";
-if (gitversion != '') {
-    gitbaseurl += gitversion + "/";
-    window.document.documentElement.removeAttribute('manifest');
-    document.getElementById("htmlbase").setAttribute('href', gitbaseurl);
-}
-</script>
 <meta id="meta_viewport" name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -122,12 +107,8 @@ if (gitversion != '') {
 -->
 <style id='PRELOAD_CSS' type='text/css'> body { background-color: #000000; }</style>
 <script type="text/javascript">
-if (gitversion) {
-    // FIXME alles unschön
-    $("head").append($("<link rel='stylesheet' href='https://knxuf.github.io/xxAPI2/libs/xxapi.css' type='text/css'>"));
-} else {
-    $.ajax({ url:"libs/xxapi.css", cache: true, complete: function(xhttpobj) { $("#PRELOAD_CSS").html(xhttpobj.responseText); } });
-}
+// BUGFIX HS sendet falschen MimeType
+$.ajax({ url:"libs/xxapi.css", cache: true, complete: function(xhttpobj) { $("#PRELOAD_CSS").html(xhttpobj.responseText); } });
 $("base").attr("href","");
 </script>
 

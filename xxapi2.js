@@ -1354,7 +1354,10 @@ jQuery.fn.vertical_align = function () {
  xxapi.functions.abc = new Function(" oarg ", "oarg.item.txt = ''; return false");
 */
 
-
+hs.functions.get_query_parameter = function(item) {
+    var svalue = location.search.match(new RegExp("[\?\&]" + item + "=([^\&]*)(\&?)","i"));
+    return svalue ? svalue[1] : svalue;
+}
 
 jQuery.fn.reverse = [].reverse;
 
@@ -1428,7 +1431,7 @@ hs.functions.stringify = function (obj) {
 }
 
 $(document).ready(function() {
-    if(get_query_parameter("logout")) {
+    if(hs.functions.get_query_parameter("logout")) {
         localStorage.removeItem('password');
         window.location.replace(location.protocol + '//' + location.host + location.pathname);
     }
