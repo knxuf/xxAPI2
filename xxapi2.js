@@ -41,7 +41,7 @@ $.x2js = new X2JS();
 $.xml2json = $.x2js.xml2json;
 
 var xxAPI = {};
-xxAPI.version = "2.012";
+xxAPI.version = "2.013";
 xxAPI.functions = {};
 xxAPI.XXLINKURL = "";
 xxAPI.registered_icons = {};
@@ -903,7 +903,6 @@ hs.functions.async.logged_in = function(  oarg ) {
         hs.user.refresh_mask  = oarg.json.HS.USR._refmask*1;
         hs.user.refresh_graf  = oarg.json.HS.USR._refgraf*1;
         hs.user.refresh_cam   = oarg.json.HS.USR._refcam*1;
-
     }
     
     // überprüfen ob die Schriften sich geändert haben
@@ -929,6 +928,26 @@ hs.functions.async.logged_in = function(  oarg ) {
     hs.functions.load_page( oarg );
 };
 
+hs.functions.update_timer = function( oarg ) {
+    if ( oarg.session.update_timer != null && oarg.cmd == "start") {
+        clearTimeout(oarg.session.update_timer)
+        //debug(5,"Update_timer: cleared",oarg);
+    } else {
+        hs.functions.make_request( {
+            "session"     : oarg.session,
+            "cmd"         : "gvu&id=" + oarg.session.active_page,
+            "page_id"     : oarg.session.active_page,
+        });
+    }
+    debug(5,"Update_timer:",oarg);
+    oarg.session.update_timer = setTimeout(function () {
+        hs.functions.update_timer ({
+            "session"   : oarg.session,
+            "cmd"       : "restart",
+        });
+    }, (hs.user.refresh_visu *1000));
+
+}
 
 hs.functions.do_command = function( oarg ) {
     // hascommand cmd=vcu
@@ -989,6 +1008,10 @@ hs.functions.load_page = function( oarg ) {
 
 hs.functions.async.gv = function( oarg ) {
     debug(5,"async.gv (" + oarg.session.target + "): ",oarg);
+    hs.functions.update_timer({
+        "session"   : oarg.session,
+        "cmd"       : "start",
+    });
     if (oarg.json.HS == "") {
         return false;
     }
