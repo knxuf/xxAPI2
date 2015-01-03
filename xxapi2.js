@@ -1,7 +1,7 @@
 /*
  * Copyright 2015, KNX-User-Forum e.V.
  * 
- *  This file is part of xxAPI2.
+ *     This file is part of xxAPI2.
  * 
  *     xxAPI2 is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU Lesser General Public License as published by
@@ -112,7 +112,7 @@ hs.functions.set_debuglevel = function ( level ) {
 xxAPI.functions.XXSCRIPT = function( oarg ) {
     var _item = oarg.item;
     if (_item.open_page > 0) {
-        debug(2,"alte xxAPI gefunden");
+        debug(2,"XXSCRIPT");
         _item.page.hidden = true;
         //window.setTimeout(function() {
             hs.functions.load_page( {
@@ -278,14 +278,15 @@ function debug(level,msg,obj) {
 
 
 hs.functions.xxapi_check = function( oarg ) {
+    var _text = oarg.item.text;
     if (oarg.item.type == "ICO") {
-        oarg.text = xxAPI.registered_icons[oarg.item.image] || '';
+        _text = xxAPI.registered_icons[oarg.item.image] || '';
     }
-    debug(3,"xxAPI Check: (" + oarg.item.uid + ") " + oarg.text ,oarg);
-    if (oarg.text.match(/^XX.*\*/) == null) {
+    if (_text.match(/^XX.*\*/) == null) {
         return;
     }
-    var args = oarg.text.split("*");
+    debug(3,"xxAPI Check: (" + oarg.item.uid + ") " + _text ,oarg);
+    var args = _text.split("*");
     var _func = xxAPI.functions[args[0]];
     if(typeof _func === 'function') {
         oarg.args = args;
@@ -350,32 +351,34 @@ hs.functions.hs_item = function( oarg ) {
     if (this.page.items.hasOwnProperty(this.uid)) {
 
         _item = this.page.items[this.uid];
+
+    } else {
+        _item.width  = parseInt(_json._w);
+        _item.height = parseInt(_json._h);
+        _item.top    = parseInt(_json._y);
+        _item.left   = parseInt(_json._x);
+        
+        _item.click       = (_json._click*1) == 1;
+        _item.has_command = (_json._hcmd*1) == 1;
+        _item.open_page   = parseInt(_json._pid   || -1);
+        _item.action_id   = parseInt(_json._typ   || -1);
+        _item.font        = parseInt(_json._fid   ||  0);
+        _item.align       = parseInt(_json._align ||  0);
+        _item.indent      = parseInt(_json._bord  ||  0);
+    }
+    
+    _item.color       = hs.functions.get_hexcolor( _json._fcol                || -1);
+    _item.bg_color    = hs.functions.get_hexcolor( _json._bgcol || _json._col || -1);
+    _item.text        = _json._txt ||   "";
+    _item.image       = _json._ico || null;
+    _item.url         = _json._url || null;
+
+    if (this.page.items.hasOwnProperty(this.uid)) {
         hs.functions.update_item( {
             "json"  : _json,
             "item"  : _item,
         });
-
     } else {
-
-        this.width  = parseInt(_json._w);
-        this.height = parseInt(_json._h);
-        this.top    = parseInt(_json._y);
-        this.left   = parseInt(_json._x);
-        
-        this.click       = (_json._click*1) == 1;
-        this.has_command = (_json._hcmd*1) == 1;
-        this.open_page   = parseInt(_json._pid   || -1);
-        this.action_id   = parseInt(_json._typ   || -1);
-        this.font        = parseInt(_json._fid   ||  0);
-        this.align       = parseInt(_json._align ||  0);
-        this.indent      = parseInt(_json._bord  ||  0);
-        
-        this.color       = hs.functions.get_hexcolor( _json._fcol                || -1);
-        this.bg_color    = hs.functions.get_hexcolor( _json._bgcol || _json._col || -1);
-        this.text        = _json._txt ||   "";
-        this.image       = _json._ico || null;
-        this.url         = _json._url || null;
-        
         // xxAPI
         this.xxapi = {};
         this.clickcode = null;
@@ -387,88 +390,93 @@ hs.functions.hs_item = function( oarg ) {
         hs.functions.xxapi_check( {
             "cmd"       : "create",
             "json"      : _json,
-            "text"      : _item.text,
             "item"      : _item,
         });
         
-        if (this.object == null) {
-            debug(5,"Create HTML Element " + this.uid,_json);
-            this.object = $("<div />", {
-                "id"        : this.uid,
+        if (_item.object == null) {
+            debug(5,"Create HTML Element " + _item.uid,_json);
+            _item.object = $("<div />", {
+                "id"        : _item.uid,
                 css         : {
                     "position"      : "absolute",
                     "display"       : "block",
                     "overflow"      : "hidden",
-                    "top"           : this.top,
-                    "left"          : this.left,
-                    "height"        : this.height + "px",
-                    "width"         : this.width  + "px",
-                    "line-height"   : this.height + "px",
+                    "top"           : _item.top,
+                    "left"          : _item.left,
+                    "height"        : _item.height + "px",
+                    "width"         : _item.width  + "px",
+                    "line-height"   : _item.height + "px",
                 }
             });
-            if (this.click) {
-                this.object.click(function (e) {
+            if (_item.click) {
+                _item.object.click(function (e) {
                     hs.functions.check_click( {
                         "item"      : _item,
                     });
                 });
             }
-            if (this.type == "BOX") {
-                if (this.width > 5 && this.height > 5) {
-                    this.object.css( {
-                        "width"             : (this.width  -2) + "px",
-                        "height"            : (this.height -2) + "px",
+            if (_item.type == "BOX") {
+                if (_item.width > 5 && _item.height > 5) {
+                    _item.object.css( {
+                        "width"             : (_item.width  -2) + "px",
+                        "height"            : (_item.height -2) + "px",
                         "border-width"      : "1px",
                         "border-style"      : "solid",
-                        "border-color"      : this.bg_color,
+                        "border-color"      : _item.bg_color,
                     });
                 }
-                this.object.css("background-color", this.bg_color);
+                _item.object.css("background-color", _item.bg_color);
 
             }
             
-            if (this.type == "TXT") {
-                this.object.css( hs.gui.fonts[this.font] );
-                this.object.css( hs.functions.css_align(this.align) );
-                this.object.css( {
-                    "background-color"  : this.bg_color,
-                    "color"             : this.color,
+            if (_item.type == "TXT") {
+                _item.object.css( hs.gui.fonts[_item.font] );
+                _item.object.css( hs.functions.css_align(_item.align) );
+                _item.object.css( {
+                    "background-color"  : _item.bg_color,
+                    "color"             : _item.color,
                 });
-                this.object.html(_item.text);
+                _item.object.html(_item.text);
             }
             
-            if (this.type == "CAM") {
-                var _url = _url != null ? "http://" + this.url : 
+            if (_item.type == "CAM") {
+                var _url = _url != null ? "http://" + _item.url : 
                     hs.functions.get_url ({ 
-                        "session"   : this.session, 
-                        "url"       : "/guicamv?id=" + this.id, 
+                        "session"   : _item.session, 
+                        "url"       : "/guicamv?id=" + _item.id, 
                         "cmd"       : "", 
                         });
             }
             
-            if (this.type == "GRAF") {
+            if (_item.type == "GRAF") {
                 var _url = hs.functions.get_url ({ 
-                    "session"   : this.session, 
-                    "url"       : "/guigrafv?id=" + this.id, 
+                    "session"   : _item.session, 
+                    "url"       : "/guigrafv?id=" + _item.id, 
                     "cmd"       : "",
                 });
             }
             
-            if (this.type == "ICO") {
-                var _url = "/guiico?id=" + this.image + "&cl=" + hs.auth.gui_design;
+            if (_item.type == "ICO") {
+                var _url = "/guiico?id=" + _item.image + "&cl=" + hs.auth.gui_design;
             }
             
-            if ( $.inArray(this.type, ["CAM","GRAF","ICO"]) > -1) {
+            if ( $.inArray(_item.type, ["CAM","GRAF","ICO"]) > -1) {
                 hs.functions.add_image( { 
-                    "item_object"   : this.object, 
-                    "item"          : this , 
+                    "item_object"   : _item.object, 
+                    "item"          : _item , 
                     "url"           : _url,
                 });
             }
+            _item.s_text = _item.text;
+            _item.s_color = _item.color;
+            _item.s_bg_color = _item.bg_color;
+            _item.s_image = _item.image;
+            _item.s_url = _item.url;
+
         }
-        this.page.items[this.uid] = this;
-        if(!this.hidden) {
-            this.page.object.append(this.object);
+        _item.page.items[_item.uid] = _item;
+        if(!_item.hidden) {
+            _item.page.object.append(_item.object);
         }
     }
     /*
@@ -476,64 +484,55 @@ hs.functions.hs_item = function( oarg ) {
 }
 
 hs.functions.update_item = function ( oarg ) {
-    var _json = oarg.json;
-    var _color    = hs.functions.get_hexcolor( _json._fcol                || -1);
-    var _bg_color = hs.functions.get_hexcolor( _json._bgcol || _json._col || -1);
-    var _text     = _json._txt ||   "";
-    var _image    = _json._ico || null;
-    var _url      = _json._url || null;
-    $.each(hs.gui.pages, function() {
-        var _tmp = null;
-
-        if (this.items.hasOwnProperty(oarg.item.uid)) {
-            var _item = this.items[oarg.item.uid];
-            
-            // xxAPI update check
-
-            hs.functions.xxapi_check( {
-                "cmd"       : "update",
-                "json"      : _json,
-                "text"      : _text,
-                "item"      : _item,
-            });
-
-            if ( $.inArray(_item.type, ["TXT"]) > -1) {
-                if (_color != _item.color) {
-                    _item.color = _color;
-                    _item.object.css("color",_color);
-                }
-                if (_text != _item.text) {
-                    debug(4,"TEXT CHANGED '" + _text + "' != '" + _item.text + "'")
-                    _item.text = _text;
-                    _item.object.html(_text);
-                }
-
-            }
-            if ( $.inArray(_item.type, ["TXT","BOX"]) > -1) {
-                if (_bg_color != _item.bg_color) {
-                    debug(4,"BOX/TEXT changed");
-                    _item.bg_color = _bg_color;
-                    _item.object.css({
-                        "background-color"  : _bg_color,
-                        "border-color"      : _bg_color,
-                    });
-                }
-            }
-            if ( $.inArray(_item.type, ["ICO"]) > -1) {
-                if (_json._ico != _item.image) {
-                    debug(4,"ICO changed")
-                    _item.image = _json._ico;
-                    
-                }
-                
-            }
-            if ( $.inArray(_item.type, ["CAM"]) > -1) {
-                if (_json._url != _item.url) {
-                    _item.url = _json._url;
-                }
-            }
-        }
+    var _item     = oarg.item;
+    var _json     = oarg.json;
+    
+    // xxAPI update check
+    hs.functions.xxapi_check( {
+        "cmd"       : "update",
+        "json"      : _json,
+        "item"      : _item,
     });
+    
+
+    if ( $.inArray(_item.type, ["TXT"]) > -1) {
+        if (_item.s_color != _item.color) {
+            debug(4,"COLOR CHANGED '" + _item.s_color + "' != '" + _item.color + "'")
+            _item.object.css("color",_item.color);
+        }
+        if (_item.s_text != _item.text) {
+            debug(4,"TEXT CHANGED '" + _item.s_text + "' != '" + _item.text + "'")
+            _item.object.html(_item.text);
+        }
+
+    }
+    if ( $.inArray(_item.type, ["TXT","BOX"]) > -1) {
+        if (_item.s_bg_color != _item.bg_color) {
+            debug(4,"BOX/TEXT BGCOLORT changed '" + _item.s_bg_color + "' != '" + _item.bg_color + "'");
+            _item.object.css({
+                "background-color"  : _item.bg_color,
+                "border-color"      : _item.bg_color,
+            });
+        }
+    }
+    if ( $.inArray(_item.type, ["ICO"]) > -1) {
+        if (_item.s_image != _item.image) {
+            debug(4,"ICO changed");
+            
+        }
+        
+    }
+    if ( $.inArray(_item.type, ["CAM"]) > -1) {
+        if (_item.s_url != _item.url) {
+            debug(4,"URL changed");
+        }
+    }
+    _item.s_text = _item.text;
+    _item.s_color = _item.color;
+    _item.s_bg_color = _item.bg_color;
+    _item.s_image = _item.image;
+    _item.s_url = _item.url;
+
 }
 
 
@@ -779,9 +778,9 @@ hs.functions.async.handler = function( oarg ) {
         // VISU Seite laden
         case "gv"       : hs.functions.async.gv( oarg ); break;
         // VISU Seite update
-        case "gvu"      : hs.functions.async.gvu( oarg ); break;
+        case "gvu"      : hs.functions.async.gv( oarg ); break;
         // VISU Seite update und Befehl
-        case "vcu"      : hs.functions.async.gvu( oarg ); break;
+        case "vcu"      : hs.functions.async.gv( oarg ); break;
         
         case "logout"   : break;
         default:
@@ -1010,13 +1009,6 @@ hs.functions.async.gv = function( oarg ) {
     var _page = new hs.functions.hs_page( oarg );
 };
 
-
-hs.functions.async.gvu = function( oarg ) {
-    debug(5,"async.gvu (" + oarg.session.target + "): ",oarg);
-    if (oarg.json.HS == "") {
-        return false;
-    }
-}
 hs.functions.check_click = function( oarg ) {
     debug(3,"check_click",oarg);
     var _item = oarg.item;
@@ -1081,6 +1073,13 @@ hs.functions.check_click = function( oarg ) {
                 /hsgui?cmd=timset&id=31&days=000000000&frm=1200&to=2100&act=0&hnd=4&code=A2669029CE
             */
             alert("Wochenschaltuhr noch nicht implementiert");
+            break;
+        case 9:
+            // Werteingabe
+            /*
+                /hsgui?cmd=valset&id=2&val=8.123456
+            */
+            alert("Werteingabe noch nicht implementiert");
             break;
         case 12:
             // Datum/Zeit setzen
