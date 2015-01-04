@@ -246,6 +246,7 @@ xxAPI.functions.XXGEOLOCATE = function ( oarg ) {
         xxAPI.functions.geolocation_error,
         _options
     );
+    oarg.item.text = "";
 }
 
 xxAPI.functions.XXGEOLOCATION = function ( oarg ) {
@@ -254,6 +255,7 @@ xxAPI.functions.XXGEOLOCATION = function ( oarg ) {
         debug(1,"ERROR: " + oarg.item.text + " Keine Werteingabe");
     }
     xxAPI.geolocation[oarg.args[1]] = oarg.item.id;
+    oarg.item.text = "";
 }
 
 xxAPI.functions.geturl = function ( url ) {
@@ -397,7 +399,7 @@ hs.functions.hs_item = function( oarg ) {
             debug(5,"Create HTML Element " + _item.uid,_json);
             _item.object = $("<div />", {
                 "id"        : _item.uid,
-                css         : {
+                "css"         : {
                     "position"      : "absolute",
                     "display"       : "block",
                     "overflow"      : "hidden",
@@ -406,7 +408,9 @@ hs.functions.hs_item = function( oarg ) {
                     "height"        : _item.height + "px",
                     "width"         : _item.width  + "px",
                     "line-height"   : _item.height + "px",
-                }
+                },
+                "class"         : "visuelement"
+                
             });
             if (_item.click) {
                 _item.object.click(function (e) {
@@ -414,6 +418,7 @@ hs.functions.hs_item = function( oarg ) {
                         "item"      : _item,
                     });
                 });
+                _item.object.addClass("visuclickelement");
             }
             if (_item.type == "BOX") {
                 if (_item.width > 5 && _item.height > 5) {
@@ -538,6 +543,9 @@ hs.functions.update_item = function ( oarg ) {
 
 hs.functions.add_image = function ( oarg ) {
     debug(5,"add_image",oarg);
+    if ( $.inArray(oarg.item.type, ["GRAF","CAM"]) > -1) {
+        oarg.item_object.css("display","none");
+    };
     oarg.item_object.append( 
         $("<img />", {
             // "id"        : oarg.session.target + "_PAGE_" + oarg.page_id + "_" + _item.id + "_IMG",
@@ -550,6 +558,9 @@ hs.functions.add_image = function ( oarg ) {
             },
             "on"        : {
                 "dragstart" : function () { return false; },
+                "load"      : function () { 
+                    $(this).parent().fadeIn(30);
+                },
             }    
         })
     );
@@ -592,7 +603,8 @@ hs.functions.hs_page = function( oarg ) {
             "overflow"  : "hidden",
             "width"     : this.width,
             "height"    : this.height,
-        }
+        },
+        "class"         : "visupage",
     });
     if (this.bg_image != "XXTRSPBG") {
         this.object.append( 
@@ -602,7 +614,7 @@ hs.functions.hs_page = function( oarg ) {
                 "alt"       : " ",
                 "on"        : {
                     "dragstart" : function () { return false; },
-                }    
+                }
             })
         );
         

@@ -4,19 +4,16 @@ body {
     cursor: default !important;
 }
 
-[id*=_TXT_] {
+.visuelement > img, .visuelement  {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     -webkit-user-drag: none;
     border: 0;
 }
-[id*=_ICO_],[id$=_BGIMG] > img {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    -webkit-user-drag: none;
-    border: 0;
+
+.visuclickelement {
+    cursor: pointer !important;
 }
 
 iframe {
