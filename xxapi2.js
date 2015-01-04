@@ -837,12 +837,17 @@ hs.functions.error_handler = function( oarg ) {
                 _error = _error.substring(0,17);
             }
             if (_error == "") {
+                if (typeof oarg.xhttpobj.responseXML == 'undefined') {
+                    debug(5,"no valid XML received");
+                    var _xml = hs.functions.fix_xml(oarg.xhttpobj.responseText);
+                    oarg.xhttpobj.responseXML = $.parseXML(_xml)
+                }
                 try {
                     var _json =  $.xml2json(oarg.xhttpobj.responseXML);
                     return _json;
                 } catch (e) {
                     _error = e.toString();
-                    alert(oarg.xhttpobj.responseText);
+                    debug(0,"XML-ERROR: ",oarg.xhttpobj);
                 }
             }
         }
@@ -859,6 +864,34 @@ hs.functions.error_handler = function( oarg ) {
         default                 : alert("Error " + _error); break
     }
     return (_error == "");
+}
+
+hs.functions.fix_xml = function ( brokenxml ) {
+    debug(5,"fix_xml: broken xml ",{ "xml": brokenxml });
+    var _attribute_regex = new RegExp(/\"(.*?)\"/gm);
+    var _entitymap = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+    };
+    var _entitiyregex = new RegExp(/[&<>]/g);
+    
+    var _xml = brokenxml;
+    var _result = null;
+    while (( _result = _attribute_regex.exec(brokenxml)) !== null) {
+        var _match = _result[1];
+        if (_match.match(_entitiyregex) == null) {
+            continue;
+        }
+        var _match_len = _match.length;
+        _match = _match.replace(_entitiyregex, function (entity) {
+            return _entitymap[entity];
+        });
+        var _xml_len = _xml.length;
+        var _index = _result.index;
+        _xml = _xml.substr(0,_index +1 ) + _match + _xml.substr(_index + _match_len ,_xml_len - _index + _match_len);
+    }
+    return _xml;
 }
 
 hs.functions.login_init = function( oarg ) {
