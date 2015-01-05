@@ -219,6 +219,12 @@ xxAPI.functions.XXREGICON = function ( oarg ) {
     }
 }
 
+xxAPI.functions.XXWRAPTEXT = function ( oarg ) {
+    oarg.item.customcss["white-space"] = "normal";
+    oarg.item.customcss["line-height"] = "100%";
+    oarg.item.text = oarg.item.text.substring(11);
+}
+
 xxAPI.functions.geolocation_callback = function ( position ) {
     debug(2,"GEOLOCATION Received",position);
     xxAPI.functions.geolocation_send("timestamp",position.timestamp);
@@ -384,6 +390,7 @@ hs.functions.hs_item = function( oarg ) {
     } else {
         // xxAPI
         this.xxapi = {};
+        this.customcss = {};
         this.clickcode = null;
         this.mousedowncode = null;
         this.mouseupcode = null;
@@ -447,7 +454,12 @@ hs.functions.hs_item = function( oarg ) {
                 if (_item.html == null) {
                     var _txtobject = $("<span />").text(_item.text);
                     if (_item.indent > 0) {
-                        _txtobject.css( "margin-" + _item.align,_item.indent + "px");
+                        if ($.inArray(_item.align,["left","center"]) > -1) {
+                            _txtobject.css( "margin-left",_item.indent + "px");
+                        } 
+                        if ($.inArray(_item.align,["center","right"]) > -1) {
+                            _txtobject.css( "margin-right",_item.indent + "px");
+                        } 
                     }
                     _item.object.append(_txtobject);
                 } else {
@@ -488,6 +500,7 @@ hs.functions.hs_item = function( oarg ) {
             _item.s_bg_color = _item.bg_color;
             _item.s_image = _item.image;
             _item.s_url = _item.url;
+            _item.object.css(_item.customcss);
 
         }
         _item.page.items[_item.uid] = _item;
