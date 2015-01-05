@@ -403,7 +403,6 @@ hs.functions.hs_item = function( oarg ) {
                 "css"         : {
                     "position"      : "absolute",
                     "display"       : "block",
-                    "overflow"      : "hidden",
                     "top"           : _item.top,
                     "left"          : _item.left,
                     "height"        : _item.height + "px",
@@ -421,7 +420,7 @@ hs.functions.hs_item = function( oarg ) {
                 });
                 _item.object.addClass("visuclickelement");
             } else {
-                _item.object.css("pointer-events","none");
+                //_item.object.css("pointer-events","none");
             }
             if (_item.type == "BOX") {
                 if (_item.width > 5 && _item.height > 5) {

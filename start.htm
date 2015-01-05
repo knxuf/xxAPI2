@@ -68,10 +68,12 @@
 <link rel="stylesheet" href="libs/xxapi.css">
 -->
 <style id='PRELOAD_CSS' type='text/css'> body { background-color: #000000; }</style>
+<style id='CUSTOM_CSS' type='text/css'></style>
 <script type="text/javascript">
 // BUGFIX HS sendet falschen MimeType
 $.ajax({ url:"libs/xxapi.css", cache: true, complete: function(xhttpobj) { $("#PRELOAD_CSS").html(xhttpobj.responseText); } });
 $("base").attr("href","");
+$.ajax({ url:"custom.css", cache: true, complete: function(xhttpobj) { $("#CUSTOM_CSS").html(xhttpobj.responseText); } });
 </script>
 
 

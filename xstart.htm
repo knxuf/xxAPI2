@@ -61,9 +61,11 @@
 <script src="xxapi2.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="libs/xxapi.css">
+<style id='CUSTOM_CSS' type='text/css'></style>
 <script type="text/javascript">
 // Clear Base
 $("base").attr("href","");
+$.ajax({ url:"custom.css", cache: true, complete: function(xhttpobj) { $("#CUSTOM_CSS").html(xhttpobj.responseText); } });
 </script>
 
 
