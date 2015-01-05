@@ -158,12 +158,16 @@ xxAPI.functions.XXHTTP = function ( oarg ) {
 
 xxAPI.functions.XXIFRAME = function ( oarg ) {
     debug(2,"XXIFRAME:",oarg);
-    if (oarg.args.length < 3) {
-        oarg.item.html = "<iframe src='" + xxAPI.XXLINKURL + "' " +
-        "width='" + oarg.item.width + "px' " +
-        "height='" + oarg.item.height + "px' " +
-        "allowtransparency='true'>";
+    var _url = xxAPI.XXLINKURL;
+    if (oarg.args.length > 1) {
+        _url = oarg.args[1];
     }
+    oarg.item.html = "<iframe src='" + _url + "' " +
+    "width='" + oarg.item.width + "px' " +
+    "height='" + oarg.item.height + "px' " +
+    "allowtransparency='true'>";
+    oarg.item.click = 1;
+
 }
 xxAPI.functions.XXEXECUTE = function ( oarg ) {
     debug(2,"XXEXECUTE:",oarg);
