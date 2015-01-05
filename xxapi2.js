@@ -437,7 +437,7 @@ hs.functions.hs_item = function( oarg ) {
             
             if (_item.type == "TXT") {
                 _item.object.css( hs.gui.fonts[_item.font] );
-                _item.object.css( hs.functions.css_align(_item.align) );
+                _item.object.css( hs.functions.css_align(_item.align, _item.indent) );
                 _item.object.css( {
                     "background-color"  : _item.bg_color,
                     "color"             : _item.color,
@@ -1404,14 +1404,23 @@ hs.functions.login_form = function(errortype) {
 }
 
 
-hs.functions.css_align = function(align) {
+hs.functions.css_align = function(align, indent) {
     switch (parseInt(align)) {
         case 1:
-            return {"text-align" :"left" };
+            return {
+                "text-align"    : "left",
+                "text-indent"   : indent + "px",
+            };
         case 2:
-            return {"text-align" :"center"};
+            return {
+                "text-align" :"center",
+            };
         case 3:
-            return {"text-align" :"right"};
+            return { 
+                "text-align"    :"right",
+                "direction"     : "rtl",
+                "text-indent"   : indent + "px",
+            };
     }
     return {}
 }
