@@ -513,7 +513,11 @@ hs.functions.update_item = function ( oarg ) {
         }
         if (_item.s_text != _item.text) {
             debug(4,"TEXT CHANGED '" + _item.s_text + "' != '" + _item.text + "'")
-            _item.object.html(_item.text);
+            if (_item.html == null) {
+                _item.object.children().text(_item.text);
+            } else {
+                _item.object.html(_item.html);
+            }
         }
 
     }
