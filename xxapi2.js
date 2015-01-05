@@ -361,7 +361,7 @@ hs.functions.hs_item = function( oarg ) {
         _item.open_page   = parseInt(_json._pid   || -1);
         _item.action_id   = parseInt(_json._typ   || -1);
         _item.font        = parseInt(_json._fid   ||  0);
-        _item.align       = parseInt(_json._align ||  0);
+        _item.align       = hs.functions.number2align( parseInt(_json._align ||  0));
         _item.indent      = parseInt(_json._bord  ||  0);
     }
     
@@ -433,14 +433,18 @@ hs.functions.hs_item = function( oarg ) {
             
             if (_item.type == "TXT") {
                 _item.object.css( hs.gui.fonts[_item.font] );
-                _item.object.css( hs.functions.css_align(_item.align, _item.indent) );
                 _item.object.css( {
                     "background-color"  : _item.bg_color,
                     "color"             : _item.color,
                     "white-space"       : "nowrap",
+                    "text-align"        : _item.align,
                 });
                 if (_item.html == null) {
-                    _item.object.text(_item.text);
+                    var _txtobject = $("<span />").text(_item.text);
+                    if (_item.indent > 0) {
+                        _txtobject.css( "margin-" + _item.align,_item.indent + "px");
+                    }
+                    _item.object.append(_txtobject);
                 } else {
                     _item.object.html(_item.html);
                 }
@@ -1394,25 +1398,16 @@ hs.functions.login_form = function(errortype) {
 
 }
 
-hs.functions.css_align = function(align, indent) {
+hs.functions.number2align = function(align) {
     switch (parseInt(align)) {
         case 1:
-            return {
-                "text-align"    : "left",
-                "text-indent"   : indent + "px",
-            };
+            return "left"
         case 2:
-            return {
-                "text-align" :"center",
-            };
+            return "center"
         case 3:
-            return { 
-                "text-align"    :"right",
-                "direction"     : "rtl",
-                "text-indent"   : indent + "px",
-            };
-    }
-    return {}
+            return "right"
+    };
+    return ""
 }
 hs.functions.get_hexcolor = function(numcolor) {
     var _hex = "";
