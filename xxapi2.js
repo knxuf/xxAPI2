@@ -47,7 +47,6 @@ xxAPI.XXLINKURL = "";
 xxAPI.registered_icons = {};
 xxAPI.geolocation = {}
 
-
 // Homeserver Object
 var hs = {};
 hs.functions = {};
@@ -123,7 +122,6 @@ xxAPI.functions.XXSCRIPT = function( oarg ) {
     }
 }
 
-
 xxAPI.functions.XXHTML = function ( oarg ) {
     debug(2,"XXHTML:",oarg);
     var _html = oarg.args[1] || "";
@@ -158,7 +156,6 @@ xxAPI.functions.XXHTTP = function ( oarg ) {
     oarg.item.text = oarg.args[1];
 }
 
-
 xxAPI.functions.XXIFRAME = function ( oarg ) {
     debug(2,"XXIFRAME:",oarg);
     if (oarg.args.length < 3) {
@@ -191,6 +188,7 @@ xxAPI.functions.XXEXECUTE = function ( oarg ) {
         debug(1,"XXEXECUTE_ERROR:",e);
     }
 }
+
 xxAPI.functions.XXLONGPRESS = function ( oarg ) {
     debug(2,"XXLONGPRESS",oarg);
     var _item = oarg.item;
@@ -278,7 +276,6 @@ function debug(level,msg,obj) {
     }
 }
 
-
 hs.functions.xxapi_check = function( oarg ) {
     var _text = oarg.item.text;
     if (oarg.item.type == "ICO") {
@@ -335,7 +332,6 @@ hs.functions.hs_session = function(target,start_id) {
 
     return this;
 }
-
 
 hs.functions.hs_item = function( oarg ) {
     var _json = oarg.json;
@@ -546,7 +542,6 @@ hs.functions.update_item = function ( oarg ) {
 
 }
 
-
 hs.functions.add_image = function ( oarg ) {
     debug(5,"add_image",oarg);
     if ( $.inArray(oarg.item.type, ["GRAF","CAM"]) > -1) {
@@ -571,7 +566,6 @@ hs.functions.add_image = function ( oarg ) {
         })
     );
 }
-
 
 hs.functions.hs_page = function( oarg ) {
     this.page_id    = oarg.page_id;
@@ -725,7 +719,6 @@ hs.functions.get_url = function( oarg ) {
     return oarg.url;
 };
 
-
 hs.functions.make_request = function ( oarg ) {
     // based on jquery-ajaxQueue
     debug(5,"make_request (" + oarg.session.target + "): " + oarg.cmd + " / id=" + oarg.id + " / url=" + oarg.url);
@@ -779,7 +772,6 @@ hs.functions.make_request = function ( oarg ) {
 
     return promise;
 }
-
 
 hs.functions.async.handler = function( oarg ) {
     debug(5,"async_handler (" + oarg.session.target + ") : " + oarg.cmd + " / id=" + oarg.id ,oarg);
@@ -1025,7 +1017,6 @@ hs.functions.update_timer = function( oarg ) {
             "cmd"       : "restart",
         });
     }, (hs.user.refresh_visu *1000));
-
 }
 
 hs.functions.do_command = function( oarg ) {
@@ -1040,7 +1031,9 @@ hs.functions.do_command = function( oarg ) {
 hs.functions.load_page = function( oarg ) {
     debug(5,"load_page (" + oarg.session.target + "): " + oarg.page_id + " (" + oarg.command_id + ")");
     oarg.session.start_id = oarg.page_id;
-    if (typeof oarg.id == "undefined") { oarg.command_id = -1; }
+    if (typeof oarg.id == "undefined") { 
+        oarg.command_id = -1; 
+    }
 
     var _extra_request = "";
     if (oarg.command_id > -1) {
@@ -1239,8 +1232,6 @@ hs.functions.check_click = function( oarg ) {
         default:
             alert("Funktionstyp " + _item.action_id + " noch nicht implementiert");
     }
-
-
 }
 
 hs.functions.logout = function() {
@@ -1403,7 +1394,6 @@ hs.functions.login_form = function(errortype) {
 
 }
 
-
 hs.functions.css_align = function(align, indent) {
     switch (parseInt(align)) {
         case 1:
@@ -1455,20 +1445,6 @@ function string_cut_after_match(str,pattern) {
     }
     return _str;
 }
-
-/*
-jQuery.fn.vertical_align = function () {
-    debug(5,"vertical_align:",$(this).parent());
-    return this
-            .css("margin-top",($(this).parent().height() - $(this).height())/2 + 'px' )
-};
-*/
-
-
-/*
- return true == item wird weiter verarbeitet / false abruch nächstes item
- xxapi.functions.abc = new Function(" oarg ", "oarg.item.txt = ''; return false");
-*/
 
 hs.functions.get_query_parameter = function(item) {
     var svalue = location.search.match(new RegExp("[\?\&]" + item + "=([^\&]*)(\&?)","i"));
