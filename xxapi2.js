@@ -344,7 +344,7 @@ hs.functions.hs_item = function( oarg ) {
     this.type   = oarg.item_type;
     this.session = oarg.session;
 
-    this.page_id = oarg.page_id;
+    this.page_id = oarg.page.page_id;
     this.page = oarg.page;
     this.uid = this.session.target + "_PAGE_" + this.page_id + "_" + this.type + "_" + this.id;
     
@@ -581,8 +581,8 @@ hs.functions.hs_page = function( oarg ) {
         }
         return oarg.page;
     }
-    debug(5,"create new Page: ",oarg);
     oarg.page = this;
+    debug(5,"create new Page: ",oarg);
     var _json = oarg.json;
     hs.gui.pages[this.id] = this;
     this.visible    = false;
@@ -619,7 +619,11 @@ hs.functions.hs_page = function( oarg ) {
         );
         
     } 
-    hs.functions.loop_items( oarg );
+    hs.functions.loop_items( {
+        "session"       : oarg.session,
+        "json"          : oarg.json,
+        "page"          : this,
+    } );
     hs.functions.fade_page( oarg.page );
     if (!this.hidden) {
         $("#" + oarg.session.target).append(this.object);
@@ -838,7 +842,6 @@ hs.functions.error_handler = function( oarg ) {
             }
             if (_error == "") {
                 if (typeof oarg.xhttpobj.responseXML == 'undefined') {
-                    debug(5,"no valid XML received");
                     var _xml = hs.functions.fix_xml(oarg.xhttpobj.responseText);
                     oarg.xhttpobj.responseXML = $.parseXML(_xml)
                 }
@@ -866,30 +869,55 @@ hs.functions.error_handler = function( oarg ) {
     return (_error == "");
 }
 
+hs.functions.swap_object = function( obj ) {
+    var _ret = {};
+    for (var key in obj) {
+        _ret[obj[key]] = key;
+    }
+    return _ret;
+}
+
+hs.functions.entity = new (function() {
+    var map = {
+        "&" : "&amp;",
+        "<" : "&lt;",
+        ">" : "&gt;",
+        '"' : "&quot;",
+        "'" : "&apos;",
+    };
+    var rmap = hs.functions.swap_object( map ); 
+
+    this.encode_regex = new RegExp("[" + Object.keys(map).join("") + "]","g");
+    this.decode_regex = new RegExp("[" + Object.keys(rmap).join("") + "]","g");
+    var entityobj = this;
+    this.encode = function ( text ) {
+        return text.replace(this.encode_regex, function (entity) {
+            return map[entity];
+        });
+    }
+    this.decode = function ( text ) {
+        return text.replace(this.decode_regex, function (entity) {
+            return rmap[entity];
+        });
+    }
+    return this;
+})();
+
 hs.functions.fix_xml = function ( brokenxml ) {
     debug(5,"fix_xml: broken xml ",{ "xml": brokenxml });
-    var _attribute_regex = new RegExp(/\"(.*?)\"/gm);
-    var _entitymap = {
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-    };
-    var _entitiyregex = new RegExp(/[&<>]/g);
-    
+    var _attribute_regex = new RegExp(/=\"(.*?)\"/gm);
     var _xml = brokenxml;
     var _result = null;
     while (( _result = _attribute_regex.exec(brokenxml)) !== null) {
         var _match = _result[1];
-        if (_match.match(_entitiyregex) == null) {
+        if (_match.match(hs.functions.entity.encode_regex) == null) {
             continue;
         }
         var _match_len = _match.length;
-        _match = _match.replace(_entitiyregex, function (entity) {
-            return _entitymap[entity];
-        });
+        _match = hs.functions.entity.encode(_match);
         var _xml_len = _xml.length;
-        var _index = _result.index;
-        _xml = _xml.substr(0,_index +1 ) + _match + _xml.substr(_index + _match_len ,_xml_len - _index + _match_len);
+        var _index = _result.index +2; 
+        _xml = _xml.substr(0,_index ) + _match + _xml.substr(_index + _match_len ,_xml_len - _index + _match_len);
     }
     return _xml;
 }
