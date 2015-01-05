@@ -19,6 +19,7 @@ body {
 
 iframe {
     -webkit-user-drag: auto;
+    border: 0px;
     background-color: transparent;
 }
 
