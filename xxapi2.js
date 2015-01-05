@@ -133,13 +133,13 @@ xxAPI.functions.XXHTML = function ( oarg ) {
     _html = _html.replace(/\? /g, "\" ");
     _html = _html.replace(/\?\]/g, "\">");
     _html = _html.replace(/\]/g, ">");
-    oarg.item.text = _html;
+    oarg.item.html = _html;
 }
 
 xxAPI.functions.XXEHTML = function ( oarg ) {
     debug(2,"XXEHTML:",oarg);
     var _html = $.base64.decode(oarg.args[1]);
-    oarg.item.text = _html;
+    oarg.item.html = _html;
 }
 
 xxAPI.functions.XXLINK = function ( oarg ) {
@@ -162,7 +162,7 @@ xxAPI.functions.XXHTTP = function ( oarg ) {
 xxAPI.functions.XXIFRAME = function ( oarg ) {
     debug(2,"XXIFRAME:",oarg);
     if (oarg.args.length < 3) {
-        oarg.item.text = "<iframe src='" + xxAPI.XXLINKURL + "' " +
+        oarg.item.html = "<iframe src='" + xxAPI.XXLINKURL + "' " +
         "width='" + oarg.item.width + "px' " +
         "height='" + oarg.item.height + "px' " +
         "allowtransparency='true'>";
@@ -372,6 +372,7 @@ hs.functions.hs_item = function( oarg ) {
     _item.color       = hs.functions.get_hexcolor( _json._fcol ) || _item.color || "transparent";
     _item.bg_color    = hs.functions.get_hexcolor( _json._bgcol || _json._col) || _item.bg_color || "transparent";
     _item.text        = _json._txt ||   "";
+    _item.html        = null;
     _item.image       = _json._ico || null;
     _item.url         = _json._url || null;
 
@@ -440,8 +441,13 @@ hs.functions.hs_item = function( oarg ) {
                 _item.object.css( {
                     "background-color"  : _item.bg_color,
                     "color"             : _item.color,
+                    "white-space"       : "nowrap",
                 });
-                _item.object.html(_item.text);
+                if (_item.html == null) {
+                    _item.object.text(_item.text);
+                } else {
+                    _item.object.html(_item.html);
+                }
             }
             
             if (_item.type == "CAM") {
