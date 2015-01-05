@@ -416,6 +416,8 @@ hs.functions.hs_item = function( oarg ) {
                     });
                 });
                 _item.object.addClass("visuclickelement");
+            } else {
+                _item.object.css("pointer-events","none");
             }
             if (_item.type == "BOX") {
                 if (_item.width > 5 && _item.height > 5) {
