@@ -221,7 +221,7 @@ xxAPI.functions.XXREGICON = function ( oarg ) {
 
 xxAPI.functions.XXWRAPTEXT = function ( oarg ) {
     oarg.item.customcss["white-space"] = "normal";
-    oarg.item.customcss["line-height"] = "100%";
+    oarg.item.customcss["line-height"] = "130%";
     oarg.item.text = oarg.item.text.substring(11);
 }
 
