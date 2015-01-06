@@ -45,7 +45,8 @@ xxAPI.version = "2.015";
 xxAPI.functions = {};
 xxAPI.XXLINKURL = "";
 xxAPI.registered_icons = {};
-xxAPI.geolocation = {}
+xxAPI.marked_pages = {};
+xxAPI.geolocation = {};
 
 // Homeserver Object
 var hs = {};
@@ -193,6 +194,36 @@ xxAPI.functions.XXEXECUTE = function ( oarg ) {
     }
 }
 
+xxAPI.functions.XXMARK = function ( oarg ) {
+    debug(2,"XXMARK",oarg);
+    oarg.item.hidden = true;
+}
+
+xxAPI.functions.XXMODUL = function ( oarg ) {
+    debug(2,"XXMODUL",oarg);
+    oarg.item.text = '';
+}
+
+xxAPI.functions.XXMODULCLICK = function ( oarg ) {
+    debug(2,"XXMODULCLICK",oarg);
+    oarg.item.text = '';
+}
+
+xxAPI.functions.XXCLICK = function ( oarg ) {
+    debug(2,"XXCLICK",oarg);
+    oarg.item.text = '';
+}
+
+xxAPI.functions.XXTRIGGER = function ( oarg ) {
+    debug(2,"XXTRIGGER",oarg);
+    oarg.item.hidden = true;
+}
+
+xxAPI.functions.XXIMG = function ( oarg ) {
+    debug(2,"XXIMG",oarg);
+    oarg.item.text = '';
+}
+
 xxAPI.functions.XXLONGPRESS = function ( oarg ) {
     debug(2,"XXLONGPRESS",oarg);
     var _item = oarg.item;
@@ -217,9 +248,11 @@ xxAPI.functions.XXREGICON = function ( oarg ) {
     if (_args.length > 2) {
         xxAPI.registered_icons[_args[1]] = _args.slice(2).join("*");
     }
+    oarg.item.hidden = true;
 }
 
 xxAPI.functions.XXWRAPTEXT = function ( oarg ) {
+    debug(2,"XXWRAPTEXT",oarg);
     oarg.item.customcss["white-space"] = "normal";
     oarg.item.customcss["line-height"] = "130%";
     oarg.item.text = oarg.item.text.substring(11);
