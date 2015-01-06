@@ -41,7 +41,7 @@ $.x2js = new X2JS();
 $.xml2json = $.x2js.xml2json;
 
 var xxAPI = {};
-xxAPI.version = "2.014";
+xxAPI.version = "2.015";
 xxAPI.functions = {};
 xxAPI.XXLINKURL = "";
 xxAPI.registered_icons = {};
@@ -347,7 +347,7 @@ hs.functions.hs_item = function( oarg ) {
     var _json = oarg.json;
     this.json = _json;
     this.id     = _json._pos || _json._id;
-    this.type   = oarg.item_type;
+    this.type   = _json._type;
     this.session = oarg.session;
 
     this.page_id = oarg.page.page_id;
@@ -608,7 +608,7 @@ hs.functions.hs_page = function( oarg ) {
         return oarg.page;
     }
     oarg.page = this;
-    debug(5,"create new Page: ",oarg);
+    debug(4,"create new Page: ",oarg);
     var _json = oarg.json;
     hs.gui.pages[this.id] = this;
     this.visible    = false;
@@ -865,10 +865,19 @@ hs.functions.error_handler = function( oarg ) {
                 _error = _error.substring(0,17);
             }
             if (_error == "") {
-                if (typeof oarg.xhttpobj.responseXML == 'undefined') {
-                    var _xml = hs.functions.fix_xml(oarg.xhttpobj.responseText);
+                var _xml = oarg.xhttpobj.responseText;
+                if (typeof oarg.xhttpobj.responseXML == 'undefined' || _xml.match(/<HS>.*?<ITEMS>.*?(<\/ITEMS>)/gm)) {
+                    if (typeof oarg.xhttpobj.responseXML == 'undefined') {
+                        _xml = hs.functions.fix_xml(oarg.xhttpobj.responseText);
+                    }
+                    // fix item order
+                    _xml = _xml.replace(/<(TXT|BOX|ICO|GRAF|CAM)\s(?:id|pos)=.*?\/>/g, function(match, capture) {
+                        return match.replace(capture,'ITEM type="' + capture + '"');
+                    });
                     oarg.xhttpobj.responseXML = $.parseXML(_xml)
+
                 }
+
                 try {
                     var _json =  $.xml2json(oarg.xhttpobj.responseXML);
                     return _json;
