@@ -899,12 +899,12 @@ hs.functions.error_handler = function( oarg ) {
             }
             if (_error == "") {
                 var _xml = oarg.xhttpobj.responseText;
-                if (typeof oarg.xhttpobj.responseXML == 'undefined' || _xml.match(/<HS>.*?<ITEMS>.*?(<\/ITEMS>)/gm)) {
+                if (typeof oarg.xhttpobj.responseXML == 'undefined' || _xml.match(/<HS>.*?<ITEMS>[^]*?(<\/ITEMS>)/gm)) {
                     if (typeof oarg.xhttpobj.responseXML == 'undefined') {
                         _xml = hs.functions.fix_xml(oarg.xhttpobj.responseText);
                     }
                     // fix item order
-                    _xml = _xml.replace(/<(TXT|BOX|ICO|GRAF|CAM)\s(?:id|pos)=.*?\/>/g, function(match, capture) {
+                    _xml = _xml.replace(/<(TXT|BOX|ICO|GRAF|CAM)\s(?:id|pos)=[^]*?\/>/g, function(match, capture) {
                         return match.replace(capture,'ITEM type="' + capture + '"');
                     });
                     oarg.xhttpobj.responseXML = $.parseXML(_xml)
