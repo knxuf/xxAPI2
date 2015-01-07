@@ -51,8 +51,10 @@ xxAPI.geolocation = {};
 // Homeserver Object
 var hs = {};
 hs.regex = {
-    hs_xml_error : new RegExp("(?:<ERROR>|<ERR code=\")(.*?)(?:<\/ERROR>|\"\/>)","g"),
-    hs_login_designs : new RegExp('.*<td>(.*?name="cl".*?)<\/td>'),
+    hs_xml_error : new RegExp(/(?:<ERROR>|<ERR code=\")(.*?)(?:<\/ERROR>|\"\/>)/g),
+    hs_login_designs : new RegExp(/.*<td>(.*?name="cl".*?)<\/td>/),
+    hs_items_in_xml : new RegExp(/<HS>.*?<ITEMS>[^]*?(<\/ITEMS>)/gm),
+    hs_convert_to_item : new RegExp(/<(TXT|BOX|ICO|GRAF|CAM)\s(?:id|pos)=[^]*?\/>/g),
     xml_attributes : new RegExp(/=\"(.*?)\"/gm),
 }
 hs.functions = {};
@@ -903,12 +905,12 @@ hs.functions.error_handler = function( oarg ) {
             }
             if (_error == "") {
                 var _xml = oarg.xhttpobj.responseText;
-                if (typeof oarg.xhttpobj.responseXML == 'undefined' || _xml.match(/<HS>.*?<ITEMS>[^]*?(<\/ITEMS>)/gm)) {
+                if (typeof oarg.xhttpobj.responseXML == 'undefined' || hs.regex.hs_items_in_xml.test(_xml)) {
                     if (typeof oarg.xhttpobj.responseXML == 'undefined') {
                         _xml = hs.functions.fix_xml(oarg.xhttpobj.responseText);
                     }
                     // fix item order
-                    _xml = _xml.replace(/<(TXT|BOX|ICO|GRAF|CAM)\s(?:id|pos)=[^]*?\/>/g, function(match, capture) {
+                    _xml = _xml.replace(hs.regex.hs_convert_to_item, function(match, capture) {
                         return match.replace(capture,'ITEM type="' + capture + '"');
                     });
                     oarg.xhttpobj.responseXML = $.parseXML(_xml)
