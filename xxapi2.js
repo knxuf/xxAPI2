@@ -50,6 +50,11 @@ xxAPI.geolocation = {};
 
 // Homeserver Object
 var hs = {};
+hs.regex = {
+    hs_xml_error : new RegExp("(?:<ERROR>|<ERR code=\")(.*?)(?:<\/ERROR>|\"\/>)","g"),
+    hs_login_designs : new RegExp('.*<td>(.*?name="cl".*?)<\/td>'),
+    xml_attributes : new RegExp(/=\"(.*?)\"/gm),
+}
 hs.functions = {};
 hs.functions.async = {};
 hs.session = {};  // keyname ist target
@@ -870,7 +875,6 @@ hs.functions.error_handler = function( oarg ) {
     // <HS><ERR code="99"></ERR></HS>
     // <HS><ERROR>Timeout !!</ERROR></HS>
     debug(5,"error_handler: (" + oarg.cmd + ")", oarg.xhttpobj);
-    var _error_xml_regex = new RegExp("(?:<ERROR>|<ERR code=\")(.*?)(?:<\/ERROR>|\"\/>)","g");
     var _error = ""
     if (typeof oarg.xhttpobj != 'undefined') {
         if (!navigator.onLine) {
@@ -892,7 +896,7 @@ hs.functions.error_handler = function( oarg ) {
                     
                 }
             }
-            var _errorcode = _error_xml_regex.exec(oarg.xhttpobj.responseText);
+            var _errorcode = hs.regex.hs_xml_error.exec(oarg.xhttpobj.responseText);
             if (_errorcode != null) {
                 _error = _errorcode[1].toLowerCase();
                 _error = _error.substring(0,17);
@@ -971,10 +975,9 @@ hs.functions.entity = new (function() {
 
 hs.functions.fix_xml = function ( brokenxml ) {
     debug(5,"fix_xml: broken xml ",{ "xml": brokenxml });
-    var _attribute_regex = new RegExp(/=\"(.*?)\"/gm);
     var _xml = brokenxml;
     var _result = null;
-    while (( _result = _attribute_regex.exec(brokenxml)) !== null) {
+    while (( _result = hs.regex.xml_attributes.exec(brokenxml)) !== null) {
         var _match = _result[1];
         if (_match.match(hs.functions.entity.encode_regex) == null) {
             continue;
@@ -1386,9 +1389,8 @@ hs.functions.login_dialog = function(errortype) {
 }
 
 hs.functions.async.parse_designs = function(xhttpobj,errortype) {
-    var _regex = new RegExp('.*<td>(.*?name="cl".*?)<\/td>');
     try {
-        var _result = _regex.exec(xhttpobj.responseText);
+        var _result = hs.regex.hs_login_designs.exec(xhttpobj.responseText);
         hs.gui.designs_html = _result[1];
 
     } catch (e) {
