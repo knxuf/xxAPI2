@@ -41,7 +41,7 @@ $.x2js = new X2JS();
 $.xml2json = $.x2js.xml2json;
 
 var xxAPI = {};
-xxAPI.version = "2.016";
+xxAPI.version = "2.017";
 xxAPI.functions = {};
 xxAPI.XXLINKURL = "";
 xxAPI.registered_icons = {};
@@ -664,14 +664,14 @@ hs.functions.hs_page = function( oarg ) {
     this.items      = {};
     this.object = $("<div />", {
         "id"            : this.id,
-        "css"   : {
-            "position"  : "absolute",
-            "overflow"  : "hidden",
-            "width"     : this.width,
-            "height"    : this.height,
-        },
         "class"         : "visupage",
     });
+    hs.functions.loop_items( {
+        "session"       : oarg.session,
+        "json"          : oarg.json,
+        "page"          : this,
+    } );
+    
     if (this.bg_image != "XXTRSPBG") {
         this.object.append( 
             $("<img />", {
@@ -685,11 +685,13 @@ hs.functions.hs_page = function( oarg ) {
         );
         
     } 
-    hs.functions.loop_items( {
-        "session"       : oarg.session,
-        "json"          : oarg.json,
-        "page"          : this,
-    } );
+    this.object.css({
+        "position"  : "absolute",
+        "overflow"  : "hidden",
+        "width"     : this.width,
+        "height"    : this.height,
+    })
+
     hs.functions.fade_page( oarg.page );
     if (!this.hidden) {
         $("#" + oarg.session.target).append(this.object);
@@ -1584,6 +1586,50 @@ hs.functions.stringify = function (obj) {
       }
       return value;
     });
+}
+
+hs.functions.post_loading = function () {
+    var _base = $("base");
+    if (typeof _base.attr("href") != "undefined" && _base.attr("href") != "") {
+        $("head").append('<link rel="stylesheet" href="libs/xxapi.css">');
+        // Clear Base
+        $("base").attr("href","");
+    } else {
+        // HS Fix for Content Type not text/css
+        hs.functions.element_loader("libs/xxapi.css");
+    }
+    hs.functions.element_loader("custom.css");
+    hs.functions.element_loader("custom.js");
+}
+
+hs.functions.element_loader = function ( filename ) {
+    var _id = filename.replace(".","_").replace("/","_");
+    var _type = filename.toLowerCase().split(".")[1];
+    var _element = "script";
+    if (_type == "css") {
+        _element = "style";
+    }
+    $("head").append(
+        $("<"+_element+" />", { 
+            "id" : _id
+        })
+    )
+    debug(0,"element_loader", { "filename" : filename, "type" : _type, "id" : _id });
+    $.ajax({ 
+        url     : filename, 
+        cache   : true, 
+        complete: function(xhttpobj) { 
+            var _html = xhttpobj.responseText;
+            if (_html == "") { 
+                return;
+            }
+            debug(0,"element_ajax",{ "html" : _html });
+            if (_element == "script") {
+                _html = '"use strict"; ' + _html;
+            }
+            $("#"+_id).html(_html)
+         } 
+     });
 }
 
 $(document).ready(function() {
