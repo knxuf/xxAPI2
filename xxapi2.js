@@ -905,7 +905,7 @@ hs.functions.error_handler = function( oarg ) {
             }
             if (_error == "") {
                 var _xml = oarg.xhttpobj.responseText;
-                if (typeof oarg.xhttpobj.responseXML == 'undefined' || hs.regex.hs_items_in_xml.test(_xml)) {
+                if (hs.regex.hs_items_in_xml.test(_xml)) {
                     if (typeof oarg.xhttpobj.responseXML == 'undefined') {
                         _xml = hs.functions.fix_xml(oarg.xhttpobj.responseText);
                     }
@@ -977,7 +977,7 @@ hs.functions.entity = new (function() {
 })();
 
 hs.functions.fix_xml = function ( brokenxml ) {
-    debug(5,"fix_xml: broken xml ",{ "xml": brokenxml });
+    debug(4,"fix_xml: broken xml ",{ "xml": brokenxml });
     var _xml = brokenxml;
     var _result = null;
     while (( _result = hs.regex.xml_attributes.exec(brokenxml)) !== null) {
