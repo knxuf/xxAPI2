@@ -905,7 +905,7 @@ hs.functions.error_handler = function( oarg ) {
             }
             if (_error == "") {
                 var _xml = oarg.xhttpobj.responseText;
-                if (hs.regex.hs_items_in_xml.test(_xml)) {
+                if (_xml.match(/<HS>.*?<ITEMS>[^]*?<\/ITEMS>/gm)) {
                     debug(4,"fix item order", { "_xml" : _xml });
                     if (typeof oarg.xhttpobj.responseXML == 'undefined') {
                         _xml = hs.functions.fix_xml(oarg.xhttpobj.responseText);
