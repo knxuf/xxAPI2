@@ -53,7 +53,7 @@ var hs = {};
 hs.regex = {
     hs_xml_error : new RegExp(/(?:<ERROR>|<ERR code=\")(.*?)(?:<\/ERROR>|\"\/>)/g),
     hs_login_designs : new RegExp(/.*<td>(.*?name="cl".*?)<\/td>/),
-    hs_items_in_xml : new RegExp(/<HS>.*?<ITEMS>[^]*?(<\/ITEMS>)/gm),
+    hs_items_in_xml : new RegExp(/<HS>[^]*?<ITEMS>[^]*?<\/ITEMS>/gm),
     hs_convert_to_item : new RegExp(/<(TXT|BOX|ICO|GRAF|CAM)\s(?:id|pos)=[^]*?\/>/g),
     xml_attributes : new RegExp(/=\"(.*?)\"/gm),
 }
