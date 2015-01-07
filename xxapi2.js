@@ -909,6 +909,7 @@ hs.functions.error_handler = function( oarg ) {
                     if (typeof oarg.xhttpobj.responseXML == 'undefined') {
                         _xml = hs.functions.fix_xml(oarg.xhttpobj.responseText);
                     }
+                    debug(4,"fix item order", { "_xml" : _xml });
                     // fix item order
                     _xml = _xml.replace(hs.regex.hs_convert_to_item, function(match, capture) {
                         return match.replace(capture,'ITEM type="' + capture + '"');
