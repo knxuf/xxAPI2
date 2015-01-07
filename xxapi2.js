@@ -906,10 +906,10 @@ hs.functions.error_handler = function( oarg ) {
             if (_error == "") {
                 var _xml = oarg.xhttpobj.responseText;
                 if (hs.regex.hs_items_in_xml.test(_xml)) {
+                    debug(4,"fix item order", { "_xml" : _xml });
                     if (typeof oarg.xhttpobj.responseXML == 'undefined') {
                         _xml = hs.functions.fix_xml(oarg.xhttpobj.responseText);
                     }
-                    debug(4,"fix item order", { "_xml" : _xml });
                     // fix item order
                     _xml = _xml.replace(hs.regex.hs_convert_to_item, function(match, capture) {
                         return match.replace(capture,'ITEM type="' + capture + '"');
