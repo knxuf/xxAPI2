@@ -1,6 +1,7 @@
 body {
     background-color: #000000 !important;
-    overflow: hidden;
+    width:  auto;
+    height: auto;
     cursor: default !important;
 }
 
