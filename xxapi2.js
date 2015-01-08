@@ -54,7 +54,7 @@ hs.regex = {
     hs_xml_error : new RegExp(/(?:<ERROR>|<ERR code=\")(.*?)(?:<\/ERROR>|\"\/>)/g),
     hs_login_designs : new RegExp(/.*<td>(.*?name="cl".*?)<\/td>/),
     hs_items_in_xml : new RegExp(/<HS>[^]*?<ITEMS>[^]*?<\/ITEMS>/gm),
-    hs_convert_to_item : new RegExp(/<(TXT|BOX|ICO|GRAF|CAM)\s(?:id|pos)=[^]*?\/>/g),
+    hs_convert_to_item : new RegExp(/<(TXT|BOX|ICO|GRAF|CAM)\s\w+=[^]*?\/>/g),
     xml_attributes : new RegExp(/=\"(.*?)\"/gm),
 }
 hs.functions = {};
@@ -336,7 +336,7 @@ hs.functions.xxapi_check = function( oarg ) {
     }
     debug(3,"xxAPI Check: (" + oarg.item.uid + ") " + _text ,oarg);
     var args = _text.split("*");
-    var _func = xxAPI.functions[args[0]];
+    var _func = xxAPI.functions[args[0].toUpperCase()];
     if(typeof _func === 'function') {
         oarg.args = args;
         _func( oarg );
@@ -507,7 +507,7 @@ hs.functions.hs_item = function( oarg ) {
             }
             
             if (_item.type == "CAM") {
-                var _url = _url != null ? "http://" + _item.url : 
+                _item.url = _item.url != null ? "http://" + _item.url : 
                     hs.functions.get_url ({ 
                         "session"   : _item.session, 
                         "url"       : "/guicamv?id=" + _item.id, 
@@ -516,7 +516,7 @@ hs.functions.hs_item = function( oarg ) {
             }
             
             if (_item.type == "GRAF") {
-                var _url = hs.functions.get_url ({ 
+                _item.url = hs.functions.get_url ({ 
                     "session"   : _item.session, 
                     "url"       : "/guigrafv?id=" + _item.id, 
                     "cmd"       : "",
@@ -524,14 +524,12 @@ hs.functions.hs_item = function( oarg ) {
             }
             
             if (_item.type == "ICO") {
-                var _url = "/guiico?id=" + _item.image + "&cl=" + hs.auth.gui_design;
+                
             }
             
             if ( $.inArray(_item.type, ["CAM","GRAF","ICO"]) > -1) {
                 hs.functions.add_image( { 
-                    "item_object"   : _item.object, 
-                    "item"          : _item , 
-                    "url"           : _url,
+                    "item"          : _item, 
                 });
             }
             _item.s_text = _item.text;
@@ -590,13 +588,15 @@ hs.functions.update_item = function ( oarg ) {
     if ( $.inArray(_item.type, ["ICO"]) > -1) {
         if (_item.s_image != _item.image) {
             debug(4,"ICO changed");
-            
         }
-        
     }
-    if ( $.inArray(_item.type, ["CAM"]) > -1) {
+    if ( $.inArray(_item.type, ["CAM","ICO"]) > -1) {
         if (_item.s_url != _item.url) {
             debug(4,"URL changed");
+            oarg.item.image_object.fadeTo(1,0.2, function() {
+                debug(4,"change_image:",_item.object.first());
+                oarg.item.image_object.attr("src", _item.url);
+            }).fadeTo(1,1);
         }
     }
     _item.s_text = _item.text;
@@ -610,26 +610,25 @@ hs.functions.update_item = function ( oarg ) {
 hs.functions.add_image = function ( oarg ) {
     debug(5,"add_image",oarg);
     if ( $.inArray(oarg.item.type, ["GRAF","CAM"]) > -1) {
-        oarg.item_object.css("display","none");
+        oarg.item.object.css("display","none");
     };
-    oarg.item_object.append( 
-        $("<img />", {
-            // "id"        : oarg.session.target + "_PAGE_" + oarg.page_id + "_" + _item.id + "_IMG",
-            "src"       : oarg.url,
-            "alt"       : " ",
-            "width"     : oarg.item.width,
-            "height"    : oarg.item.height,
-            "css"       : {
-                "position"  : "absolute",
+    oarg.item.image_object = $("<img />", {
+        // "id"        : oarg.session.target + "_PAGE_" + oarg.page_id + "_" + _item.id + "_IMG",
+        "src"       : oarg.item.url,
+        "alt"       : " ",
+        "width"     : oarg.item.width,
+        "height"    : oarg.item.height,
+        "css"       : {
+            "position"  : "absolute",
+        },
+        "on"        : {
+            "dragstart" : function () { return false; },
+            "load"      : function () { 
+                $(this).parent().fadeIn(1);
             },
-            "on"        : {
-                "dragstart" : function () { return false; },
-                "load"      : function () { 
-                    $(this).parent().fadeIn(30);
-                },
-            }    
-        })
-    );
+        }    
+    })
+    oarg.item.object.append( oarg.item.image_object );
 }
 
 hs.functions.hs_page = function( oarg ) {
@@ -675,7 +674,7 @@ hs.functions.hs_page = function( oarg ) {
         this.object.append( 
             $("<img />", {
                 "id"        : this.id + "_BGIMG",
-                "src"       : "/guibg?id=" + this.bg_image + "&cl=" + hs.auth.gui_design,
+                "src"       : "/guibg?id=" + this.bg_image + "&cl=" + hs.auth.gui_design + "&hash=" + hs.gui.hashes._bg,
                 "alt"       : " ",
                 "on"        : {
                     "dragstart" : function () { return false; },
@@ -1160,11 +1159,14 @@ hs.functions.async.gv = function( oarg ) {
 
     // PRELOAD
     var _loaded_images = $(document.images).map( function() {  return this.src  });
-    $(oarg.json.HS.ITEMS.ICO).reverse().each( function() {
-        var _tmpimage =  "/guiico?id=" +  $(this)._ico + "&cl=" + hs.auth.gui_design;
-        if (! $.inArray(_tmpimage, _loaded_images) ) {
-            debug(5,"Preload: " + _tmpimage);
-            $('<img />')[0].src = _tmpimage
+    $(oarg.json.HS.ITEMS.ITEM).reverse().each( function() {
+        if (this._type != "ICO") {
+            return;
+        }
+        this._url = "/guiico?id=" +  this._ico + "&cl=" + hs.auth.gui_design + "&hash=" + hs.gui.hashes._ico; // FIXME? with hash more traffic?
+        if ($.inArray(location.origin + this._url,_loaded_images )  < 0 ) {
+            debug(4,"Preload: '" + this._url + "'",{ "in": $.inArray(this._url,_loaded_images ), "item" : this , "cache" : _loaded_images });
+            $('<img />')[0].src = this._url;
         }
     });
     if (oarg.page_id != oarg.session.active_page) {
