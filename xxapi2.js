@@ -44,7 +44,10 @@ var xxAPI = {};
 xxAPI.version = "2.017";
 xxAPI.functions = {};
 xxAPI.XXLINKURL = "";
-xxAPI.registered_icons = {};
+xxAPI.registered_icons = { 
+    "XXPAGE"    : "XXPAGE*",
+    "XXPOPUP"   : "XXPAGE*POPUP",
+};
 xxAPI.marked_pages = {};
 xxAPI.geolocation = {};
 
@@ -257,6 +260,12 @@ xxAPI.functions.XXREGICON = function ( oarg ) {
         xxAPI.registered_icons[_args[1]] = _args.slice(2).join("*");
     }
     oarg.item.hidden = true;
+}
+
+xxAPI.functions.XXPAGE = function ( oarg ) {
+    debug(2,"XXPAGE",oarg);
+    oarg.item.page.width = oarg.item.left;
+    oarg.item.page.height = oarg.item.top;
 }
 
 xxAPI.functions.XXWRAPTEXT = function ( oarg ) {
@@ -696,7 +705,7 @@ hs.functions.hs_page = function( oarg ) {
     if (this.bg_image != "XXTRSPBG") {
         this.object.append( 
             $("<img />", {
-                "id"        : this.id + "_BGIMG",
+                //"id"        : this.id + "_BGIMG",
                 "src"       : "/guibg?id=" + this.bg_image + "&cl=" + hs.auth.gui_design + "&hash=" + hs.gui.hashes._bg,
                 "alt"       : " ",
                 "on"        : {
@@ -712,10 +721,11 @@ hs.functions.hs_page = function( oarg ) {
         "width"     : this.width,
         "height"    : this.height,
     })
-
+    
     hs.functions.fade_page( oarg.page );
     if (!this.hidden) {
         $("#" + oarg.session.target).append(this.object);
+        this.object.center();
     }
     return this;
 }
@@ -1138,9 +1148,10 @@ hs.functions.load_page = function( oarg ) {
                 debug(5,"load_page:FadeIn Cached Page "+oarg.page_id);
                 _page.object.css("z-index","50");
                 _page.object.fadeIn(20);
+                //FIXME one Session can only have one active page or two if popup
+                // this would also remove modul and main pages
                 $(".ACTIVEVISUPAGE").each(function () {
                     debug("load_page:loaded_page: " + oarg.page_id,$(this));
-                    //
                     $(this).fadeOut(10, function() {
                         $(this).removeClass("ACTIVEVISUPAGE")
                         $(this).css("z-index","");
@@ -1528,12 +1539,11 @@ hs.functions.get_query_parameter = function(item) {
 jQuery.fn.reverse = [].reverse;
 
 jQuery.fn.center = function () {
-    this.css("position","absolute");
-    this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight()) / 2) + 
-                                                $(window).scrollTop()) + "px");
-    this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) + 
-                                                $(window).scrollLeft()) + "px");
-    return this;
+    this.css({
+        "position"  : "aboslute",
+        "top"       : this.parent().height()/2 - this.height()/2,
+        "left"      : this.parent().width()/2 - this.width()/2,
+    });
 }
 
 hs.functions.set_viewport = function() {
