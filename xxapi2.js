@@ -228,7 +228,8 @@ xxAPI.functions.XXTRIGGER = function ( oarg ) {
 
 xxAPI.functions.XXIMG = function ( oarg ) {
     debug(2,"XXIMG",oarg);
-    oarg.item.text = '';
+    oarg.item.type = "CAM";
+    oarg.item.url = oarg.args[1];
 }
 
 xxAPI.functions.XXLONGPRESS = function ( oarg ) {
@@ -515,12 +516,15 @@ hs.functions.hs_item = function( oarg ) {
             }
             
             if (_item.type == "CAM") {
-                _item.url = _item.url != null ? "http://" + _item.url : 
-                    hs.functions.get_url ({ 
+                if (_item.url != null) {
+                    _item.url = _item.url.match(/http?:\/\/.*/) ? _item.url : "http://" + _item.url;
+                } else {
+                    _item.url = hs.functions.get_url ({ 
                         "session"   : _item.session, 
                         "url"       : "/guicamv?id=" + _item.id, 
                         "cmd"       : "", 
-                        });
+                    });
+                }
             }
             
             if (_item.type == "GRAF") {
