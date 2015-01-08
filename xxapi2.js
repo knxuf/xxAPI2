@@ -191,7 +191,7 @@ xxAPI.functions.XXEXECUTE = function ( oarg ) {
     _jscode = _jscode.replace(/[,]\?/g, ",\"");
     _jscode = _jscode.replace(/\?\)/g, "\"\)");
     _jscode = _jscode.replace(/\]/g, ">");
-    // item für abwärtskompatiblität
+    // item für Abwärtskompatiblität
     var _func = new Function('item','"use strict"; ' + _jscode);
     oarg.item.text = '';
     try {
@@ -377,7 +377,6 @@ hs.functions.hs_session = function(target,start_id) {
     this.active_page = null;
     this.history = [];
     
-    // an eigentlicher Stelle aufrufen??
     hs.functions.login_init({ session: this, page_id : start_id});
 
     return this;
@@ -868,10 +867,6 @@ hs.functions.async.handler = function( oarg ) {
         default:
             alert("unknow CMD '" + _cmd + "'");
     }
-    
-    // check id etc
-    // error if response_xml invalid/undefined
-    
 };
 
 hs.functions.error_handler = function( oarg ) {
@@ -917,7 +912,6 @@ hs.functions.error_handler = function( oarg ) {
                         return match.replace(capture,'ITEM type="' + capture + '"');
                     });
                     oarg.xhttpobj.responseXML = $.parseXML(_xml)
-
                 }
 
                 try {
@@ -1096,7 +1090,7 @@ hs.functions.update_timer = function( oarg ) {
 }
 
 hs.functions.do_command = function( oarg ) {
-    // hascommand cmd=vcu
+    debug(4,"do_command:",oarg);
     hs.functions.make_request( {
         "session"     : oarg.session,
         "cmd"         : "vcu&id=" + oarg.command_id,
@@ -1105,7 +1099,7 @@ hs.functions.do_command = function( oarg ) {
 }
 
 hs.functions.load_page = function( oarg ) {
-    debug(5,"load_page (" + oarg.session.target + "): " + oarg.page_id + " (" + oarg.command_id + ")");
+    debug(4,"load_page (" + oarg.session.target + "): " + oarg.page_id + " (" + oarg.command_id + ")");
     oarg.session.start_id = oarg.page_id;
     if (typeof oarg.id == "undefined") { 
         oarg.command_id = -1; 
@@ -1210,7 +1204,7 @@ hs.functions.check_click = function( oarg ) {
             17 = Kamera-Archiv  /hsgui?cmd=getcama&id=30&dir=0&cnt=6&hnd=4&code=FF8BF7D074
             18 = Universal Zeitschaltuhr /hsgui?cmd=getuhr&id=18&dir=0&cnt=5&hnd=4&code=18831A2D12
             19 = 
-            20 = Seite aktualieren
+            20 = Seite aktualisieren
             21 = Navigation: Startseite
             22 = Navigation: Zurück
             23 = Menü /hsgui?cmd=gl&id=153&frm=1&cnt=5&hnd=2&code=935C315C9D /hsgui?cmd=glu&hnd=1&code=33B5E3DF74 // /hsgui?cmd=gl&id=291&frm=1&cnt=5&hnd=1&code=A5840BEDB8 
@@ -1407,11 +1401,6 @@ hs.functions.async.parse_designs = function(xhttpobj,errortype) {
 }
 
 hs.functions.login_form = function(errortype) {
-    /* $('form').submit( function(e) {
-        e.preventDefault();
-            dostuff
-        });
-    */
     var _form_html = "";
     _form_html += "<form id='login_form' action='#' accept-charset='utf-8'  autocomplete='off'>";
     _form_html += "<h2>xxAPI Login</h2>";
@@ -1529,7 +1518,6 @@ jQuery.fn.center = function () {
 }
 
 hs.functions.set_viewport = function() {
-    //$("body").css("width","100%");
     if (typeof hs.gui.attr.visu_height == "undefined") {
         return false;
     }

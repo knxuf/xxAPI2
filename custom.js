@@ -34,7 +34,7 @@
  * https://github.com/knxuf/xxAPI2/blob/master/LICENSE
  *
  * arguments are
- *   oarg.args an Array containing the arguments seperated bei * starting with oarg.args[0] the function name itself
+ *   oarg.args an Array containing the arguments seperated by * starting with oarg.args[0] the function name itself
  *      XXMYCUSTOMFUNCTION*option=23*Some Text
  *          oarg.args[0] = "XXMYCUSTOMFUNCTION"
  *          oarg.args[1] = "option=23"
@@ -49,11 +49,11 @@
  *      .image is the ImageID
  *      .url is the URL 
  *      .html is a write only Variable that can be filled with custom HTML code that is applied instead of .text
- *      .click is a binary Variable that can be set to enabel/disable click Handler
+ *      .click is a binary Variable that can be set to enable/disable click Handler
  *      .action_id is a numeric Value that hold the Homeserver Action for this item
  *         (0 = Nur Befehl, 1 = Seitenaufruf (optional Befehl), 7 = Kamera, 8 = Wochenschaltuhr, 9 = Werteingabe, 10 = Urlaubskalender,
  *         11 = Feiertagskalender, 12 = Datum/Uhrzeit setzen,, 14 = Meldungsarchiv, , 15 = Buddy, 16 = Diagramm, 17 = Kamera-Archiv, 
- *         18 = Universal Zeitschaltuhr,20 = Seite aktualieren, 21 = Navigation: Startseite, 22 = Navigation: Zurück, 23 = Menü,
+ *         18 = Universal Zeitschaltuhr,20 = Seite aktualisieren, 21 = Navigation: Startseite, 22 = Navigation: Zurück, 23 = Menü,
  *         24 = Query, 25 = Navigation: Beenden)
  *      .open_page is the ID for the Page to open
  *      .font is the Font ID
