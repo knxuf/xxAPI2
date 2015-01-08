@@ -1602,7 +1602,7 @@ hs.functions.element_loader = function ( filename ) {
             "id" : _id
         })
     )
-    debug(0,"element_loader", { "filename" : filename, "type" : _type, "id" : _id });
+    debug(4,"element_loader", { "filename" : filename, "type" : _type, "id" : _id });
     $.ajax({ 
         url     : filename, 
         cache   : true, 
@@ -1611,7 +1611,7 @@ hs.functions.element_loader = function ( filename ) {
             if (_html == "") { 
                 return;
             }
-            debug(0,"element_ajax",{ "html" : _html });
+            debug(5,"element_loader_ajax",{ "html" : _html });
             if (_element == "script") {
                 _html = '"use strict"; ' + _html;
             }
