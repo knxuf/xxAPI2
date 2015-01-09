@@ -59,13 +59,6 @@ xxAPI.geolocation = {};
 
 // Homeserver Object
 var hs = {};
-hs.regex = {
-    hs_xml_error : new RegExp(/(?:<ERROR>|<ERR code=\")(.*?)(?:<\/ERROR>|\"\/>)/g),
-    hs_login_designs : new RegExp(/.*<td>(.*?name="cl".*?)<\/td>/),
-    hs_items_in_xml : new RegExp(/<HS>[^]*?<ITEMS>[^]*?<\/ITEMS>/gm),
-    hs_convert_to_item : new RegExp(/<(TXT|BOX|ICO|GRAF|CAM)\s\w+=[^]*?\/>/g),
-    xml_attributes : new RegExp(/=\"(.*?)\"/gm),
-}
 hs.functions = {};
 hs.functions.async = {};
 hs.session = {};  // keyname ist target
@@ -476,6 +469,12 @@ hs.functions.hs_item = function( oarg ) {
         this.mouseupcode = null;
         this.hidden = false;
         this.object = null;
+        
+        if(_item.click && _item.action_id == 1 && _item.open_page == _item.page.page_id) {
+            debug(4,"hs_item: remove click from page",this);
+            _item.action_id = 0;
+            _item.click = _item.has_command;
+        }
 
         hs.functions.xxapi_check( {
             "cmd"       : "create",
@@ -935,7 +934,8 @@ hs.functions.error_handler = function( oarg ) {
                     
                 }
             }
-            var _errorcode = hs.regex.hs_xml_error.exec(oarg.xhttpobj.responseText);
+            var _error_regex = new RegExp(/(?:<ERROR>|<ERR code=\")(.*?)(?:<\/ERROR>|\"\/>)/g);
+            var _errorcode = _error_regex.exec(oarg.xhttpobj.responseText);
             if (_errorcode != null) {
                 _error = _errorcode[1].toLowerCase();
                 _error = _error.substring(0,17);
@@ -948,7 +948,7 @@ hs.functions.error_handler = function( oarg ) {
                         _xml = hs.functions.fix_xml(oarg.xhttpobj.responseText);
                     }
                     // fix item order
-                    _xml = _xml.replace(hs.regex.hs_convert_to_item, function(match, capture) {
+                    _xml = _xml.replace(/<(TXT|BOX|ICO|GRAF|CAM)\s\w+=[^]*?\/>/g, function(match, capture) {
                         return match.replace(capture,'ITEM type="' + capture + '"');
                     });
                     oarg.xhttpobj.responseXML = $.parseXML(_xml)
@@ -1011,22 +1011,22 @@ hs.functions.entity = new (function() {
     return this;
 })();
 
-hs.functions.fix_xml = function ( brokenxml ) {
-    debug(4,"fix_xml: broken xml ",{ "xml": brokenxml });
-    var _xml = brokenxml;
+hs.functions.fix_xml = function ( xml ) {
+    debug(4,"fix_xml: broken xml ",{ "xml": xml });
     var _result = null;
-    while (( _result = hs.regex.xml_attributes.exec(brokenxml)) !== null) {
+    var _regex = new RegExp(/=\"(.*?)\"/gm);
+    while( _result = _regex.exec(xml)) {
         var _match = _result[1];
         if (_match.match(hs.functions.entity.encode_regex) == null) {
             continue;
         }
         var _match_len = _match.length;
         _match = hs.functions.entity.encode(_match);
-        var _xml_len = _xml.length;
+        var _xml_len = xml.length;
         var _index = _result.index +2; 
-        _xml = _xml.substr(0,_index ) + _match + _xml.substr(_index + _match_len ,_xml_len - _index + _match_len);
+        xml = xml.substr(0,_index ) + _match + xml.substr(_index + _match_len ,_xml_len - _index + _match_len);
     }
-    return _xml;
+    return xml;
 }
 
 hs.functions.login_init = function( oarg ) {
@@ -1138,7 +1138,7 @@ hs.functions.do_command = function( oarg ) {
 }
 
 hs.functions.load_page = function( oarg ) {
-    debug(4,"load_page (" + oarg.session.target + "): " + oarg.page_id + " (" + oarg.command_id + ")");
+    debug(4,"load_page (" + oarg.session.target + "): " + oarg.page_id + " (" + oarg.command_id + ")", oarg);
     oarg.session.start_id = oarg.page_id;
     if (typeof oarg.id == "undefined") { 
         oarg.command_id = -1; 
@@ -1403,7 +1403,7 @@ hs.functions.login_dialog = function(errortype) {
 
 hs.functions.async.parse_designs = function(xhttpobj,errortype) {
     try {
-        var _result = hs.regex.hs_login_designs.exec(xhttpobj.responseText);
+        var _result = new RegExp(/.*<td>(.*?name="cl".*?)<\/td>/).exec(xhttpobj.responseText);
         hs.gui.designs_html = _result[1];
 
     } catch (e) {
