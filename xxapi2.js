@@ -170,7 +170,7 @@ xxAPI.functions.XXHTTP = function ( oarg ) {
 xxAPI.functions.XXIFRAME = function ( oarg ) {
     debug(2,"XXIFRAME:",oarg);
     var _url = xxAPI.XXLINKURL;
-    if (oarg.args.length > 1) {
+    if (oarg.args[1] != "") {
         _url = oarg.args[1];
     }
     oarg.item.html = "<iframe src='" + _url + "' " +
@@ -266,9 +266,7 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
     debug(2,"XXPAGE",oarg);
     oarg.item.page.width = oarg.item.left;
     oarg.item.page.height = oarg.item.top;
-    if (oarg.args.length > 1) {
-        oarg.item.page.popup = oarg.args[1] == "POPUP";
-    }
+    oarg.item.page.popup = oarg.args[1] == "POPUP";
 }
 
 xxAPI.functions.XXWRAPTEXT = function ( oarg ) {
