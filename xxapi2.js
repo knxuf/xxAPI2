@@ -267,6 +267,16 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
     oarg.item.page.width = oarg.item.left;
     oarg.item.page.height = oarg.item.top;
     oarg.item.page.popup = oarg.args[1] == "POPUP";
+    if (oarg.args.length > 2) {
+        var _match = null;
+        var _regex =new RegExp(/([-\w]+)[:](.*?);/g);
+        while(_match = _regex.exec(oarg.args[2])) {
+            if(_match[1] == "top" || _match[1] == "left") {
+                oarg.item.page.centered = false;
+            }
+            oarg.item.page.object.css(_match[1],_match[2]);
+        }
+    }
 }
 
 xxAPI.functions.XXWRAPTEXT = function ( oarg ) {
@@ -684,6 +694,7 @@ hs.functions.hs_page = function( oarg ) {
     hs.gui.pages[this.id] = this;
     this.hidden     = false;
     this.popup      = false;
+    this.centered   = true;
     this.popup_object = null;
     this.bg_image   = _json.HS.VISU._bg;
     this.icon       = _json.HS.VISU._ico;
@@ -718,7 +729,9 @@ hs.functions.hs_page = function( oarg ) {
     
     if (!this.hidden) {
         hs.functions.fade_page( oarg );
-        this.object.center();
+        if (this.centered) {
+            this.object.center();
+        }
     }
     return this;
 }
@@ -1495,7 +1508,7 @@ jQuery.fn.reverse = [].reverse;
 
 jQuery.fn.center = function () {
     this.css({
-        "position"  : "aboslute",
+        "position"  : "absolute",
         "top"       : this.parent().height()/2 - this.height()/2,
         "left"      : this.parent().width()/2 - this.width()/2,
     });
