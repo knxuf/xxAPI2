@@ -266,6 +266,9 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
     debug(2,"XXPAGE",oarg);
     oarg.item.page.width = oarg.item.left;
     oarg.item.page.height = oarg.item.top;
+    if (oarg.args.length > 1) {
+        oarg.item.page.popup = oarg.args[1] == "POPUP";
+    }
 }
 
 xxAPI.functions.XXWRAPTEXT = function ( oarg ) {
@@ -392,7 +395,7 @@ hs.functions.hs_session = function(target,start_id) {
     this.connected = false;
     this.visible = false;
     
-    this.active_page = null;
+    this.active_pages = [];
     this.history = [];
     
     hs.functions.login_init({ session: this, page_id : start_id});
@@ -673,7 +676,7 @@ hs.functions.hs_page = function( oarg ) {
         
         hs.functions.loop_items( oarg );
         if (oarg.cmd == "gv") {
-            hs.functions.fade_page( oarg.page );
+            hs.functions.fade_page( oarg );
         }
         return oarg.page;
     }
@@ -681,9 +684,9 @@ hs.functions.hs_page = function( oarg ) {
     debug(4,"create new Page: ",oarg);
     var _json = oarg.json;
     hs.gui.pages[this.id] = this;
-    this.visible    = false;
     this.hidden     = false;
     this.popup      = false;
+    this.popup_object = null;
     this.bg_image   = _json.HS.VISU._bg;
     this.icon       = _json.HS.VISU._ico;
     this.qanz       = parseInt(_json.HS.VISU._bg);
@@ -703,18 +706,11 @@ hs.functions.hs_page = function( oarg ) {
     } );
     
     if (this.bg_image != "XXTRSPBG") {
-        this.object.append( 
-            $("<img />", {
-                //"id"        : this.id + "_BGIMG",
-                "src"       : "/guibg?id=" + this.bg_image + "&cl=" + hs.auth.gui_design + "&hash=" + hs.gui.hashes._bg,
-                "alt"       : " ",
-                "on"        : {
-                    "dragstart" : function () { return false; },
-                }
-            })
-        );
-        
-    } 
+        this.object.css({
+            "background-image"      : "url(/guibg?id=" + this.bg_image + "&cl=" + hs.auth.gui_design + "&hash=" + hs.gui.hashes._bg + ")",
+            "background-repeat"     : "no-repeat",
+        });
+    }
     this.object.css({
         "position"  : "absolute",
         "overflow"  : "hidden",
@@ -722,34 +718,25 @@ hs.functions.hs_page = function( oarg ) {
         "height"    : this.height,
     })
     
-    hs.functions.fade_page( oarg.page );
     if (!this.hidden) {
-        $("#" + oarg.session.target).append(this.object);
+        hs.functions.fade_page( oarg );
         this.object.center();
     }
     return this;
 }
 
-hs.functions.fade_page = function( page ) {
-    debug(5,"fade_page",page);
-    page.object.show();
-    $.each(hs.gui.pages,function(page_id,page_obj) {
-        debug(5,"PAGE: ",page_obj);
-        if (page.page_id == page_obj.page_id) {
-            return;
-        }
-        if (page_obj.visible) {
-            page_obj.object.css("z-index",1000);
-            page_obj.visible = false;
-            page_obj.object.fadeOut(10,function() {
-                debug(5,"FADEOUT",$(this));
-                $(this).css("z-index","");
-                $(this).hide();
-                
+hs.functions.fade_page = function( oarg ) {
+        $("#" + oarg.session.target).prepend(oarg.page.object);
+        oarg.page.object.show();
+        oarg.session.active_pages.forEach(function(elem,index) {
+            $("#" + oarg.session.target + "_PAGE_" + elem).fadeOut(10,function() { 
+                $(this).detach();
+                oarg.session.active_pages.splice(index,1);
             });
-        }
-    });
-    page.visible = true;
+        });
+        oarg.session.active_pages.push(oarg.page_id);
+        oarg.session.history.push(oarg.page_id);
+        document.title = "xxAPI² - " + oarg.page.title;
 }
 
 hs.functions.loop_items = function ( oarg ) {
@@ -910,9 +897,6 @@ hs.functions.error_handler = function( oarg ) {
     if (typeof oarg.xhttpobj != 'undefined') {
         if (!navigator.onLine) {
             _error = "offline";
-        }
-        if (oarg.id > -1 ) { 
-            hs.gui.active_pageload = false;
         }
         if (oarg.xhttpobj.status != 200) {
             switch (oarg.xhttpobj.status) {
@@ -1107,8 +1091,8 @@ hs.functions.update_timer = function( oarg ) {
     } else {
         hs.functions.make_request( {
             "session"     : oarg.session,
-            "cmd"         : "gvu&id=" + oarg.session.active_page,
-            "page_id"     : oarg.session.active_page,
+            "cmd"         : "gvu&id=" + oarg.session.active_pages[0],
+            "page_id"     : oarg.session.active_pages[0],
         });
     }
     debug(5,"Update_timer:",oarg);
@@ -1148,31 +1132,14 @@ hs.functions.load_page = function( oarg ) {
                 debug(5,"load_page:FadeIn Cached Page "+oarg.page_id);
                 _page.object.css("z-index","50");
                 _page.object.fadeIn(20);
-                //FIXME one Session can only have one active page or two if popup
-                // this would also remove modul and main pages
-                $(".ACTIVEVISUPAGE").each(function () {
-                    debug("load_page:loaded_page: " + oarg.page_id,$(this));
-                    $(this).fadeOut(10, function() {
-                        $(this).removeClass("ACTIVEVISUPAGE")
-                        $(this).css("z-index","");
-                        $(this).hide();
-                        debug(5,"load_page:faded " + oarg.page_id,$(this));
-                    });
-                });
-                debug(5,"load_page: activate: +" + oarg.page_id,_page);
-                _page.object.css("z-index","");
-                _page.object.addClass("ACTIVEVISUPAGE");
-                hs.gui.active_pages = [ oarg.page_id ];
                 oarg.session.history.push(oarg.page_id);
                 document.title = "xxAPI - " + _page.text1;
-
             }
             oarg.cmd = "gv&id=" + oarg.page_id + _extra_request;
             hs.functions.make_request( oarg );
             return
         }
     } 
-    hs.gui.active_pageload = true;
     hs.functions.make_request( {
         "session"     : oarg.session,
         "cmd"         : "gv&id=" + oarg.page_id + _extra_request,
@@ -1196,11 +1163,7 @@ hs.functions.async.gv = function( oarg ) {
         }
         this._url = "/guiico?id=" +  this._ico + "&cl=" + hs.auth.gui_design + "&hash=" + hs.gui.hashes._ico; // FIXME? with hash more traffic?
     });
-    
-    if (oarg.page_id != oarg.session.active_page) {
-        oarg.session.active_page = oarg.page_id;
-        oarg.session.history.push(oarg.page_id);
-    }
+
     var _page = new hs.functions.hs_page( oarg );
 };
 
@@ -1305,8 +1268,8 @@ hs.functions.check_click = function( oarg ) {
             break;
         case 22:
             // 22 = Navigation: Zurück
-            if (_session.history.length > 2) {
-                debug(5,"history_back",oarg);
+            debug(5,"history_back",oarg);
+            if (_session.history.length > 1) {
                 _session.history.pop();
                 var _lastpage = _session.history.pop();
             
@@ -1343,12 +1306,6 @@ hs.functions.logout = function() {
 //        "cmd"       : "logout"
 //    });
     window.location.href += "?logout=1";
-}
-
-hs.functions.visu_refresh = function() {
-    $.each(hs.gui.active_page, function(page_id) {
-        hs.functions.make_request(session,"gvu&id=" + page_id,page_id);
-    });
 }
 
 hs.functions.async.getfont = function( oarg ) {

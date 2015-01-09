@@ -5,6 +5,10 @@ body {
     cursor: default !important;
 }
 
+.visupage {
+    background-size : cover;
+}
+
 .visuelement > img, .visuelement  {
     -webkit-user-select: none;
     -moz-user-select: none;
