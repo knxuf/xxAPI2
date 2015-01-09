@@ -43,6 +43,12 @@ $.xml2json = $.x2js.xml2json;
 var xxAPI = {};
 xxAPI.version = "2.017";
 xxAPI.functions = {};
+xxAPI.events = {
+    "lastclick" : {
+        "top"   : 0,
+        "left"  : 0,
+    },
+}
 xxAPI.XXLINKURL = "";
 xxAPI.registered_icons = { 
     "XXPAGE"    : "XXPAGE*",
@@ -273,7 +279,13 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
         while(_match = _regex.exec(oarg.args[2])) {
             if(_match[1] == "top" || _match[1] == "left") {
                 oarg.item.page.centered = false;
+                _match[2] = _match[2].replace(/MOUSE([+-]\d+)px/,function(match,capture) {
+                    var _mouse = _match[1] == "top" ? xxAPI.events.lastclick.top : xxAPI.events.lastclick.left;
+                    // eval should be save here 
+                    return eval(_mouse + capture) + "px";
+                })
             }
+            debug(5,"XXPAGE: change_css '"+_match[1]+"':'"+_match[2]+"'");
             oarg.item.page.object.css(_match[1],_match[2]);
         }
     }
@@ -491,6 +503,7 @@ hs.functions.hs_item = function( oarg ) {
                 _item.object.click(function (e) {
                     hs.functions.check_click( {
                         "item"      : _item,
+                        "event"     : e,
                     });
                 });
                 _item.object.addClass("visuclickelement");
@@ -1180,6 +1193,9 @@ hs.functions.async.gv = function( oarg ) {
 
 hs.functions.check_click = function( oarg ) {
     debug(3,"check_click",oarg);
+    var _session_position =  $("#" + oarg.item.session.target).position();
+    xxAPI.events.lastclick.top = oarg.event.pageY - _session_position.top;
+    xxAPI.events.lastclick.left = oarg.event.pageX - _session_position.left;
     var _item = oarg.item;
     var _session = _item.session;
     var _command_id = _item.has_command ? _item.id : -1;
