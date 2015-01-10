@@ -123,10 +123,8 @@ xxAPI.functions.XXSCRIPT = function( oarg ) {
         debug(2,"XXSCRIPT");
         oarg.item.page.hidden = true;
         //window.setTimeout(function() {
-            hs.functions.load_page( {
-                "session"   : oarg.item.session,
-                "page_id"   : oarg.item.open_page
-            });
+            oarg.page_id = oarg.item.open_page;
+            hs.functions.load_page( oarg );
         //},1);
     }
 }
@@ -417,7 +415,7 @@ hs.functions.hs_item = function( oarg ) {
     this.type   = oarg.json._type;
     this.session = oarg.session;
 
-    this.page_id = oarg.page.page_id;
+    this.page_id = oarg.page_id;
     this.page = oarg.page;
     this.uid = this.session.target + "_PAGE_" + this.page_id + "_" + this.type + "_" + this.id;
     oarg.item = this;
@@ -464,6 +462,7 @@ hs.functions.hs_item = function( oarg ) {
         oarg.item.hidden = false;
         oarg.item.object = null;
         oarg.item.title = "";
+        oarg.item.event = null;
         
         if(oarg.item.click && oarg.item.action_id == 1 && oarg.item.open_page == oarg.item.page.page_id) {
             debug(4,"hs_item: remove click from page",oarg.item);
@@ -491,11 +490,9 @@ hs.functions.hs_item = function( oarg ) {
                 
             });
             if (oarg.item.click) {
-                oarg.item.object.click(function (e) {
-                    hs.functions.check_click( {
-                        "item"      : oarg.item,
-                        "event"     : e,
-                    });
+                oarg.item.object.click(function (event) {
+                    oarg.item.event = event;
+                    hs.functions.check_click( oarg );
                 });
                 oarg.item.object.addClass("visuclickelement");
             } else {
@@ -746,19 +743,23 @@ hs.functions.loop_items = function ( oarg ) {
                 $.each(child, 
                     function(counter,item) {
                         var _json = item;
+                        // create new oarg object
                         new hs.functions.hs_item({
                             "json"      : _json,
                             "session"   : oarg.session,
                             "page"      : oarg.page,
+                            "page_id"   : oarg.page_id,
                         });
                     }
                 );
             } else {
                 var _json = child;
+                // create new oarg object
                 new hs.functions.hs_item({
                     "json"      : _json,
                     "session"   : oarg.session,
                     "page"      : oarg.page,
+                    "page_id"   : oarg.page_id,
                 });
             }
         }
@@ -1104,11 +1105,18 @@ hs.functions.update_timer = function( oarg ) {
 
 hs.functions.do_command = function( oarg ) {
     debug(4,"do_command:",oarg);
-    hs.functions.make_request( {
-        "session"     : oarg.session,
-        "cmd"         : "vcu&id=" + oarg.command_id,
-        "page_id"     : oarg.page_id,
-    });
+    if (oarg.item.has_command) {
+        hs.functions.make_request( {
+            "session"     : oarg.session,
+            "cmd"         : "vcu&id=" + oarg.item.id,
+            "page_id"     : oarg.page_id,
+        });
+    }
+}
+
+hs.functions.do_valset = function ( oarg ) {
+    debug(4,"do_valset:",oarg);
+
 }
 
 hs.functions.load_page = function( oarg ) {
@@ -1116,13 +1124,14 @@ hs.functions.load_page = function( oarg ) {
     oarg.session.start_id = oarg.page_id;
 
     var _extra_request = "";
-    if (typeof oarg.command_id != 'undefined') {
-        _extra_request = "&cmdid=" + oarg.command_id + "&cmdpos=0";
+    if (typeof oarg.item != 'undefined' && oarg.item.has_command) {
+        _extra_request = "&cmdid=" + oarg.item.id + "&cmdpos=0";
     }
 
     if (hs.gui.pages.hasOwnProperty(oarg.page_id)) {
         var _page = hs.gui.pages[oarg.page_id];
         if (!_page.hidepage) {
+            //FIXME
             if ($.inArray(oarg.page_id, hs.gui.active_pages) > -1 ) {
                 debug(5,"load_page:FadeIn Cached Page "+oarg.page_id);
                 _page.object.css("z-index","50");
@@ -1165,13 +1174,10 @@ hs.functions.async.gv = function( oarg ) {
 hs.functions.check_click = function( oarg ) {
     debug(3,"check_click",oarg);
     var _session_position =  $("#" + oarg.item.session.target).position();
-    xxAPI.events.lastclick.top = oarg.event.pageY - _session_position.top;
-    xxAPI.events.lastclick.left = oarg.event.pageX - _session_position.left;
-    var _item = oarg.item;
-    var _session = _item.session;
-    var _command_id = _item.has_command ? _item.id : -1;
-    if (typeof _item.clickcode === 'function') {
-        _item.clickcode( oarg );
+    xxAPI.events.lastclick.top = oarg.item.event.pageY - _session_position.top;
+    xxAPI.events.lastclick.left = oarg.item.event.pageX - _session_position.left;
+    if (typeof oarg.item.clickcode === 'function') {
+        oarg.item.clickcode( oarg );
     }
     /*
         Element .action_id
@@ -1202,25 +1208,16 @@ hs.functions.check_click = function( oarg ) {
             24 = Query /hsgui?cmd=gq&id=6&frm=1&cnt=5&chk=0&hnd=4&code=3BC1D69459
             25 = Navigation: Beenden  /hsgui?cmd=logout&hnd=3&code=AE7A1C1473
     */
-    switch (_item.action_id) {
+    switch (oarg.item.action_id) {
         case 0:
             //  0 = Nur Befehl
-            if (_command_id > -1 ) {
-                hs.functions.do_command( {
-                    "session"       : _session,
-                    "command_id"    : _command_id,
-                    "page_id"       : _item.page_id,
-                });
-            }
+            hs.functions.do_command( oarg );
             break;
         
         case 1: 
             // 1 = Seitenaufruf (optional Befehl)
-            hs.functions.load_page( {
-                "session"       : _session,
-                "page_id"       : _item.open_page,
-                "command_id"    : _command_id,
-            });
+            oarg.page_id = oarg.item.open_page;
+            hs.functions.load_page( oarg );
             break;
             
         case 8:
@@ -1256,27 +1253,21 @@ hs.functions.check_click = function( oarg ) {
             break;
         case 21:
             // 21 = Navigation: Startseite
-            if ( hs.user.start_page != _item.page.id) {
-                hs.functions.load_page( {
-                    "session"       : _session,
-                    "page_id"       : hs.user.start_page,
-                    "command_id"    : _command_id
-                });
+            if ( hs.user.start_page != oarg.item.page.id) {
+                oarg.page_id = hs.user.start_page;
+                hs.functions.load_page( oarg );
             }
             break;
         case 22:
             // 22 = Navigation: Zurück
             debug(5,"history_back",oarg);
-            if (_session.history.length > 1) {
-                _session.history.pop();
-                var _lastpage = _session.history.pop();
+            if (oarg.session.history.length > 1) {
+                oarg.session.history.pop();
+                var _lastpage = oarg.session.history.pop();
             
                 if (_lastpage !== undefined) {
-                    hs.functions.load_page( {
-                        "session"       : _session,
-                        "page_id"       : _lastpage,
-                        "command_id"    : _command_id
-                    });
+                    oarg.page_id = _lastpage;
+                    hs.functions.load_page( oarg );
                 }
             }
             break;
@@ -1291,7 +1282,7 @@ hs.functions.check_click = function( oarg ) {
             break;
             
         default:
-            alert("Funktionstyp " + _item.action_id + " noch nicht implementiert");
+            alert("Funktionstyp " + oarg.item.action_id + " noch nicht implementiert");
     }
 }
 
