@@ -463,6 +463,7 @@ hs.functions.hs_item = function( oarg ) {
         oarg.item.mouseupcode = null;
         oarg.item.hidden = false;
         oarg.item.object = null;
+        oarg.item.title = "";
         
         if(oarg.item.click && oarg.item.action_id == 1 && oarg.item.open_page == oarg.item.page.page_id) {
             debug(4,"hs_item: remove click from page",oarg.item);
@@ -476,6 +477,7 @@ hs.functions.hs_item = function( oarg ) {
             debug(5,"Create HTML Element " + oarg.item.uid,oarg);
             oarg.item.object = $("<div />", {
                 "id"        : oarg.item.uid,
+                "title"     : oarg.item.title,
                 "css"         : {
                     "position"      : "absolute",
                     "display"       : "block",
@@ -1603,6 +1605,7 @@ hs.functions.element_loader = function ( filename ) {
 }
 
 $(document).ready(function() {
+    $("#POPUP").remove();
     if(hs.functions.get_query_parameter("logout")) {
         localStorage.removeItem('password');
         window.location.replace(location.protocol + '//' + location.host + location.pathname);
