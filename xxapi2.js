@@ -41,7 +41,7 @@ $.x2js = new X2JS();
 $.xml2json = $.x2js.xml2json;
 
 var xxAPI = {};
-xxAPI.version = "2.017";
+xxAPI.version = "2.018";
 xxAPI.functions = {};
 xxAPI.events = {
     "lastclick" : {
@@ -119,14 +119,13 @@ hs.functions.set_debuglevel = function ( level ) {
 }
 
 xxAPI.functions.XXSCRIPT = function( oarg ) {
-    var _item = oarg.item;
-    if (_item.open_page > 0) {
+    if (oarg.item.open_page > 0) {
         debug(2,"XXSCRIPT");
-        _item.page.hidden = true;
+        oarg.item.page.hidden = true;
         //window.setTimeout(function() {
             hs.functions.load_page( {
-                "session"   : _item.session,
-                "page_id"   : _item.open_page
+                "session"   : oarg.item.session,
+                "page_id"   : oarg.item.open_page
             });
         //},1);
     }
@@ -236,27 +235,24 @@ xxAPI.functions.XXIMG = function ( oarg ) {
 
 xxAPI.functions.XXLONGPRESS = function ( oarg ) {
     debug(2,"XXLONGPRESS",oarg);
-    var _item = oarg.item;
-    var _args = oarg.args;
-    var _longpresstime = parseInt(_args[1]) || 50;
+    var _longpresstime = parseInt(oarg.args[1]) || 50;
     if (_longpresstime < 50) {
         _longpresstime = 50;
     }
-    _item.xxapi.longpresstime = _longpresstime;
-    if (_args.length > 2) {
-        _item.xxapi.longpressbit = parseInt(_args[2]) || 0;
+    oarg.item.xxapi.longpresstime = _longpresstime;
+    if (oarg.args.length > 2) {
+        oarg.item.xxapi.longpressbit = parseInt(oarg.args[2]) || 0;
     }
-    if (_args.length > 3) {
-        _item.xxapi.longpresscode = _args.slice(3).join("*");
+    if (oarg.args.length > 3) {
+        oarg.item.xxapi.longpresscode = oarg.args.slice(3).join("*");
     }
-    _item.text = '';
+    oarg.item.text = '';
 }
 
 xxAPI.functions.XXREGICON = function ( oarg ) {
     debug(2,"XXREGICON",oarg);
-    var _args = oarg.args;
-    if (_args.length > 2) {
-        xxAPI.registered_icons[_args[1]] = _args.slice(2).join("*");
+    if (oarg.args.length > 2) {
+        xxAPI.registered_icons[oarg.args[1]] = oarg.args.slice(2).join("*");
     }
     oarg.item.hidden = true;
 }
@@ -361,18 +357,16 @@ function debug(level,msg,obj) {
 }
 
 hs.functions.xxapi_check = function( oarg ) {
-    var _text = oarg.item.text;
     if (oarg.item.type == "ICO") {
-        _text = xxAPI.registered_icons[oarg.item.image] || '';
+        oarg.item.text = xxAPI.registered_icons[oarg.item.image] || '';
     }
-    if (_text.match(/^XX.*\*/) == null) {
+    if (oarg.item.text.match(/^XX.*\*/) == null) {
         return;
     }
-    debug(3,"xxAPI Check: (" + oarg.item.uid + ") " + _text ,oarg);
-    var args = _text.split("*");
-    var _func = xxAPI.functions[args[0].toUpperCase()];
+    debug(3,"xxAPI Check: (" + oarg.item.uid + ") " + oarg.item.text ,oarg);
+    oarg.args = oarg.item.text.split("*");
+    var _func = xxAPI.functions[oarg.args[0].toUpperCase()];
     if(typeof _func === 'function') {
-        oarg.args = args;
         _func( oarg );
     }
 }
@@ -388,19 +382,20 @@ hs.functions.hs_session = function(target,start_id) {
             "session"   : _session,
             "page_id"   : start_id || _session.start_id,
         });
-        return _session;
+        return;
     }
     hs.session[target] = this;
     // Session 
     this.target = target;
-    this.start_id = start_id;
-    this.auth = {};
-    this.auth.handle = 0;
-    this.auth.pos = 0;
-    this.auth.tan = 0;
-    this.auth.tan_counter = 0;
-    this.auth.glob_key1 = "";
-    this.auth.glob_key2 = "";
+    this.start_id = start_id || null;
+    this.auth = {
+        "handle"        : 0,
+        "pos"           : 0,
+        "tan"           : 0,
+        "tan_counter"   : 0,
+        "glob_key1"     : "",
+        "glob_key2"     : "",
+    };
     
     this.ajax_queue = $({});
     this.update_timer = null;
@@ -411,182 +406,174 @@ hs.functions.hs_session = function(target,start_id) {
     this.active_pages = [];
     this.history = [];
     
-    hs.functions.login_init({ session: this, page_id : start_id});
-
-    return this;
+    hs.functions.login_init({ 
+        "session"   : this,
+        "page_id"   : start_id
+    });
 }
 
 hs.functions.hs_item = function( oarg ) {
-    var _json = oarg.json;
-    this.json = _json;
-    this.id     = _json._pos || _json._id;
-    this.type   = _json._type;
+    this.id     = oarg.json._pos || oarg.json._id;
+    this.type   = oarg.json._type;
     this.session = oarg.session;
 
     this.page_id = oarg.page.page_id;
     this.page = oarg.page;
     this.uid = this.session.target + "_PAGE_" + this.page_id + "_" + this.type + "_" + this.id;
-    
-    var _item = this;
+    oarg.item = this;
     
     if (this.page.items.hasOwnProperty(this.uid)) {
 
-        _item = this.page.items[this.uid];
+        oarg.item = this.page.items[this.uid];
 
     } else {
-        _item.width  = parseInt(_json._w);
-        _item.height = parseInt(_json._h);
-        _item.top    = parseInt(_json._y);
-        _item.left   = parseInt(_json._x);
+        oarg.item.width  = parseInt(oarg.json._w);
+        oarg.item.height = parseInt(oarg.json._h);
+        oarg.item.top    = parseInt(oarg.json._y);
+        oarg.item.left   = parseInt(oarg.json._x);
         
-        _item.click       = (_json._click*1) == 1;
-        _item.has_command = (_json._hcmd*1) == 1;
-        _item.open_page   = parseInt(_json._pid   || -1);
-        _item.action_id   = parseInt(_json._typ   || -1);
-        _item.font        = parseInt(_json._fid   ||  0);
-        _item.align       = hs.functions.number2align( parseInt(_json._align ||  0));
-        _item.indent      = parseInt(_json._bord  ||  0);
+        oarg.item.click       = (oarg.json._click*1) == 1;
+        oarg.item.has_command = (oarg.json._hcmd*1) == 1;
+        oarg.item.open_page   = parseInt(oarg.json._pid   || -1);
+        oarg.item.action_id   = parseInt(oarg.json._typ   || -1);
+        oarg.item.font        = parseInt(oarg.json._fid   ||  0);
+        oarg.item.align       = hs.functions.number2align( parseInt(oarg.json._align ||  0));
+        oarg.item.indent      = parseInt(oarg.json._bord  ||  0);
     }
-    
-    _item.color       = hs.functions.get_hexcolor( _json._fcol ) || _item.color || "transparent";
-    _item.bg_color    = hs.functions.get_hexcolor( _json._bgcol || _json._col) || _item.bg_color || "transparent";
-    _item.text        = _json._txt ||   "";
-    _item.html        = null;
-    _item.image       = _json._ico || null;
-    _item.url         = _json._url || null;
 
-    if (this.page.items.hasOwnProperty(this.uid)) {
-        hs.functions.update_item( {
-            "json"  : _json,
-            "item"  : _item,
-        });
+    oarg.item.json = oarg.json;
+    
+    oarg.item.color       = hs.functions.get_hexcolor( oarg.json._fcol ) || oarg.item.color || "transparent";
+    oarg.item.bg_color    = hs.functions.get_hexcolor( oarg.json._bgcol || oarg.json._col) || oarg.item.bg_color || "transparent";
+    oarg.item.text        = oarg.json._txt ||   "";
+    oarg.item.html        = null;
+    oarg.item.image       = oarg.json._ico || null;
+    oarg.item.url         = oarg.json._url || null;
+
+    if (oarg.page.items.hasOwnProperty(oarg.item.uid)) {
+        oarg.item.cmd = "update";
+        hs.functions.update_item( oarg );
     } else {
         // xxAPI
-        this.xxapi = {};
-        this.customcss = {};
-        this.clickcode = null;
-        this.mousedowncode = null;
-        this.mouseupcode = null;
-        this.hidden = false;
-        this.object = null;
+        oarg.item.xxapi = {};
+        oarg.item.customcss = {};
+        oarg.item.clickcode = null;
+        oarg.item.mousedowncode = null;
+        oarg.item.mouseupcode = null;
+        oarg.item.hidden = false;
+        oarg.item.object = null;
         
-        if(_item.click && _item.action_id == 1 && _item.open_page == _item.page.page_id) {
-            debug(4,"hs_item: remove click from page",this);
-            _item.action_id = 0;
-            _item.click = _item.has_command;
+        if(oarg.item.click && oarg.item.action_id == 1 && oarg.item.open_page == oarg.item.page.page_id) {
+            debug(4,"hs_item: remove click from page",oarg.item);
+            oarg.item.action_id = 0;
+            oarg.item.click = oarg.item.has_command;
         }
-
-        hs.functions.xxapi_check( {
-            "cmd"       : "create",
-            "json"      : _json,
-            "item"      : _item,
-        });
+        oarg.item.cmd = "create";
+        hs.functions.xxapi_check( oarg );
         
-        if (_item.object == null) {
-            debug(5,"Create HTML Element " + _item.uid,_json);
-            _item.object = $("<div />", {
-                "id"        : _item.uid,
+        if (oarg.item.object == null) {
+            debug(5,"Create HTML Element " + oarg.item.uid,oarg);
+            oarg.item.object = $("<div />", {
+                "id"        : oarg.item.uid,
                 "css"         : {
                     "position"      : "absolute",
                     "display"       : "block",
-                    "top"           : _item.top,
-                    "left"          : _item.left,
-                    "height"        : _item.height + "px",
-                    "width"         : _item.width  + "px",
-                    "line-height"   : _item.height + "px",
+                    "top"           : oarg.item.top,
+                    "left"          : oarg.item.left,
+                    "height"        : oarg.item.height + "px",
+                    "width"         : oarg.item.width  + "px",
+                    "line-height"   : oarg.item.height + "px",
                 },
                 "class"         : "visuelement"
                 
             });
-            if (_item.click) {
-                _item.object.click(function (e) {
+            if (oarg.item.click) {
+                oarg.item.object.click(function (e) {
                     hs.functions.check_click( {
-                        "item"      : _item,
+                        "item"      : oarg.item,
                         "event"     : e,
                     });
                 });
-                _item.object.addClass("visuclickelement");
+                oarg.item.object.addClass("visuclickelement");
             } else {
-                _item.object.css("pointer-events","none");
+                oarg.item.object.css("pointer-events","none");
             }
-            if (_item.type == "BOX") {
-                if (_item.width > 5 && _item.height > 5) {
-                    _item.object.css( {
-                        "width"             : (_item.width  -2) + "px",
-                        "height"            : (_item.height -2) + "px",
+            if (oarg.item.type == "BOX") {
+                if (oarg.item.width > 5 && oarg.item.height > 5) {
+                    oarg.item.object.css( {
+                        "width"             : (oarg.item.width  -2) + "px",
+                        "height"            : (oarg.item.height -2) + "px",
                         "border-width"      : "1px",
                         "border-style"      : "solid",
-                        "border-color"      : _item.bg_color,
+                        "border-color"      : oarg.item.bg_color,
                     });
                 }
-                _item.object.css("background-color", _item.bg_color);
+                oarg.item.object.css("background-color", oarg.item.bg_color);
 
             }
             
-            if (_item.type == "TXT") {
-                _item.object.css( hs.gui.fonts[_item.font] );
-                _item.object.css( {
-                    "background-color"  : _item.bg_color,
-                    "color"             : _item.color,
+            if (oarg.item.type == "TXT") {
+                oarg.item.object.css( hs.gui.fonts[oarg.item.font] );
+                oarg.item.object.css( {
+                    "background-color"  : oarg.item.bg_color,
+                    "color"             : oarg.item.color,
                     "white-space"       : "nowrap",
-                    "text-align"        : _item.align,
+                    "text-align"        : oarg.item.align,
                 });
-                if (_item.html == null) {
-                    var _txtobject = $("<span />").text(_item.text);
-                    if (_item.indent > 0) {
-                        if ($.inArray(_item.align,["left","center"]) > -1) {
-                            _txtobject.css( "margin-left",_item.indent + "px");
+                if (oarg.item.html == null) {
+                    var _txtobject = $("<span />").text(oarg.item.text);
+                    if (oarg.item.indent > 0) {
+                        if ($.inArray(oarg.item.align,["left","center"]) > -1) {
+                            _txtobject.css( "margin-left",oarg.item.indent + "px");
                         } 
-                        if ($.inArray(_item.align,["center","right"]) > -1) {
-                            _txtobject.css( "margin-right",_item.indent + "px");
+                        if ($.inArray(oarg.item.align,["center","right"]) > -1) {
+                            _txtobject.css( "margin-right",oarg.item.indent + "px");
                         } 
                     }
-                    _item.object.append(_txtobject);
+                    oarg.item.object.append(_txtobject);
                 } else {
-                    _item.object.html(_item.html);
+                    oarg.item.object.html(oarg.item.html);
                 }
             }
             
-            if (_item.type == "CAM") {
-                if (_item.url != null) {
-                    _item.url = _item.url.match(/http?:\/\/.*/) ? _item.url : "http://" + _item.url;
+            if (oarg.item.type == "CAM") {
+                if (oarg.item.url != null) {
+                    oarg.item.url = oarg.item.url.match(/http?:\/\/.*/) ? oarg.item.url : "http://" + oarg.item.url;
                 } else {
-                    _item.url = hs.functions.get_url ({ 
-                        "session"   : _item.session, 
-                        "url"       : "/guicamv?id=" + _item.id, 
+                    oarg.item.url = hs.functions.get_url ({ 
+                        "session"   : oarg.item.session, 
+                        "url"       : "/guicamv?id=" + oarg.item.id, 
                         "cmd"       : "", 
                     });
                 }
             }
             
-            if (_item.type == "GRAF") {
-                _item.url = hs.functions.get_url ({ 
-                    "session"   : _item.session, 
-                    "url"       : "/guigrafv?id=" + _item.id, 
+            if (oarg.item.type == "GRAF") {
+                oarg.item.url = hs.functions.get_url ({ 
+                    "session"   : oarg.item.session, 
+                    "url"       : "/guigrafv?id=" + oarg.item.id, 
                     "cmd"       : "",
                 });
             }
             
-            if (_item.type == "ICO") {
+            if (oarg.item.type == "ICO") {
                 
             }
             
-            if ( $.inArray(_item.type, ["CAM","GRAF","ICO"]) > -1) {
-                hs.functions.load_image( { 
-                    "item"          : _item, 
-                });
+            if ( $.inArray(oarg.item.type, ["CAM","GRAF","ICO"]) > -1) {
+                hs.functions.load_image( oarg );
             }
-            _item.s_text = _item.text;
-            _item.s_color = _item.color;
-            _item.s_bg_color = _item.bg_color;
-            _item.s_image = _item.image;
-            _item.s_url = _item.url;
-            _item.object.css(_item.customcss);
+            oarg.item.s_text = oarg.item.text;
+            oarg.item.s_color = oarg.item.color;
+            oarg.item.s_bg_color = oarg.item.bg_color;
+            oarg.item.s_image = oarg.item.image;
+            oarg.item.s_url = oarg.item.url;
+            oarg.item.object.css(oarg.item.customcss);
 
         }
-        _item.page.items[_item.uid] = _item;
-        if(!_item.hidden) {
-            _item.page.object.append(_item.object);
+        oarg.item.page.items[oarg.item.uid] = oarg.item;
+        if(!oarg.item.hidden) {
+            oarg.item.page.object.append(oarg.item.object);
         }
     }
     /*
@@ -594,72 +581,62 @@ hs.functions.hs_item = function( oarg ) {
 }
 
 hs.functions.update_item = function ( oarg ) {
-    var _item     = oarg.item;
-    var _json     = oarg.json;
-    
     // xxAPI update check
-    hs.functions.xxapi_check( {
-        "cmd"       : "update",
-        "json"      : _json,
-        "item"      : _item,
-    });
+    hs.functions.xxapi_check( oarg );
     
 
-    if ( $.inArray(_item.type, ["TXT"]) > -1) {
-        if (_item.s_color != _item.color) {
-            debug(4,"COLOR CHANGED '" + _item.s_color + "' != '" + _item.color + "'")
-            _item.object.css("color",_item.color);
+    if ( $.inArray(oarg.item.type, ["TXT"]) > -1) {
+        if (oarg.item.s_color != oarg.item.color) {
+            debug(4,"COLOR CHANGED '" + oarg.item.s_color + "' != '" + oarg.item.color + "'")
+            oarg.item.object.css("color",oarg.item.color);
         }
-        if (_item.s_text != _item.text) {
-            debug(4,"TEXT CHANGED '" + _item.s_text + "' != '" + _item.text + "'")
-            if (_item.html == null) {
-                _item.object.children().text(_item.text);
+        if (oarg.item.s_text != oarg.item.text) {
+            debug(4,"TEXT CHANGED '" + oarg.item.s_text + "' != '" + oarg.item.text + "'")
+            if (oarg.item.html == null) {
+                oarg.item.object.children().text(oarg.item.text);
             } else {
-                _item.object.html(_item.html);
+                oarg.item.object.html(oarg.item.html);
             }
         }
 
     }
-    if ( $.inArray(_item.type, ["TXT","BOX"]) > -1) {
-        if (_item.s_bg_color != _item.bg_color) {
-            debug(4,"BOX/TEXT BGCOLORT changed '" + _item.s_bg_color + "' != '" + _item.bg_color + "'");
-            _item.object.css({
-                "background-color"  : _item.bg_color,
-                "border-color"      : _item.bg_color,
+    if ( $.inArray(oarg.item.type, ["TXT","BOX"]) > -1) {
+        if (oarg.item.s_bg_color != oarg.item.bg_color) {
+            debug(4,"BOX/TEXT BGCOLORT changed '" + oarg.item.s_bg_color + "' != '" + oarg.item.bg_color + "'");
+            oarg.item.object.css({
+                "background-color"  : oarg.item.bg_color,
+                "border-color"      : oarg.item.bg_color,
             });
         }
     }
-    if ( $.inArray(_item.type, ["ICO"]) > -1) {
-        if (_item.s_image != _item.image) {
+    if ( $.inArray(oarg.item.type, ["ICO"]) > -1) {
+        if (oarg.item.s_image != oarg.item.image) {
             debug(4,"ICO changed");
         }
     }
-    if ( $.inArray(_item.type, ["CAM","ICO"]) > -1) {
-        if (_item.s_url != _item.url) {
+    if ( $.inArray(oarg.item.type, ["CAM","ICO"]) > -1) {
+        if (oarg.item.s_url != oarg.item.url) {
             debug(4,"URL changed");
-            hs.functions.load_image( {
-                "item"  : _item,
-            });
+            hs.functions.load_image( oarg );
         }
     }
-    _item.s_text = _item.text;
-    _item.s_color = _item.color;
-    _item.s_bg_color = _item.bg_color;
-    _item.s_image = _item.image;
-    _item.s_url = _item.url;
+    oarg.item.s_text = oarg.item.text;
+    oarg.item.s_color = oarg.item.color;
+    oarg.item.s_bg_color = oarg.item.bg_color;
+    oarg.item.s_image = oarg.item.image;
+    oarg.item.s_url = oarg.item.url;
 
 }
 
 hs.functions.load_image = function ( oarg ) {
     debug(5,"load_image",oarg);
-    var _item = oarg.item;
-    var _child = _item.image_object || null;
+    var _child = oarg.item.image_object || null;
 
     var _img = $("<img />", {
-        "src"       : _item.url,
+        "src"       : oarg.item.url,
         "alt"       : " ",
-        "width"     : _item.width,
-        "height"    : _item.height,
+        "width"     : oarg.item.width,
+        "height"    : oarg.item.height,
         "css"       : {
             "position"  : "absolute",
         },
@@ -667,12 +644,12 @@ hs.functions.load_image = function ( oarg ) {
             "dragstart" : function () { return false; },
             "load"      : function () { 
                 if (this.width == 0 && this.height == 0) {
-                    debug(1,"Error: Image '" + this.src + "' failed",{ "img" : this, "item" : _item });
+                    debug(1,"Error: Image '" + this.src + "' failed",{ "img" : this, "item" : oarg.item });
                     return;
                 }
                 if (_child != null) {
-                    _item.image_object = $(this);
-                    _item.object.prepend( this );
+                    oarg.item.image_object = $(this);
+                    oarg.item.object.prepend( this );
                     _child.fadeOut(20,function() {
                         _child.remove();
                     });
@@ -681,14 +658,16 @@ hs.functions.load_image = function ( oarg ) {
         }    
     })
     if (_child == null) {
-        _item.image_object = _img;
-        _item.object.prepend( _img );
+        oarg.item.image_object = _img;
+        oarg.item.object.prepend( _img );
     }
 }
 
 hs.functions.hs_page = function( oarg ) {
     this.page_id    = oarg.page_id;
-    this.id         = oarg.session.target + "_PAGE_" + oarg.page_id;
+    this.session    = oarg.session;
+    this.id         = this.session.target + "_PAGE_" + this.page_id;
+    oarg.page       = this;
 
     if (hs.gui.pages.hasOwnProperty(this.id)) {
         debug(5,"update existing Page: ",oarg);
@@ -700,52 +679,45 @@ hs.functions.hs_page = function( oarg ) {
         }
         return oarg.page;
     }
-    oarg.page = this;
     debug(4,"create new Page: ",oarg);
-    var _json = oarg.json;
-    hs.gui.pages[this.id] = this;
-    this.hidden     = false;
-    this.popup      = false;
-    this.centered   = true;
-    this.popup_object = null;
-    this.bg_image   = _json.HS.VISU._bg;
-    this.icon       = _json.HS.VISU._ico;
-    this.qanz       = parseInt(_json.HS.VISU._bg);
-    this.title      = _json.HS.VISU._txt1;
-    this.text       = _json.HS.VISU._txt2;
-    this.width      = hs.gui.attr.visu_width;
-    this.height     = hs.gui.attr.visu_height;
-    this.items      = {};
-    this.object = $("<div />", {
-        "id"            : this.id,
+    hs.gui.pages[oarg.page.id] = oarg.page;
+    oarg.page.hidden     = false;
+    oarg.page.popup      = false;
+    oarg.page.centered   = true;
+    oarg.page.popup_object = null;
+    oarg.page.bg_image   = oarg.json.HS.VISU._bg;
+    oarg.page.icon       = oarg.json.HS.VISU._ico;
+    oarg.page.qanz       = parseInt(oarg.json.HS.VISU._bg);
+    oarg.page.title      = oarg.json.HS.VISU._txt1;
+    oarg.page.text       = oarg.json.HS.VISU._txt2;
+    oarg.page.width      = hs.gui.attr.visu_width;
+    oarg.page.height     = hs.gui.attr.visu_height;
+    oarg.page.items      = {};
+    oarg.page.object = $("<div />", {
+        "id"            : oarg.page.id,
         "class"         : "visupage",
     });
-    hs.functions.loop_items( {
-        "session"       : oarg.session,
-        "json"          : oarg.json,
-        "page"          : this,
-    } );
+    hs.functions.loop_items( oarg );
     
-    if (this.bg_image != "XXTRSPBG") {
-        this.object.css({
-            "background-image"      : "url(/guibg?id=" + this.bg_image + "&cl=" + hs.auth.gui_design + "&hash=" + hs.gui.hashes._bg + ")",
+    if (oarg.page.bg_image != "XXTRSPBG") {
+        oarg.page.object.css({
+            "background-image"      : "url(/guibg?id=" + oarg.page.bg_image + "&cl=" + hs.auth.gui_design + "&hash=" + hs.gui.hashes._bg + ")",
             "background-repeat"     : "no-repeat",
         });
     }
-    this.object.css({
+    oarg.page.object.css({
         "position"  : "absolute",
         "overflow"  : "hidden",
-        "width"     : this.width,
-        "height"    : this.height,
+        "width"     : oarg.page.width,
+        "height"    : oarg.page.height,
     })
     
-    if (!this.hidden) {
+    if (!oarg.page.hidden) {
         hs.functions.fade_page( oarg );
-        if (this.centered) {
-            this.object.center();
+        if (oarg.page.centered) {
+            oarg.page.object.center();
         }
     }
-    return this;
 }
 
 hs.functions.fade_page = function( oarg ) {
@@ -763,27 +735,29 @@ hs.functions.fade_page = function( oarg ) {
 }
 
 hs.functions.loop_items = function ( oarg ) {
-    var _items = {};
-    var _json = oarg.json;
-    $.each(_json.HS.ITEMS, 
+    $.each(oarg.json.HS.ITEMS, 
         function(item_type, child) {
-            oarg.item_type = item_type;
             if ($.isArray(child)) {
                 $.each(child, 
                     function(counter,item) {
-                        oarg.json = item;
-                        var _hs_item = new hs.functions.hs_item( oarg );
-                        _items[_hs_item.id] = _hs_item;
+                        var _json = item;
+                        new hs.functions.hs_item({
+                            "json"      : _json,
+                            "session"   : oarg.session,
+                            "page"      : oarg.page,
+                        });
                     }
                 );
             } else {
-                oarg.json = child;
-                var _hs_item = new hs.functions.hs_item( oarg );
-                _items[_hs_item.id] = _hs_item;
+                var _json = child;
+                new hs.functions.hs_item({
+                    "json"      : _json,
+                    "session"   : oarg.session,
+                    "page"      : oarg.page,
+                });
             }
         }
     );
-    return _items;
 }
 
 hs.functions.make_globkey = function(xor) {
@@ -830,7 +804,7 @@ hs.functions.get_url = function( oarg ) {
 
 hs.functions.make_request = function ( oarg ) {
     // based on jquery-ajaxQueue
-    debug(5,"make_request (" + oarg.session.target + "): " + oarg.cmd + " / id=" + oarg.id + " / url=" + oarg.url);
+    debug(5,"make_request (" + oarg.session.target + "): " + oarg.cmd + " / url=" + oarg.url);
     var jqXHR,
         dfd = $.Deferred(),
         promise = dfd.promise();
@@ -846,7 +820,7 @@ hs.functions.make_request = function ( oarg ) {
     // run the actual query
     function doRequest( next ) {
         ajaxOpts.url = hs.functions.get_url( oarg );
-        debug(5,"do_request (" + oarg.session.target + "): " + oarg.cmd + " / id=" + oarg.id + " / url=" + oarg.url, ajaxOpts);
+        debug(5,"do_request (" + oarg.session.target + "): " + oarg.cmd + " / url=" + oarg.url, ajaxOpts);
         jqXHR = $.ajax( ajaxOpts );
         jqXHR.done( dfd.resolve )
             .fail( dfd.reject )
@@ -883,16 +857,15 @@ hs.functions.make_request = function ( oarg ) {
 }
 
 hs.functions.async.handler = function( oarg ) {
-    debug(5,"async_handler (" + oarg.session.target + ") : " + oarg.cmd + " / id=" + oarg.id ,oarg);
+    debug(5,"async_handler (" + oarg.session.target + ") : " + oarg.cmd,oarg);
     oarg.url = "";
     oarg.json =  hs.functions.error_handler( oarg ) 
     if (!oarg.json) {
         return false;
     }
 
-    var _cmd = string_cut_after_match(oarg.cmd,"&");
-    oarg.cmd = _cmd;
-    switch (_cmd) {
+    oarg.cmd = string_cut_after_match(oarg.cmd,"&");
+    switch (oarg.cmd) {
         case "init"     : hs.functions.async.login( oarg ); break;
         case "login"    : hs.functions.async.logged_in(  oarg ); break;
         case "getfont"  : hs.functions.async.getfont( oarg ); break;
@@ -907,7 +880,7 @@ hs.functions.async.handler = function( oarg ) {
         
         case "logout"   : break;
         default:
-            alert("unknow CMD '" + _cmd + "'");
+            alert("unknow CMD '" + oarg.cmd + "'");
     }
 };
 
@@ -916,31 +889,31 @@ hs.functions.error_handler = function( oarg ) {
     // <HS><ERR code="99"></ERR></HS>
     // <HS><ERROR>Timeout !!</ERROR></HS>
     debug(5,"error_handler: (" + oarg.cmd + ")", oarg.xhttpobj);
-    var _error = ""
+    oarg.error = ""
     if (typeof oarg.xhttpobj != 'undefined') {
         if (!navigator.onLine) {
-            _error = "offline";
+            oarg.error = "offline";
         }
         if (oarg.xhttpobj.status != 200) {
             switch (oarg.xhttpobj.status) {
-                case 0: _error = "offline"; break;
-                case 404: _error = "notfound"; break;
+                case 0: oarg.error = "offline"; break;
+                case 404: oarg.error = "notfound"; break;
             }
         } else {
             if (oarg.xhttpobj.responseText.length == 0) {
                 switch(oarg.cmd) {
-                    case "init"     : _error = "auth_error"; break;
-                    case "login"    : _error = "pass_error"; break;
+                    case "init"     : oarg.error = "auth_error"; break;
+                    case "login"    : oarg.error = "pass_error"; break;
                     
                 }
             }
             var _error_regex = new RegExp(/(?:<ERROR>|<ERR code=\")(.*?)(?:<\/ERROR>|\"\/>)/g);
             var _errorcode = _error_regex.exec(oarg.xhttpobj.responseText);
             if (_errorcode != null) {
-                _error = _errorcode[1].toLowerCase();
-                _error = _error.substring(0,17);
+                oarg.error = _errorcode[1].toLowerCase();
+                oarg.error = oarg.error.substring(0,17);
             }
-            if (_error == "") {
+            if (oarg.error == "") {
                 var _xml = oarg.xhttpobj.responseText;
                 if (_xml.match(/<HS>.*?<ITEMS>[^]*?<\/ITEMS>/gm)) {
                     debug(4,"fix item order", { "_xml" : _xml });
@@ -958,23 +931,23 @@ hs.functions.error_handler = function( oarg ) {
                     var _json =  $.xml2json(oarg.xhttpobj.responseXML);
                     return _json;
                 } catch (e) {
-                    _error = e.toString();
+                    oarg.error = e.toString();
                 }
             }
         }
     }
     
-    debug(0,"Error: " + _error + " / " + oarg.id, oarg);
-    switch (_error) {
+    debug(0,"Error: " + oarg.error, oarg);
+    switch (oarg.error) {
         case "auth_error"       : hs.functions.login_dialog("Benutzer falsch"); break;
         case "pass_error"       : hs.functions.login_dialog("Password falsch"); break;
         case "timeout !!"       : hs.functions.login_init( oarg ); break;
         case "handle error !!"  : hs.functions.login_init( oarg ); break;
         case "user kidnapped !!": hs.functions.login_init( oarg ); break;
         case "99"               : alert("Visuseite nicht gefunden"); break;
-        default                 : alert("Error " + _error); break
+        default                 : alert("Error " + oarg.error); break
     }
-    return (_error == "");
+    return (oarg.error == "");
 }
 
 hs.functions.swap_object = function( obj ) {
@@ -1030,22 +1003,21 @@ hs.functions.fix_xml = function ( xml ) {
 }
 
 hs.functions.login_init = function( oarg ) {
-    debug(5,"login_init: " + oarg.id);
+    debug(5,"login_init:",oarg);
     var _cmd = "init";
     var _url =  "/hsgui?cmd=" + _cmd;
     _url += "&user=" + hs.auth.username;
     _url += "&cid="  + hs.auth.gui_design;
     _url += "&ref="  + hs.auth.gui_refresh;
     hs.functions.make_request( {
-        session     : oarg.session,
-        cmd         : _cmd,
-        id          : oarg.id,
-        url         : _url
+        "session"     : oarg.session,
+        "cmd"         : _cmd,
+        "url"         : _url
     });
 };
 
 hs.functions.async.login = function( oarg ) {
-    debug(5,"async.login: " + oarg.id ,oarg.session);
+    debug(5,"async.login:",oarg);
     oarg.session.auth.handle = oarg.json.HS.HND;
     oarg.session.auth.tan = oarg.json.HS.TAN;
     oarg.session.auth.tan_counter = 0;
@@ -1053,9 +1025,8 @@ hs.functions.async.login = function( oarg ) {
     oarg.session.auth.glob_key1 = hs.functions.make_globkey(0x5c);
     oarg.session.auth.glob_key2 = hs.functions.make_globkey(0x36);
     hs.functions.make_request( {
-        session     : oarg.session,
-        cmd         : "login",
-        id          : oarg.id,
+        "session"     : oarg.session,
+        "cmd"         : "login",
     });
 };
 
@@ -1088,17 +1059,15 @@ hs.functions.async.logged_in = function(  oarg ) {
     // überprüfen ob die Schriften sich geändert haben
     if (hs.gui.hashes._font != oarg.json.HS.HASH._font) {
         hs.functions.make_request( {
-            session     : oarg.session,
-            cmd         : "getfont",
-            id          : oarg.id,
+            "session"     : oarg.session,
+            "cmd"         : "getfont",
         });
     }
     // überprüfen ob die Parameter geändert wurden
     if (hs.gui.hashes._para != oarg.json.HS.HASH._para) {
         hs.functions.make_request( {
-            session     : oarg.session,
-            cmd         : "getattr",
-            id          : oarg.id,
+            "session"     : oarg.session,
+            "cmd"         : "getattr",
         });
     }
     hs.gui.hashes = oarg.json.HS.HASH;
@@ -1140,12 +1109,9 @@ hs.functions.do_command = function( oarg ) {
 hs.functions.load_page = function( oarg ) {
     debug(4,"load_page (" + oarg.session.target + "): " + oarg.page_id + " (" + oarg.command_id + ")", oarg);
     oarg.session.start_id = oarg.page_id;
-    if (typeof oarg.id == "undefined") { 
-        oarg.command_id = -1; 
-    }
 
     var _extra_request = "";
-    if (oarg.command_id > -1) {
+    if (typeof oarg.command_id != 'undefined') {
         _extra_request = "&cmdid=" + oarg.command_id + "&cmdpos=0";
     }
 
