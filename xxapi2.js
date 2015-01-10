@@ -449,6 +449,7 @@ hs.functions.hs_item = function( oarg ) {
     oarg.item.html        = null;
     oarg.item.image       = oarg.json._ico || null;
     oarg.item.url         = oarg.json._url || null;
+    oarg.item.auth        = oarg.json._auth || null;
 
     if (oarg.page.items.hasOwnProperty(oarg.item.uid)) {
         oarg.item.cmd = "update";
@@ -535,9 +536,11 @@ hs.functions.hs_item = function( oarg ) {
                     oarg.item.object.html(oarg.item.html);
                 }
             }
-            
             if (oarg.item.type == "CAM") {
-                if (oarg.item.url != null) {
+                if (oarg.item.url) {
+                    if (oarg.item.auth) {
+                        oarg.item.url = $.base64.decode(oarg.item.auth) + "@" + oarg.item.url;
+                    }
                     oarg.item.url = oarg.item.url.match(/http?:\/\/.*/) ? oarg.item.url : "http://" + oarg.item.url;
                 } else {
                     oarg.item.url = hs.functions.get_url ({ 
@@ -896,7 +899,7 @@ hs.functions.error_handler = function( oarg ) {
         }
         if (oarg.xhttpobj.status != 200) {
             switch (oarg.xhttpobj.status) {
-                case 0: oarg.error = "offline"; break;
+                case 0: oarg.error = "connreset"; break;
                 case 404: oarg.error = "notfound"; break;
             }
         } else {
