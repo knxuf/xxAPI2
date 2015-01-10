@@ -259,6 +259,11 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
     debug(2,"XXPAGE",oarg);
     oarg.item.page.width = oarg.item.left;
     oarg.item.page.height = oarg.item.top;
+    $("#" + oarg.session.target).css({
+        "width"     : oarg.page.width,
+        "height"    : oarg.page.height,
+    });
+
     oarg.item.page.popup = oarg.args[1] == "POPUP";
     if (oarg.args.length > 2) {
         var _match = null;
@@ -699,6 +704,13 @@ hs.functions.hs_page = function( oarg ) {
         "id"            : oarg.page.id,
         "class"         : "visupage",
     });
+    
+    $("#" + oarg.session.target).css({
+        "width"     : oarg.page.width,
+        "height"    : oarg.page.height,
+    });
+
+
     hs.functions.loop_items( oarg );
     
     if (oarg.page.bg_image != "XXTRSPBG") {
@@ -1509,8 +1521,6 @@ hs.functions.set_viewport = function() {
 
     $("#VISU").css("display","block");
     $("#VISU").css("position","absolute");
-    $("#VISU").css("width",hs.gui.attr.visu_width);
-    $("#VISU").css("height",hs.gui.attr.visu_height);
     $("#VISU").css("top",hs.gui.attr.centered_top);
     $("#VISU").css("left",hs.gui.attr.centered_left);
     
