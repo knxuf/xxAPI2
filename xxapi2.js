@@ -69,7 +69,10 @@ hs.gui = {};
 hs.gui.update_timer = null;
 hs.gui.fonts = {};
 hs.gui.systemfonts = {};
-hs.gui.attr = {};
+hs.gui.attr = {
+    "initial_visu_width"    : $(window).width(), 
+    "initial_visu_height"   : $(window).height(),
+};
 hs.gui.hashes = {};
 hs.gui.pages = {};
 hs.gui.items = {};
@@ -259,12 +262,13 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
     debug(2,"XXPAGE",oarg);
     oarg.item.page.width = oarg.item.left;
     oarg.item.page.height = oarg.item.top;
-    $("#" + oarg.session.target).css({
-        "width"     : oarg.page.width,
-        "height"    : oarg.page.height,
-    });
-
     oarg.item.page.popup = oarg.args[1] == "POPUP";
+    
+    if(!oarg.item.page.is_modul && !oarg.item.page.popup) {
+        hs.gui.attr.visu_width = oarg.page.width;
+        hs.gui.attr.visu_height = oarg.page.height;
+    }
+    
     if (oarg.args.length > 2) {
         var _match = null;
         var _regex =new RegExp(/([-\w]+)[:](.*?);/g);
@@ -495,9 +499,15 @@ hs.functions.hs_item = function( oarg ) {
                 
             });
             if (oarg.item.click) {
-                oarg.item.object.click(function (event) {
+                oarg.item.object.bind("click",function (event) {
                     oarg.item.event = event;
                     hs.functions.check_click( oarg );
+                });
+                $.each( ["touchstart","touchend","mousedown","mouseup"],function(index, value) {
+                    oarg.item.object.bind(value,function (event) {
+                        oarg.item.event = event;
+                        hs.functions.mouse_event( oarg )
+                    });
                 });
                 oarg.item.object.addClass("visuclickelement");
             } else {
@@ -673,9 +683,13 @@ hs.functions.load_image = function ( oarg ) {
 hs.functions.hs_page = function( oarg ) {
     this.page_id    = oarg.page_id;
     this.session    = oarg.session;
+    this.is_modul   = oarg.session.target == "VISU" ? false:true;
     this.id         = this.session.target + "_PAGE_" + this.page_id;
     oarg.page       = this;
-
+    if (!this.is_modul) {
+        hs.gui.attr.visu_height = hs.gui.attr.initial_visu_height;
+        hs.gui.attr.visu_width = hs.gui.attr.initial_visu_width;
+    }
     if (hs.gui.pages.hasOwnProperty(this.id)) {
         debug(5,"update existing Page: ",oarg);
         oarg.page = hs.gui.pages[this.id];
@@ -705,10 +719,6 @@ hs.functions.hs_page = function( oarg ) {
         "class"         : "visupage",
     });
     
-    $("#" + oarg.session.target).css({
-        "width"     : oarg.page.width,
-        "height"    : oarg.page.height,
-    });
 
 
     hs.functions.loop_items( oarg );
@@ -735,6 +745,7 @@ hs.functions.hs_page = function( oarg ) {
 }
 
 hs.functions.fade_page = function( oarg ) {
+        hs.functions.set_viewport();
         $("#" + oarg.session.target).prepend(oarg.page.object);
         oarg.page.object.show();
         oarg.session.active_pages.forEach(function(elem,index) {
@@ -1183,6 +1194,10 @@ hs.functions.async.gv = function( oarg ) {
     var _page = new hs.functions.hs_page( oarg );
 };
 
+hs.functions.mouse_event = function( oarg ) {
+    debug(3,"mouse_event: " + oarg.item.event.type,oarg);
+}
+
 hs.functions.check_click = function( oarg ) {
     debug(3,"check_click",oarg);
     var _session_position =  $("#" + oarg.item.session.target).position();
@@ -1343,7 +1358,7 @@ hs.functions.async.getattr = function( oarg ) {
         }
     );
     
-    hs.gui.attr.visu_height = (
+    hs.gui.attr.initial_visu_height = (
         hs.gui.attr.ltitleh +
         (hs.gui.attr.llinec * hs.gui.attr.llineh) +
         hs.gui.attr.lnavh +
@@ -1351,13 +1366,12 @@ hs.functions.async.getattr = function( oarg ) {
             hs.gui.attr.lsep1h + hs.gui.attr.lsep2h + hs.gui.attr.lsep3h + hs.gui.attr.lsep4h
         )
     );
-    hs.gui.attr.visu_width = (
+    hs.gui.attr.initial_visu_width = (
         (6 * hs.gui.attr.lnavw) +
         (hs.gui.attr.hasborder < 2 ? 0:
             hs.gui.attr.lbleftw + hs.gui.attr.lbrightw
         )
     );
-    hs.functions.set_viewport();
 };
 
 hs.functions.login_dialog = function(errortype) {
@@ -1496,48 +1510,42 @@ hs.functions.get_query_parameter = function(item) {
 
 jQuery.fn.reverse = [].reverse;
 
-jQuery.fn.center = function () {
+jQuery.fn.center = function (parent) {
+    if(typeof parent == 'undefined') {
+        parent = this.parent()
+    } else {
+        parent = $(parent);
+    }
     this.css({
         "position"  : "absolute",
-        "top"       : this.parent().height()/2 - this.height()/2,
-        "left"      : this.parent().width()/2 - this.width()/2,
+        "top"       : parent.height() < this.height() ? 0 : parent.height()/2 - this.height()/2,
+        "left"      : parent.width() < this.width()   ? 0 : parent.width()/2 - this.width()/2,
     });
 }
 
 hs.functions.set_viewport = function() {
-    if (typeof hs.gui.attr.visu_height == "undefined") {
-        return false;
-    }
     debug(5,"Set Viewport");
-    hs.gui.attr.centered_left = (
-        ($(window).width() < hs.gui.attr.visu_width) ? 0:
-            ($(window).width() - hs.gui.attr.visu_width)/2
-    
-    );
-    hs.gui.attr.centered_top = (
-        ($(window).height() < hs.gui.attr.visu_height) ? 0:
-            ($(window).height() - hs.gui.attr.visu_height)/2
-    );
-
-    $("#VISU").css("display","block");
-    $("#VISU").css("position","absolute");
-    $("#VISU").css("top",hs.gui.attr.centered_top);
-    $("#VISU").css("left",hs.gui.attr.centered_left);
+    $("#VISU").css({
+        "display"   : "block",
+        "position"  : "absolute",
+        "width"     : hs.gui.attr.visu_width,
+        "height"    : hs.gui.attr.visu_height,
+    }).center(window);
     
     //return true;
     var _orientation = hs.functions.get_orientation();
     var _visual_height = _orientation == "landscape" ? window.screen.availWidth  : window.screen.availHeight;
     var _visual_width  = _orientation == "landscape" ? window.screen.availHeight : window.screen.availWidth;
     
-    var _scaleto_width = Math.min(Math.floor ( _visual_width / hs.gui.attr.visu_width * 100) / 100, 1.0);
-    var _scaleto_height = Math.min(Math.floor ( _visual_height / hs.gui.attr.visu_height * 100) / 100, 1.0);
+    var _scaleto_width = Math.floor ( _visual_width / hs.gui.attr.visu_width * 100) / 100;
+    var _scaleto_height = Math.floor ( _visual_height / hs.gui.attr.visu_height * 100) / 100;
     var _scale_min = Math.min( _scaleto_width, _scaleto_height);
-    //var _scale_max = Math.max( _scaleto_width, _scaleto_height);
+    var _scale_max = Math.max( _scaleto_width, _scaleto_height);
     var _viewport_meta = 
         "width="          +  hs.gui.attr.visu_width +
         ",initial-scale=" + _scale_min +
         ",minimum-scale=" + _scale_min +
-        ",maximum-scale=1" +  //_scale_max +
+        ",maximum-scale=" +  _scale_max +
         ",user-scalable=" + (_scale_min < 1 ? "yes":"no");
     $("#meta_viewport").attr("content", _viewport_meta );
     debug(5,"Viewport: " +  _viewport_meta + " orientation: " + _orientation + " vheight: " + _visual_height + " vwidth: " + _visual_width);
