@@ -72,6 +72,8 @@ hs.gui.systemfonts = {};
 hs.gui.attr = {
     "initial_visu_width"    : $(window).width(), 
     "initial_visu_height"   : $(window).height(),
+    "visu_width"            : $(window).width(),
+    "visu_height"           : $(window).height(),
 };
 hs.gui.hashes = {};
 hs.gui.pages = {};
@@ -152,7 +154,7 @@ xxAPI.functions.XXEHTML = function ( oarg ) {
 
 xxAPI.functions.XXLINK = function ( oarg ) {
     debug(2,"XXLINK:",oarg);
-    oarg.item.clickcode = function() {
+    oarg.item.eventcode["click"] = function() {
         xxAPI.XXLINKURL = xxAPI.functions.geturl(oarg.args[2]);
     }
     oarg.item.text = oarg.args[1];
@@ -160,7 +162,7 @@ xxAPI.functions.XXLINK = function ( oarg ) {
 
 xxAPI.functions.XXHTTP = function ( oarg ) {
     debug(2,"XXHTTP:",oarg);
-    oarg.item.clickcode = function() {
+    oarg.item.eventcode["click"] = function() {
         window.open(xxAPI.functions.geturl(oarg.args[2]),'XXHTTP');
     }
     oarg.item.text = oarg.args[1];
@@ -235,18 +237,33 @@ xxAPI.functions.XXIMG = function ( oarg ) {
 }
 
 xxAPI.functions.XXLONGPRESS = function ( oarg ) {
+    /*
+        1 = click
+        2 = longpress
+        4 = longpress stopped
+    */
     debug(2,"XXLONGPRESS",oarg);
-    var _longpresstime = parseInt(oarg.args[1]) || 50;
-    if (_longpresstime < 50) {
-        _longpresstime = 50;
+    var _longpress_duration = parseInt(oarg.args[1]) || 50;
+    if (_longpress_duration < 50) {
+        _longpress_duration = 50;
     }
-    oarg.item.xxapi.longpresstime = _longpresstime;
+    
     if (oarg.args.length > 2) {
         oarg.item.xxapi.longpressbit = parseInt(oarg.args[2]) || 0;
     }
     if (oarg.args.length > 3) {
         oarg.item.xxapi.longpresscode = oarg.args.slice(3).join("*");
     }
+    oarg.item.eventcode["touchstart"] = oarg.item.eventcode["mousedown"] = function( oarg ) {
+        oarg.item.xxapi.longpresstime = $.now() + _longpress_duration;
+    };
+    oarg.item.eventcode["click"] = function( oarg ) {
+        if ($.now() >= oarg.item.xxapi.longpresstime) {
+            
+        } else {
+        
+        }
+    };
     oarg.item.text = '';
 }
 
@@ -465,9 +482,7 @@ hs.functions.hs_item = function( oarg ) {
         // xxAPI
         oarg.item.xxapi = {};
         oarg.item.customcss = {};
-        oarg.item.clickcode = null;
-        oarg.item.mousedowncode = null;
-        oarg.item.mouseupcode = null;
+        oarg.item.eventcode = {};
         oarg.item.hidden = false;
         oarg.item.object = null;
         oarg.item.title = "";
@@ -1196,6 +1211,9 @@ hs.functions.async.gv = function( oarg ) {
 
 hs.functions.mouse_event = function( oarg ) {
     debug(3,"mouse_event: " + oarg.item.event.type,oarg);
+    if (typeof oarg.item.eventcode[oarg.item.event.type] == 'function') {
+        oarg.item.eventcode[oarg.item.event.type]( oarg );
+    }
 }
 
 hs.functions.check_click = function( oarg ) {
@@ -1203,8 +1221,8 @@ hs.functions.check_click = function( oarg ) {
     var _session_position =  $("#" + oarg.item.session.target).position();
     xxAPI.events.lastclick.top = oarg.item.event.pageY - _session_position.top;
     xxAPI.events.lastclick.left = oarg.item.event.pageX - _session_position.left;
-    if (typeof oarg.item.clickcode === 'function') {
-        oarg.item.clickcode( oarg );
+    if (typeof oarg.item.eventcode.click == 'function') {
+        oarg.item.eventcode.click( oarg );
     }
     /*
         Element .action_id
@@ -1524,7 +1542,7 @@ jQuery.fn.center = function (parent) {
 }
 
 hs.functions.set_viewport = function() {
-    debug(5,"Set Viewport");
+    debug(5,"Set Viewport",hs.gui.attr);
     $("#VISU").css({
         "display"   : "block",
         "position"  : "absolute",
