@@ -1557,8 +1557,8 @@ hs.functions.set_viewport = function() {
     
     var _scaleto_width = Math.floor ( _visual_width / hs.gui.attr.visu_width * 100) / 100;
     var _scaleto_height = Math.floor ( _visual_height / hs.gui.attr.visu_height * 100) / 100;
-    var _scale_min = Math.min( _scaleto_width, _scaleto_height);
-    var _scale_max = Math.max( _scaleto_width, _scaleto_height);
+    var _scale_min = Math.min( _scaleto_width, _scaleto_height, 1);
+    var _scale_max = Math.max( _scaleto_width, _scaleto_height, 1);
     var _viewport_meta = 
         "width="          +  hs.gui.attr.visu_width +
         ",initial-scale=" + _scale_min +
