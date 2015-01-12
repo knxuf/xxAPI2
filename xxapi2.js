@@ -41,7 +41,7 @@ $.x2js = new X2JS();
 $.xml2json = $.x2js.xml2json;
 
 var xxAPI = {};
-xxAPI.version = "2.018";
+xxAPI.version = "2.019";
 xxAPI.functions = {};
 xxAPI.events = {
     "lastclick" : {
@@ -205,6 +205,18 @@ xxAPI.functions.XXEXECUTE = function ( oarg ) {
     }
 }
 
+xxAPI.functions.XXEEXECUTE = function ( oarg ) {
+    debug(2,"XXEEXECUTE:",oarg);
+    var _jscode = $.base64.decode(oarg.args[1]);
+    var _func = new Function('item','"use strict"; ' + _jscode);
+    oarg.item.text = '';
+    try {
+        _func( oarg.item );
+    } catch (e) {
+        debug(1,"XXEEXECUTE_ERROR:",e);
+    }
+}
+
 xxAPI.functions.XXMARK = function ( oarg ) {
     debug(2,"XXMARK",oarg);
     oarg.item.hidden = true;
@@ -247,24 +259,51 @@ xxAPI.functions.XXLONGPRESS = function ( oarg ) {
     if (_longpress_duration < 50) {
         _longpress_duration = 50;
     }
-    
+    oarg.item.xxapi.longpress_time = null;
+    oarg.item.xxapi.longpress_timer = null;
+    oarg.item.xxapi.longpress_bit = 0;
     if (oarg.args.length > 2) {
-        oarg.item.xxapi.longpressbit = parseInt(oarg.args[2]) || 0;
+        oarg.item.xxapi.longpress_bit = parseInt(oarg.args[2]) || 0;
     }
     if (oarg.args.length > 3) {
-        oarg.item.xxapi.longpresscode = oarg.args.slice(3).join("*");
+        oarg.item.xxapi.longpress_code = oarg.args.slice(3).join("*");
     }
+
     oarg.item.eventcode["touchstart"] = oarg.item.eventcode["mousedown"] = function( oarg ) {
-        oarg.item.xxapi.longpresstime = $.now() + _longpress_duration;
+        oarg.item.xxapi.longpress_time = $.now() + _longpress_duration;
+        if (oarg.item.xxapi.longpress_timer) {
+            window.clearTimeout(oarg.item.xxapi.longpress_timer);
+        }
+        var _oarg = oarg;
+        oarg.item.xxapi.longpress_timer = window.setTimeout(function() {
+            xxAPI.functions.longpress_event("longpress", _oarg);
+        },_longpress_duration);
+
     };
-    oarg.item.eventcode["click"] = function( oarg ) {
-        if ($.now() >= oarg.item.xxapi.longpresstime) {
-            
+    oarg.item.eventcode["touchend"] = oarg.item.eventcode["mouseup"] = function( oarg ) {
+        if(oarg.item.xxapi.longpress_timer) {
+            window.clearTimeout(oarg.item.xxapi.longpress_timer);
+        }
+        oarg.item.xxapi.longpress_timer = null;
+        if ($.now() >= oarg.item.xxapi.longpress_time) {
+            xxAPI.functions.longpress_event("longpressup", oarg);
         } else {
-        
+            xxAPI.functions.longpress_event("click", oarg);
         }
     };
+    oarg.item.click = false;
     oarg.item.text = '';
+}
+
+xxAPI.functions.longpress_event = function( presstype, oarg ) {
+    debug(3,"XXLONGPRESS_event:" + presstype,oarg);
+    var _typeval = {
+        "click"         : 1,
+        "longpress"     : 2,
+        "longpressup"   : 4,
+    };
+    oarg.item.value = _typeval[presstype]<<oarg.item.xxapi.longpress_bit;
+    hs.functions.do_valset( oarg );
 }
 
 xxAPI.functions.XXREGICON = function ( oarg ) {
@@ -322,7 +361,13 @@ xxAPI.functions.geolocation_callback = function ( position ) {
 xxAPI.functions.geolocation_send = function ( attribute, value) {
     debug(5,"Attribute: " + attribute + "=" + value);
     if (xxAPI.geolocation.hasOwnProperty(attribute)) {
-        debug(2,"XXGEOLOCATE send: " + attribute + " auf ID " + xxAPI.geolocation[attribute] + " Wert " + value);
+        debug(2,"XXGEOLOCATE send: " + attribute + " auf ID " + xxAPI.geolocation[attribute].id + " Wert " + value);
+        xxAPI.geolocation[attribute].value = value;
+        /*
+        hs.functions.do_valset({
+            "item"  : xxAPI.geolocation[attribute] ,
+        });
+        */
     }
 }
 
@@ -348,7 +393,7 @@ xxAPI.functions.XXGEOLOCATION = function ( oarg ) {
     if (oarg.item.action_id != 9) {
         debug(1,"ERROR: " + oarg.item.text + " Keine Werteingabe");
     }
-    xxAPI.geolocation[oarg.args[1]] = oarg.item.id;
+    xxAPI.geolocation[oarg.args[1]] = oarg.item;
     oarg.item.text = "";
 }
 
@@ -513,20 +558,24 @@ hs.functions.hs_item = function( oarg ) {
                 "class"         : "visuelement"
                 
             });
+
+            $.each( Object.keys(oarg.item.eventcode) ,function(index, value) {
+                oarg.item.object.bind(value,function (event) {
+                    oarg.item.event = event;
+                    hs.functions.mouse_event( oarg )
+                });
+            });
+
             if (oarg.item.click) {
                 oarg.item.object.bind("click",function (event) {
                     oarg.item.event = event;
                     hs.functions.check_click( oarg );
                 });
-                $.each( ["touchstart","touchend","mousedown","mouseup"],function(index, value) {
-                    oarg.item.object.bind(value,function (event) {
-                        oarg.item.event = event;
-                        hs.functions.mouse_event( oarg )
-                    });
-                });
                 oarg.item.object.addClass("visuclickelement");
             } else {
-                oarg.item.object.css("pointer-events","none");
+                if(Object.keys(oarg.item.eventcode).length == 0) {
+                    oarg.item.object.css("pointer-events","none");
+                }
             }
             if (oarg.item.type == "BOX") {
                 if (oarg.item.width > 5 && oarg.item.height > 5) {
@@ -551,16 +600,7 @@ hs.functions.hs_item = function( oarg ) {
                     "text-align"        : oarg.item.align,
                 });
                 if (oarg.item.html == null) {
-                    var _txtobject = $("<span />").text(oarg.item.text);
-                    if (oarg.item.indent > 0) {
-                        if ($.inArray(oarg.item.align,["left","center"]) > -1) {
-                            _txtobject.css( "margin-left",oarg.item.indent + "px");
-                        } 
-                        if ($.inArray(oarg.item.align,["center","right"]) > -1) {
-                            _txtobject.css( "margin-right",oarg.item.indent + "px");
-                        } 
-                    }
-                    oarg.item.object.append(_txtobject);
+                    oarg.item.object.append(hs.functions.get_textobject( oarg ));
                 } else {
                     oarg.item.object.html(oarg.item.html);
                 }
@@ -612,10 +652,22 @@ hs.functions.hs_item = function( oarg ) {
     */
 }
 
+hs.functions.get_textobject = function ( oarg ) {
+        var _txtobject = $("<span />").text(oarg.item.text);
+        if (oarg.item.indent > 0) {
+            if ($.inArray(oarg.item.align,["left","center"]) > -1) {
+                _txtobject.css( "margin-left",oarg.item.indent + "px");
+            } 
+            if ($.inArray(oarg.item.align,["center","right"]) > -1) {
+                _txtobject.css( "margin-right",oarg.item.indent + "px");
+            } 
+        }
+        return _txtobject;
+}
+
 hs.functions.update_item = function ( oarg ) {
     // xxAPI update check
     hs.functions.xxapi_check( oarg );
-    
 
     if ( $.inArray(oarg.item.type, ["TXT"]) > -1) {
         if (oarg.item.s_color != oarg.item.color) {
@@ -625,7 +677,7 @@ hs.functions.update_item = function ( oarg ) {
         if (oarg.item.s_text != oarg.item.text) {
             debug(4,"TEXT CHANGED '" + oarg.item.s_text + "' != '" + oarg.item.text + "'")
             if (oarg.item.html == null) {
-                oarg.item.object.children().text(oarg.item.text);
+                oarg.item.object.children().replaceWith(hs.functions.get_textobject( oarg ));
             } else {
                 oarg.item.object.html(oarg.item.html);
             }
@@ -924,7 +976,7 @@ hs.functions.async.handler = function( oarg ) {
         
         case "logout"   : break;
         default:
-            alert("unknow CMD '" + oarg.cmd + "'");
+            break;
     }
 };
 
@@ -1145,7 +1197,7 @@ hs.functions.do_command = function( oarg ) {
     debug(4,"do_command:",oarg);
     if (oarg.item.has_command) {
         hs.functions.make_request( {
-            "session"     : oarg.session,
+            "session"     : oarg.item.session,
             "cmd"         : "vcu&id=" + oarg.item.id,
             "page_id"     : oarg.page_id,
         });
@@ -1153,8 +1205,15 @@ hs.functions.do_command = function( oarg ) {
 }
 
 hs.functions.do_valset = function ( oarg ) {
-    debug(4,"do_valset:",oarg);
-
+    debug(4,"do_valset: " +oarg.item.value,oarg);
+    if(typeof oarg.item.value == 'undefined' || oarg.item.action_id != 9) {
+        return;
+    }
+    hs.functions.make_request( {
+        "session"       : oarg.item.session,
+        "cmd"           : "valset&id=" + oarg.item.id + "&val=" + oarg.item.value,
+        "page_id"       : oarg.page_id,
+    });
 }
 
 hs.functions.load_page = function( oarg ) {
