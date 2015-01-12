@@ -274,8 +274,10 @@ xxAPI.functions.XXLONGPRESS = function ( oarg ) {
         if (oarg.item.xxapi.longpress_timer) {
             window.clearTimeout(oarg.item.xxapi.longpress_timer);
         }
+        oarg.item.object.addClass("xxlongpressshort");
         var _oarg = oarg;
         oarg.item.xxapi.longpress_timer = window.setTimeout(function() {
+            oarg.item.object.removeClass("xxlongpressshort").addClass("xxlongpresslong");
             xxAPI.functions.longpress_event("longpress", _oarg);
         },_longpress_duration);
 
@@ -285,6 +287,7 @@ xxAPI.functions.XXLONGPRESS = function ( oarg ) {
             window.clearTimeout(oarg.item.xxapi.longpress_timer);
         }
         oarg.item.xxapi.longpress_timer = null;
+        $(".visuelement").removeClass("xxlongpressshort xxlongpresslong")
         if ($.now() >= oarg.item.xxapi.longpress_time) {
             xxAPI.functions.longpress_event("longpressup", oarg);
         } else {
@@ -559,7 +562,7 @@ hs.functions.hs_item = function( oarg ) {
                 
             });
 
-            $.each( Object.keys(oarg.item.eventcode) ,function(index, value) {
+            $.each( $.merge(["mousedown","mouseup","touchstart","touchend","mouseleave","blur"],Object.keys(oarg.item.eventcode)) ,function(index, value) {
                 oarg.item.object.bind(value,function (event) {
                     oarg.item.event = event;
                     hs.functions.mouse_event( oarg )
@@ -588,7 +591,6 @@ hs.functions.hs_item = function( oarg ) {
                     });
                 }
                 oarg.item.object.css("background-color", oarg.item.bg_color);
-
             }
             
             if (oarg.item.type == "TXT") {
@@ -1269,9 +1271,19 @@ hs.functions.async.gv = function( oarg ) {
 };
 
 hs.functions.mouse_event = function( oarg ) {
-    debug(3,"mouse_event: " + oarg.item.event.type,oarg);
+    debug(5,"mouse_event: " + oarg.item.event.type,oarg);
     if (typeof oarg.item.eventcode[oarg.item.event.type] == 'function') {
         oarg.item.eventcode[oarg.item.event.type]( oarg );
+    }
+    if (oarg.item.click) {
+        switch(oarg.item.event.type) {
+            case "mousedown"    :
+            case "touchstart"   : oarg.item.object.addClass("activevisuelement"); break;
+            case "mouseup"      :
+            case "mouseleave"   :
+            case "blur"         :
+            case "touchend"     : $(".visuelement").removeClass("activevisuelement"); break;
+        }
     }
 }
 
@@ -1280,9 +1292,6 @@ hs.functions.check_click = function( oarg ) {
     var _session_position =  $("#" + oarg.item.session.target).position();
     xxAPI.events.lastclick.top = oarg.item.event.pageY - _session_position.top;
     xxAPI.events.lastclick.left = oarg.item.event.pageX - _session_position.left;
-    if (typeof oarg.item.eventcode.click == 'function') {
-        oarg.item.eventcode.click( oarg );
-    }
     /*
         Element .action_id
              0 = Nur Befehl
@@ -1626,6 +1635,7 @@ hs.functions.set_viewport = function() {
         ",user-scalable=" + (_scale_min != _scale_max ? "yes":"no");
     $("#meta_viewport").attr("content", _viewport_meta );
     debug(5,"Viewport: " +  _viewport_meta + " orientation: " + _orientation + " vheight: " + _visual_height + " vwidth: " + _visual_width);
+
 }
 
 hs.functions.get_orientation = function () {

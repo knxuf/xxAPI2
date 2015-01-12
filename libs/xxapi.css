@@ -3,6 +3,7 @@ body {
     width:  auto;
     height: auto;
     cursor: default !important;
+    -webkit-user-select: none;
 }
 
 .visupage {
@@ -16,6 +17,49 @@ body {
     -webkit-user-drag: none;
     overflow: hidden;
     border: 0;
+}
+
+.visuelement > * {
+    line-height:    normal;
+}
+
+.activevisuelement::after {
+    content: "\A";
+    position: absolute;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    border-radius: 15px;
+    background-color: rgba(200,0,0,0.1);
+}
+
+.xxlongpressshort::after {
+    content: "\A";
+    position: absolute;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    border-radius: 15px;
+    background-color: rgba(200,0,0,0.4);
+}
+
+.xxlongpresslong::after {
+    content: "\A";
+    position: absolute;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    border-radius: 15px;
+    background-color: rgba(200,200,0,0.4);
 }
 
 .visuclickelement {
