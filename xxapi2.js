@@ -1557,21 +1557,21 @@ hs.functions.set_viewport = function() {
     
     var _scaleto_width = Math.floor ( _visual_width / hs.gui.attr.visu_width * 100) / 100;
     var _scaleto_height = Math.floor ( _visual_height / hs.gui.attr.visu_height * 100) / 100;
-    var _scale_min = Math.min( _scaleto_width, _scaleto_height, 1);
-    var _scale_max = Math.max( _scaleto_width, _scaleto_height, 1);
+    var _scale_min = Math.min( _scaleto_width, _scaleto_height);
+    var _scale_max = Math.max( _scaleto_width, _scaleto_height, 1.0);
     var _viewport_meta = 
         "width="          +  hs.gui.attr.visu_width +
-        ",initial-scale=" + _scale_min +
+        (_scale_min > 1 ? "" : ",initial-scale=" + _scale_min) +
         ",minimum-scale=" + _scale_min +
-        ",maximum-scale=" +  _scale_max +
-        ",user-scalable=" + (_scale_min < 1 ? "yes":"no");
+        ",maximum-scale=" + _scale_max +
+        ",user-scalable=" + (_scale_min != _scale_max ? "yes":"no");
     $("#meta_viewport").attr("content", _viewport_meta );
     debug(5,"Viewport: " +  _viewport_meta + " orientation: " + _orientation + " vheight: " + _visual_height + " vwidth: " + _visual_width);
 }
 
 hs.functions.get_orientation = function () {
     if (typeof orientation != "undefined") {
-        return ( Math.abs(orientation)  == 90 ? "landscape":"portrait");
+        return ( orientation % 180 ? "landscape":"portrait");
     } else {
         return "unsupported";
     }
