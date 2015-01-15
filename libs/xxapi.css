@@ -8,6 +8,7 @@ body {
 
 .visupage {
     background-size : cover;
+    transition: background-image 0.5s ease-in-out;
 }
 
 .visuelement > img, .visuelement  {

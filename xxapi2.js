@@ -41,7 +41,7 @@ $.x2js = new X2JS();
 $.xml2json = $.x2js.xml2json;
 
 var xxAPI = {};
-xxAPI.version = "2.019";
+xxAPI.version = "2.020";
 xxAPI.functions = {};
 xxAPI.events = {
     "lastclick" : {
@@ -79,11 +79,17 @@ hs.gui.hashes = {};
 hs.gui.pages = {};
 hs.gui.items = {};
 hs.gui.designs_html = null;
+hs.gui.hidden = false;
 hs.auth = {};
 hs.auth.username = null;
 hs.auth.password = null;
 hs.auth.gui_design = null;
 hs.auth.gui_refresh="R1";
+hs.connection = {
+    "timeout"    : 300, // 300sec
+    "failure"    : 0,
+    "hiddentime" : 120, // 120sec if page is hidden
+};
 hs.debuglevel = 0;
 
 xxAPI.functions.XXAPICONFIG = function ( oarg ) {
@@ -246,6 +252,9 @@ xxAPI.functions.XXIMG = function ( oarg ) {
     debug(2,"XXIMG",oarg);
     oarg.item.type = "CAM";
     oarg.item.url = oarg.args[1];
+    if(oarg.args.length > 2) {
+        oarg.item.refresh = oarg.args[2]*1;
+    }
 }
 
 xxAPI.functions.XXLONGPRESS = function ( oarg ) {
@@ -418,7 +427,7 @@ function debug(level,msg,obj) {
             case 1: _logger = window.console.warn; break;
             case 2: _logger = window.console.info; break;
             case 3: _logger = window.console.info; break;
-            case 4: _logger = window.console.info; break;
+            case 4: _logger = window.console.log; break;
         }
         if (typeof obj != "object") {
             _logger.call(window.console,msg);
@@ -444,9 +453,7 @@ hs.functions.xxapi_check = function( oarg ) {
 }
 
 hs.functions.hs_session = function(target,start_id) {
-    if (typeof target == 'undefined') {
-        target = "VISU";
-    }
+    target = target || "VISU";
     if (hs.session.hasOwnProperty(target)) {
         //delete hs.session[target_item];
         var _session = hs.session[target];
@@ -473,9 +480,10 @@ hs.functions.hs_session = function(target,start_id) {
     this.update_timer = null;
     
     this.connected = false;
+    this.last_communication_time = 0;
     this.visible = false;
     
-    this.active_pages = [];
+    this.active_page = null;
     this.history = [];
     
     hs.functions.login_init({ 
@@ -607,36 +615,11 @@ hs.functions.hs_item = function( oarg ) {
                     oarg.item.object.html(oarg.item.html);
                 }
             }
-            if (oarg.item.type == "CAM") {
-                if (oarg.item.url) {
-                    if (oarg.item.auth) {
-                        oarg.item.url = $.base64.decode(oarg.item.auth) + "@" + oarg.item.url;
-                    }
-                    oarg.item.url = oarg.item.url.match(/http?:\/\/.*/) ? oarg.item.url : "http://" + oarg.item.url;
-                } else {
-                    oarg.item.url = hs.functions.get_url ({ 
-                        "session"   : oarg.item.session, 
-                        "url"       : "/guicamv?id=" + oarg.item.id, 
-                        "cmd"       : "", 
-                    });
-                }
-            }
-            
-            if (oarg.item.type == "GRAF") {
-                oarg.item.url = hs.functions.get_url ({ 
-                    "session"   : oarg.item.session, 
-                    "url"       : "/guigrafv?id=" + oarg.item.id, 
-                    "cmd"       : "",
-                });
-            }
-            
-            if (oarg.item.type == "ICO") {
-                
-            }
             
             if ( $.inArray(oarg.item.type, ["CAM","GRAF","ICO"]) > -1) {
                 hs.functions.load_image( oarg );
             }
+            
             oarg.item.s_text = oarg.item.text;
             oarg.item.s_color = oarg.item.color;
             oarg.item.s_bg_color = oarg.item.bg_color;
@@ -698,9 +681,10 @@ hs.functions.update_item = function ( oarg ) {
     if ( $.inArray(oarg.item.type, ["ICO"]) > -1) {
         if (oarg.item.s_image != oarg.item.image) {
             debug(4,"ICO changed");
+            hs.functions.load_image( oarg );
         }
     }
-    if ( $.inArray(oarg.item.type, ["CAM","ICO"]) > -1) {
+    if ( $.inArray(oarg.item.type, ["CAM"]) > -1) {
         if (oarg.item.s_url != oarg.item.url) {
             debug(4,"URL changed");
             hs.functions.load_image( oarg );
@@ -711,15 +695,46 @@ hs.functions.update_item = function ( oarg ) {
     oarg.item.s_bg_color = oarg.item.bg_color;
     oarg.item.s_image = oarg.item.image;
     oarg.item.s_url = oarg.item.url;
-
 }
 
 hs.functions.load_image = function ( oarg ) {
     debug(5,"load_image",oarg);
     var _child = oarg.item.image_object || null;
+    if(oarg.item.image_loading) {
+        // cancel loading new Image
+        return;
+    }
+    var _url = "";
+    if (oarg.item.type == "CAM") {
+        if (oarg.item.url) {
+            _url =  oarg.item.url;
+            if (oarg.item.auth) {
+                _url = $.base64.decode(oarg.item.auth) + "@" + _url;
+            }
+            _url = _url.match(/http?:\/\/.*/) ? _url : "http://" + _url;
+        } else {
+            _url = hs.functions.get_url ({ 
+                "session"   : oarg.item.session, 
+                "url"       : "/guicamv?id=" + oarg.item.id, 
+                "cmd"       : "", 
+            });
+        }
+    }
+    
+    if (oarg.item.type == "GRAF") {
+        _url = hs.functions.get_url ({ 
+            "session"   : oarg.item.session, 
+            "url"       : "/guigrafv?id=" + oarg.item.id, 
+            "cmd"       : "",
+        });
+    }
+    if(oarg.item.type == "ICO") {
+        _url = "/guiico?id=" +  oarg.item.image + "&cl=" + hs.auth.gui_design + "&hash=" + hs.gui.hashes._ico;
+    }
 
+    oarg.item.image_loading = true;
     var _img = $("<img />", {
-        "src"       : oarg.item.url,
+        "src"       : hs.functions.get_nocache_url(_url),
         "alt"       : " ",
         "width"     : oarg.item.width,
         "height"    : oarg.item.height,
@@ -729,29 +744,53 @@ hs.functions.load_image = function ( oarg ) {
         "on"        : {
             "dragstart" : function () { return false; },
             "load"      : function () { 
-                if (this.width == 0 && this.height == 0) {
+                //debug(5,"Image:load",oarg)
+                if (this.naturalWidth == 0 && this.naturalHeight == 0) {
                     debug(1,"Error: Image '" + this.src + "' failed",{ "img" : this, "item" : oarg.item });
                     return;
                 }
+                oarg.item.image_loading = false;
+                oarg.item.image_object = $(this);
+                oarg.item.next_update = hs.functions.get_next_update ( oarg.item );
+                oarg.item.object.prepend( this );
                 if (_child != null) {
-                    oarg.item.image_object = $(this);
-                    oarg.item.object.prepend( this );
                     _child.fadeOut(20,function() {
                         _child.remove();
                     });
                 }
             },
+            "error"     : function() {
+                debug(1,"Error: Image '" + this.src + "' failed",{ "img" : this, "item" : oarg.item });
+                oarg.item.image_loading = false;
+                oarg.item.next_update = hs.functions.get_next_update ( oarg.item );
+                return true;
+            },
         }    
     })
-    if (_child == null) {
-        oarg.item.image_object = _img;
-        oarg.item.object.prepend( _img );
-    }
+}
+
+hs.functions.get_nocache_url = function( url ) {
+    var _sep = url.match(/\?/) ? "&_=" : "?_=";
+    return url.match(/http[s]?\:\/\//) ? url + _sep + $.now() : url;
+}
+
+hs.functions.get_next_update = function ( oarg ) {
+    var _now = $.now();
+    var _ret = 0;
+    switch(oarg.type) {
+        case "ICO"  : _ret = _now + ((oarg.refresh || 1000000 )*1000); break;
+        case "CAM"  : _ret = _now + ((oarg.refresh || hs.user.refresh_visucam)*1000); break;
+        case "GRAF" : _ret = _now + ((oarg.refresh || hs.user.refresh_visugraf)*1000); break;
+        case "PAGE" : _ret = _now + ((oarg.refresh || hs.user.refresh_visu)*1000); break;
+    };
+    debug(5,"get_next_update " + oarg.uid + " to (" + (_ret - _now) + ")" ,oarg);
+    return _ret;
 }
 
 hs.functions.hs_page = function( oarg ) {
     this.page_id    = oarg.page_id;
     this.session    = oarg.session;
+    this.type       = "PAGE";
     this.is_modul   = oarg.session.target == "VISU" ? false:true;
     this.id         = this.session.target + "_PAGE_" + this.page_id;
     oarg.page       = this;
@@ -764,12 +803,14 @@ hs.functions.hs_page = function( oarg ) {
         oarg.page = hs.gui.pages[this.id];
         
         hs.functions.loop_items( oarg );
+
         if (oarg.cmd == "gv") {
             hs.functions.fade_page( oarg );
         }
         return oarg.page;
     }
     debug(4,"create new Page: ",oarg);
+    oarg.page.next_update = hs.functions.get_next_update( oarg.page );
     hs.gui.pages[oarg.page.id] = oarg.page;
     oarg.page.hidden     = false;
     oarg.page.popup      = false;
@@ -817,13 +858,13 @@ hs.functions.fade_page = function( oarg ) {
         hs.functions.set_viewport();
         $("#" + oarg.session.target).prepend(oarg.page.object);
         oarg.page.object.show();
-        oarg.session.active_pages.forEach(function(elem,index) {
-            $("#" + oarg.session.target + "_PAGE_" + elem).fadeOut(10,function() { 
+        if(oarg.session.active_page && oarg.session.active_page.page_id != oarg.page.page_id) {
+            //FIXME Popup
+            oarg.session.active_page.object.fadeOut(10,function() { 
                 $(this).detach();
-                oarg.session.active_pages.splice(index,1);
             });
-        });
-        oarg.session.active_pages.push(oarg.page_id);
+        }
+        oarg.session.active_page = oarg.page;
         oarg.session.history.push(oarg.page_id);
         document.title = "xxAPI² - " + oarg.page.title;
 }
@@ -961,7 +1002,7 @@ hs.functions.async.handler = function( oarg ) {
     if (!oarg.json) {
         return false;
     }
-
+    oarg.session.last_communication_time = $.now();
     oarg.cmd = string_cut_after_match(oarg.cmd,"&");
     switch (oarg.cmd) {
         case "init"     : hs.functions.async.login( oarg ); break;
@@ -1037,15 +1078,26 @@ hs.functions.error_handler = function( oarg ) {
     
     debug(0,"Error: " + oarg.error, oarg);
     switch (oarg.error) {
-        case "auth_error"       : hs.functions.login_dialog("Benutzer falsch"); break;
-        case "pass_error"       : hs.functions.login_dialog("Password falsch"); break;
+        case "auth_error"       : hs.functions.login_dialog( oarg ); break;
+        case "pass_error"       : hs.functions.login_dialog( oarg ); break;
         case "timeout !!"       : hs.functions.login_init( oarg ); break;
+        case "connreset"        : hs.functions.reconnect( oarg ); break;
         case "handle error !!"  : hs.functions.login_init( oarg ); break;
         case "user kidnapped !!": hs.functions.login_init( oarg ); break;
         case "99"               : alert("Visuseite nicht gefunden"); break;
         default                 : alert("Error " + oarg.error); break
     }
     return (oarg.error == "");
+}
+
+hs.functions.reconnect = function( oarg ) {
+    oarg.session.connected = false;
+    hs.connection.failure += 1;
+    debug(3,"reconnect " + hs.connection.failure,oarg);
+    var _waittime = Math.min(2000 * (hs.connection.failure -1) ,60000); // max 60sec
+    setTimeout(function() {
+        hs.functions.login_init( oarg );
+    },_waittime + 1);
 }
 
 hs.functions.swap_object = function( obj ) {
@@ -1107,6 +1159,7 @@ hs.functions.login_init = function( oarg ) {
     _url += "&user=" + hs.auth.username;
     _url += "&cid="  + hs.auth.gui_design;
     _url += "&ref="  + hs.auth.gui_refresh;
+    oarg.session.connected = false;
     hs.functions.make_request( {
         "session"     : oarg.session,
         "cmd"         : _cmd,
@@ -1131,7 +1184,8 @@ hs.functions.async.login = function( oarg ) {
 hs.functions.async.logged_in = function(  oarg ) {
     debug(5,"async.logged_in (" + oarg.session.target + "):",oarg.json);
     // check main
-    oarg.session.connected = true; 
+    hs.connection.failure = 0;
+    oarg.session.connected = true;
     if (hs.user == null) {
         hs.user = {};
         hs.user.load_background = parseInt(oarg.json.HS.VIS._bgi);  // unwichtig ? 
@@ -1152,6 +1206,10 @@ hs.functions.async.logged_in = function(  oarg ) {
         hs.user.refresh_mask  = oarg.json.HS.USR._refmask*1;
         hs.user.refresh_graf  = oarg.json.HS.USR._refgraf*1;
         hs.user.refresh_cam   = oarg.json.HS.USR._refcam*1;
+        hs.functions.update_timer({
+            "session"   : oarg.session,
+            "cmd"       : "start",
+        });
     }
     
     // überprüfen ob die Schriften sich geändert haben
@@ -1171,28 +1229,59 @@ hs.functions.async.logged_in = function(  oarg ) {
     hs.gui.hashes = oarg.json.HS.HASH;
     // Visuseite laden
         
-    oarg.page_id = oarg.session.start_id || hs.user.start_page;
+    oarg.page_id = oarg.session.active_page ? oarg.session.active_page.page_id : null || oarg.session.start_id || hs.user.start_page;
     hs.functions.load_page( oarg );
 };
 
 hs.functions.update_timer = function( oarg ) {
-    if ( oarg.session.update_timer != null && oarg.cmd == "start") {
-        clearTimeout(oarg.session.update_timer)
-        //debug(5,"Update_timer: cleared",oarg);
-    } else {
-        hs.functions.make_request( {
-            "session"     : oarg.session,
-            "cmd"         : "gvu&id=" + oarg.session.active_pages[0],
-            "page_id"     : oarg.session.active_pages[0],
-        });
+    if ( hs.gui.update_timer != null && oarg.cmd == "start") {
+        clearTimeout(hs.gui.update_timer)
     }
-    debug(5,"Update_timer:",oarg);
-    oarg.session.update_timer = setTimeout(function () {
+    if(hs.auth.password) {
+        hs.functions.update( oarg )
+    }
+
+    hs.gui.update_timer = setTimeout(function () {
         hs.functions.update_timer ({
-            "session"   : oarg.session,
             "cmd"       : "restart",
         });
-    }, (hs.user.refresh_visu *1000));
+    }, (hs.user.refresh_visu *10));
+}
+
+hs.functions.update = function( oarg ) {
+    var _now = $.now();
+    var _delay = hs.gui.hidden ? hs.connection.hiddentime * 1000: 0;
+    $.each(hs.session, function(index, session) {
+        if(!session.connected || !session.active_page) {
+            return;
+        }
+        // timeout
+        if(session.last_communication_time + (hs.connection.timeout * 1000) < _now) {
+            debug(3,"connection_timeout",session);
+            hs.functions.login_init( { "session" : session } );
+            return;
+        }
+        if (session.active_page.next_update && session.active_page.next_update + _delay <= _now) {
+            debug(4,"Update " + session.active_page.id,session);
+            session.active_page.next_update = hs.functions.get_next_update(session.active_page) ;
+            hs.functions.make_request( {
+                "session"     : session,
+                "cmd"         : "gvu&id=" + session.active_page.page_id,
+                "page_id"     : session.active_page.page_id,
+            });
+        }
+        $.each(session.active_page.items, function(index,item) {
+            if($.inArray(item.type,["CAM","GRAF","ICO"]) > -1) {
+                if(item.next_update && item.next_update + _delay <= _now) {
+                    item.next_update = null;
+                    debug(4,"Update " + item.uid,item);
+                    hs.functions.load_image({
+                        "item" : item, 
+                    });
+                }
+            }
+        });
+    });
 }
 
 hs.functions.do_command = function( oarg ) {
@@ -1220,7 +1309,6 @@ hs.functions.do_valset = function ( oarg ) {
 
 hs.functions.load_page = function( oarg ) {
     debug(4,"load_page (" + oarg.session.target + "): " + oarg.page_id + " (" + oarg.command_id + ")", oarg);
-    oarg.session.start_id = oarg.page_id;
 
     var _extra_request = "";
     if (typeof oarg.item != 'undefined' && oarg.item.has_command) {
@@ -1252,20 +1340,9 @@ hs.functions.load_page = function( oarg ) {
 
 hs.functions.async.gv = function( oarg ) {
     debug(5,"async.gv (" + oarg.session.target + "): ",oarg);
-    hs.functions.update_timer({
-        "session"   : oarg.session,
-        "cmd"       : "start",
-    });
     if (oarg.json.HS == "") {
         return false;
     }
-
-    $(oarg.json.HS.ITEMS.ITEM).reverse().each( function() {
-        if (this._type != "ICO") {
-            return;
-        }
-        this._url = "/guiico?id=" +  this._ico + "&cl=" + hs.auth.gui_design + "&hash=" + hs.gui.hashes._ico; // FIXME? with hash more traffic?
-    });
 
     var _page = new hs.functions.hs_page( oarg );
 };
@@ -1460,10 +1537,14 @@ hs.functions.async.getattr = function( oarg ) {
     );
 };
 
-hs.functions.login_dialog = function(errortype) {
+hs.functions.login_dialog = function( oarg ) {
+    if( oarg ) {
+        oarg.session.connected = false;
+        var errortype = oarg.error == "auth_error" ? "Benutzer falsch" : "Passwort falsch";
+
+    }
     if (hs.gui.designs_html != null) {
         return hs.functions.login_form(errortype)
-        
     }
     $.ajax({ 
         "url"           : "/hs",
@@ -1729,11 +1810,20 @@ $(window).resize(function() {
     hs.functions.set_viewport();
 });
 
-$(document).keydown( function(e) {
+$(document).on("keydown",  function(e) {
     if (e.ctrlKey && String.fromCharCode(e.which) === 'X') {
         xxAPI.functions.XXAPICONFIG( null );
         return false;
     }
+});
+
+$(document).on("visibilitychange",  function() {
+    if(document.hidden) {
+        debug(4,"xxAPI is hidden, delayed refresh");
+    } else {
+        debug(4,"xxAPI is visible, normal refresh");
+    }
+    hs.gui.hidden = document.hidden;
 });
 
 window.addEventListener('load', function(e) {
