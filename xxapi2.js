@@ -41,7 +41,7 @@ $.x2js = new X2JS();
 $.xml2json = $.x2js.xml2json;
 
 var xxAPI = {};
-xxAPI.version = "2.020";
+xxAPI.version = "2.021";
 xxAPI.functions = {};
 xxAPI.events = {
     "lastclick" : {
