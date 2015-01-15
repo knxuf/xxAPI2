@@ -225,17 +225,51 @@ xxAPI.functions.XXEEXECUTE = function ( oarg ) {
 
 xxAPI.functions.XXMARK = function ( oarg ) {
     debug(2,"XXMARK",oarg);
+    if(oarg.item.open_page) {
+        xxAPI.marked_pages[oarg.args[1]] = oarg.item.open_page;
+    }
     oarg.item.hidden = true;
 }
 
 xxAPI.functions.XXMODUL = function ( oarg ) {
     debug(2,"XXMODUL",oarg);
+    var _modulname = "MODUL_" + oarg.args[1].toUpperCase();
+    oarg.item.html = $("<div />", {
+        "id"        : _modulname,
+    });
+    var _page = oarg.item.open_page || hs.user.start_page;
+    if(oarg.args.length > 2) {
+        _page = xxAPI.marked_pages[oarg.args[2]] || _page;
+    } 
+    setTimeout(function() {
+        new hs.functions.hs_session(_modulname,_page);
+    },1);
+    oarg.item.click = false;
     oarg.item.text = '';
+    oarg.item.customcss = {
+        "pointer-events"    : "auto",
+    }
 }
 
 xxAPI.functions.XXMODULCLICK = function ( oarg ) {
     debug(2,"XXMODULCLICK",oarg);
-    oarg.item.text = '';
+    oarg.item.text = oarg.args[1];
+    oarg.item.action_id = oarg.item.has_command ? 0 : -1;
+    var _args = oarg.args.slice(2);
+    oarg.item.eventcode["click"] = function( oarg ) {
+        for (var i = 0; i <_args.length; i+=2) {
+            var _session = _args[i] == "" ? hs.session.VISU : hs.session["MODUL_" + _args[i]];
+            var _page_id = _args[i+1] == "" ? oarg.item.open_page : xxAPI.marked_pages[_args[ i+1 ]];
+            if(!_session || !_page_id) {
+                debug(1,"XXMODULCLICK Error: Session " + _args[i] + " or Page " + _args[i+1] + " not found",oarg);
+                continue;
+            }
+            hs.functions.load_page({
+                "session"   : _session,
+                "page_id"   : _page_id,
+            });
+        }
+    }
 }
 
 xxAPI.functions.XXCLICK = function ( oarg ) {
@@ -452,21 +486,23 @@ hs.functions.xxapi_check = function( oarg ) {
     }
 }
 
-hs.functions.hs_session = function(target,start_id) {
+hs.functions.hs_session = function(target,start_page) {
     target = target || "VISU";
     if (hs.session.hasOwnProperty(target)) {
         //delete hs.session[target_item];
         var _session = hs.session[target];
+        _session.start_page = start_page;
         hs.functions.load_page({ 
             "session"   : _session,
-            "page_id"   : start_id || _session.start_id,
+            "page_id"   : _session.start_page,
         });
         return;
     }
     hs.session[target] = this;
     // Session 
     this.target = target;
-    this.start_id = start_id || null;
+    this.target_obj = $("#" + target);
+    this.start_page = start_page || null;
     this.auth = {
         "handle"        : 0,
         "pos"           : 0,
@@ -478,17 +514,16 @@ hs.functions.hs_session = function(target,start_id) {
     
     this.ajax_queue = $({});
     this.update_timer = null;
-    
+
     this.connected = false;
     this.last_communication_time = 0;
-    this.visible = false;
-    
+
     this.active_page = null;
     this.history = [];
-    
+
     hs.functions.login_init({ 
         "session"   : this,
-        "page_id"   : start_id
+        "page_id"   : start_page
     });
 }
 
@@ -514,7 +549,7 @@ hs.functions.hs_item = function( oarg ) {
         
         oarg.item.click       = (oarg.json._click*1) == 1;
         oarg.item.has_command = (oarg.json._hcmd*1) == 1;
-        oarg.item.open_page   = parseInt(oarg.json._pid   || -1);
+        oarg.item.open_page   = parseInt(oarg.json._pid   || null);
         oarg.item.action_id   = parseInt(oarg.json._typ   || -1);
         oarg.item.font        = parseInt(oarg.json._fid   ||  0);
         oarg.item.align       = hs.functions.number2align( parseInt(oarg.json._align ||  0));
@@ -856,7 +891,7 @@ hs.functions.hs_page = function( oarg ) {
 
 hs.functions.fade_page = function( oarg ) {
         hs.functions.set_viewport();
-        $("#" + oarg.session.target).prepend(oarg.page.object);
+        oarg.session.target_obj.prepend(oarg.page.object);
         oarg.page.object.show();
         if(oarg.session.active_page && oarg.session.active_page.page_id != oarg.page.page_id) {
             //FIXME Popup
@@ -1084,7 +1119,7 @@ hs.functions.error_handler = function( oarg ) {
         case "connreset"        : hs.functions.reconnect( oarg ); break;
         case "handle error !!"  : hs.functions.login_init( oarg ); break;
         case "user kidnapped !!": hs.functions.login_init( oarg ); break;
-        case "99"               : alert("Visuseite nicht gefunden"); break;
+        case "99"               : debug(0,"Visuseite nicht gefunden",oarg); break;
         default                 : alert("Error " + oarg.error); break
     }
     return (oarg.error == "");
@@ -1159,6 +1194,7 @@ hs.functions.login_init = function( oarg ) {
     _url += "&user=" + hs.auth.username;
     _url += "&cid="  + hs.auth.gui_design;
     _url += "&ref="  + hs.auth.gui_refresh;
+    oarg.session.ajax_queue = $({});
     oarg.session.connected = false;
     hs.functions.make_request( {
         "session"     : oarg.session,
@@ -1206,10 +1242,7 @@ hs.functions.async.logged_in = function(  oarg ) {
         hs.user.refresh_mask  = oarg.json.HS.USR._refmask*1;
         hs.user.refresh_graf  = oarg.json.HS.USR._refgraf*1;
         hs.user.refresh_cam   = oarg.json.HS.USR._refcam*1;
-        hs.functions.update_timer({
-            "session"   : oarg.session,
-            "cmd"       : "start",
-        });
+        hs.functions.update_timer();
     }
     
     // überprüfen ob die Schriften sich geändert haben
@@ -1229,30 +1262,26 @@ hs.functions.async.logged_in = function(  oarg ) {
     hs.gui.hashes = oarg.json.HS.HASH;
     // Visuseite laden
         
-    oarg.page_id = oarg.session.active_page ? oarg.session.active_page.page_id : null || oarg.session.start_id || hs.user.start_page;
+    oarg.page_id = oarg.session.active_page ? oarg.session.active_page.page_id : null || oarg.session.start_page || hs.user.start_page;
     hs.functions.load_page( oarg );
 };
 
-hs.functions.update_timer = function( oarg ) {
-    if ( hs.gui.update_timer != null && oarg.cmd == "start") {
+hs.functions.update_timer = function() {
+    if ( hs.gui.update_timer != null) {
         clearTimeout(hs.gui.update_timer)
     }
     if(hs.auth.password) {
-        hs.functions.update( oarg )
+        hs.functions.update()
     }
 
-    hs.gui.update_timer = setTimeout(function () {
-        hs.functions.update_timer ({
-            "cmd"       : "restart",
-        });
-    }, (hs.user.refresh_visu *10));
+    hs.gui.update_timer = setTimeout(hs.functions.update_timer, (hs.user.refresh_visu *50));
 }
 
-hs.functions.update = function( oarg ) {
+hs.functions.update = function() {
     var _now = $.now();
     var _delay = hs.gui.hidden ? hs.connection.hiddentime * 1000: 0;
     $.each(hs.session, function(index, session) {
-        if(!session.connected || !session.active_page) {
+        if(!session.connected || !session.active_page || session.target_obj.is(":hidden")) {
             return;
         }
         // timeout
@@ -1366,7 +1395,7 @@ hs.functions.mouse_event = function( oarg ) {
 
 hs.functions.check_click = function( oarg ) {
     debug(3,"check_click",oarg);
-    var _session_position =  $("#" + oarg.item.session.target).position();
+    var _session_position =  oarg.item.session.target_obj.position();
     xxAPI.events.lastclick.top = oarg.item.event.pageY - _session_position.top;
     xxAPI.events.lastclick.left = oarg.item.event.pageX - _session_position.left;
     /*
@@ -1399,6 +1428,8 @@ hs.functions.check_click = function( oarg ) {
             25 = Navigation: Beenden  /hsgui?cmd=logout&hnd=3&code=AE7A1C1473
     */
     switch (oarg.item.action_id) {
+        case -1:
+            break;
         case 0:
             //  0 = Nur Befehl
             hs.functions.do_command( oarg );
@@ -1443,8 +1474,8 @@ hs.functions.check_click = function( oarg ) {
             break;
         case 21:
             // 21 = Navigation: Startseite
-            if ( hs.user.start_page != oarg.item.page.id) {
-                oarg.page_id = hs.user.start_page;
+            if ( oarg.session.start_page != oarg.item.page.id) {
+                oarg.page_id = oarg.session.start_page;
                 hs.functions.load_page( oarg );
             }
             break;
