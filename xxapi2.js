@@ -92,6 +92,12 @@ hs.connection = {
 };
 hs.debuglevel = 0;
 
+/*
+    * XXAPICONFIG opens the xxAPI configmenu
+    
+    * Argument 1 (optional) is the text shown on Visu
+     XXAPICONFIG*
+*/
 xxAPI.functions.XXAPICONFIG = function ( oarg ) {
     var _html = "<h3 style='text-align: center;'>xxAPI² Config</h3>";
     _html += "<table style='width:100%;'>";
@@ -120,7 +126,7 @@ xxAPI.functions.XXAPICONFIG = function ( oarg ) {
         "overlayClose"  : true,
     });
     if ( oarg != null) {
-        oarg.item.text = '';
+        oarg.item.text = oarg.args[1];
     }
 }
 
@@ -129,6 +135,13 @@ hs.functions.set_debuglevel = function ( level ) {
     localStorage.setItem('debuglevel',level);
 }
 
+/* 
+    * old xxAPI is ignored but the action "Seite aufrufen" is triggered
+    * it is used on xxAPI-INIT page to go to the next page
+    
+    * Argument 1 (deprecated) is the old xxAPI
+     XXSCRIPT*[old xxAPI in base64]
+*/
 xxAPI.functions.XXSCRIPT = function( oarg ) {
     if (oarg.item.open_page > 0) {
         debug(2,"XXSCRIPT");
@@ -140,6 +153,12 @@ xxAPI.functions.XXSCRIPT = function( oarg ) {
     }
 }
 
+/*
+    * With XXHTML the textelement is interpreted as HTML-Code to manipulate the text
+    
+    * Argument 1 is the HTML-Code
+     XXHTML*<span style='color:red;'>Some Text</span>
+*/
 xxAPI.functions.XXHTML = function ( oarg ) {
     debug(2,"XXHTML:",oarg);
     var _html = oarg.args[1] || "";
@@ -152,12 +171,30 @@ xxAPI.functions.XXHTML = function ( oarg ) {
     oarg.item.html = _html;
 }
 
+/*
+    * XXEHTML is similar to XXHTML, but the arguments are base64-encoded to handle 
+    * linebreaks, specialchars and quotes
+    
+    * Argument 1 is the base64 encoded HTML-Code
+     XXEHTML*base64 encoded HTML-Code
+*/
 xxAPI.functions.XXEHTML = function ( oarg ) {
     debug(2,"XXEHTML:",oarg);
     var _html = $.base64.decode(oarg.args[1]);
     oarg.item.html = _html;
 }
 
+/*
+    * XXLINK is used to set the URL for XXIFRAME elements.
+    * To access Homeserver-archivs the URL can also be
+    * The first argument can be omitted if used as an overlay
+    * HSLIST:name_of_archiv
+    
+    * Argument 1 (can be blank) is the text shown on Visu
+    * Argument 2 is the URL
+     XXLINK*[Linktext or blank]*http://knx-user-forum.de/
+     XXLINK**http://knx-user-forum.de
+*/
 xxAPI.functions.XXLINK = function ( oarg ) {
     debug(2,"XXLINK:",oarg);
     oarg.item.eventcode["click"] = function() {
@@ -166,6 +203,15 @@ xxAPI.functions.XXLINK = function ( oarg ) {
     oarg.item.text = oarg.args[1];
 }
 
+/*
+    * XXHTTP is used to open links in a new tab/window.
+    * The syntax is the same as XXLINK
+    
+    * Argument 1 (can be blank)  is the text shown on Visu
+    * Argument 2 is the URL
+     XXHTTP*[Linktext or blank]*HSLIST:meldungen
+     XXHTTP**http://knx-user-forum.de
+*/
 xxAPI.functions.XXHTTP = function ( oarg ) {
     debug(2,"XXHTTP:",oarg);
     oarg.item.eventcode["click"] = function() {
@@ -174,6 +220,14 @@ xxAPI.functions.XXHTTP = function ( oarg ) {
     oarg.item.text = oarg.args[1];
 }
 
+/*
+    * XXIFRAME is either used standalone or with an URL as argument.
+    * If the argument is omitted, the URL is provided by XXLINK
+    
+    * Argument 1 (optional) is the URL
+     XXIFRAME*http://knx-user-forum.de
+     XXFRAME*
+*/
 xxAPI.functions.XXIFRAME = function ( oarg ) {
     debug(2,"XXIFRAME:",oarg);
     var _url = xxAPI.XXLINKURL;
@@ -187,6 +241,14 @@ xxAPI.functions.XXIFRAME = function ( oarg ) {
     oarg.item.click = 1;
 
 }
+
+/*
+    * XXEXECUTE is a function to execute Javascript code which is executed as a function
+    * with the itemobject as the argument. The item can be manipulated within the code
+    
+    * Argument 1 is the Javascript code
+     XXEXECUTE*item.text='';item.bg_color=red;
+*/
 xxAPI.functions.XXEXECUTE = function ( oarg ) {
     debug(2,"XXEXECUTE:",oarg);
     var _jscode = oarg.args[1] || "";
@@ -211,6 +273,13 @@ xxAPI.functions.XXEXECUTE = function ( oarg ) {
     }
 }
 
+/*
+    * XXEEXCECUTE is an base64 encoded version of XXEXECUTE an can be used 
+    * for complexer code with quotes,linebreaks and specialchars
+    
+    * Argument 1 is the base64 encoded Javascript code
+     XXEEXECUTE*base64code
+*/
 xxAPI.functions.XXEEXECUTE = function ( oarg ) {
     debug(2,"XXEEXECUTE:",oarg);
     var _jscode = $.base64.decode(oarg.args[1]);
@@ -223,6 +292,16 @@ xxAPI.functions.XXEEXECUTE = function ( oarg ) {
     }
 }
 
+/*
+    * XXMARK is used to give pages a name to call them later
+    * with XXMODUL or XXMODULCLICK. XXMARK should be placed on
+    * the xxAPI-INIT page to make them globaly available.
+    * The action of the textelement must be "Seite aufrufen" 
+    * with the page called is aliased by the name.
+
+    * Argument 1 is the alias for the page
+     XXMARK*Weatherstation
+*/
 xxAPI.functions.XXMARK = function ( oarg ) {
     debug(2,"XXMARK",oarg);
     if(oarg.item.open_page) {
@@ -231,6 +310,20 @@ xxAPI.functions.XXMARK = function ( oarg ) {
     oarg.item.hidden = true;
 }
 
+/*
+    * To integrate other pages as modules in another page
+    * XXMODUL can be used. There are diffent ways to use it.
+
+    * Argument 1 is always the name for the module, which is 
+    * also the name for the session to connect to the Homeserver,
+    * it will be reused if present.
+    * Argument 2 (optional) is the name of an XXMARK'ed page,
+    * if it is omitted the pageaction "Seite aufrufen" is used
+    * for the startpage of the module
+    * (no Argument 2 and no "Seite aufrufen" is deprecated but can still be used)
+     XXMODUL*Modulename
+     XXMODUL*Modulename*Weatherstation
+*/
 xxAPI.functions.XXMODUL = function ( oarg ) {
     debug(2,"XXMODUL",oarg);
     var _modulname = "MODUL_" + oarg.args[1].toUpperCase();
@@ -251,6 +344,19 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     }
 }
 
+/*
+    * XXMODULCLICK  is used to change other modulepages, it can
+    * be used in different ways. Commands attached to the item 
+    * are also executed.
+    
+    * Argument 1 (can be  blank) is the text shown on visu
+    * Argument [2,4,6...] is the name of the module that will be changed
+    * Argument [3,5,7...] (can be blank) is the XXMARK'ed pagename 
+    *  (if blank the Visu-Page from "Seite aufrufen" is used)
+     XXMODULCLICK**Modulename*Weatherstation
+     XXMODULCLICK**Modulename*Weatherstation*Othermodul
+
+*/
 xxAPI.functions.XXMODULCLICK = function ( oarg ) {
     debug(2,"XXMODULCLICK",oarg);
     oarg.item.text = oarg.args[1];
@@ -263,6 +369,13 @@ xxAPI.functions.XXMODULCLICK = function ( oarg ) {
     }
 }
 
+/*
+    * xxAPI.functions.modul_click is a Helperfunction to change Modulepages with XXEXECUTE
+    
+    * Argument 1 is the name of the module
+    * Argument 2 (can be empty if argument 3) is the pagename
+    * Argument 3 (optional) is for using the items "Seite aufrufen" page
+*/
 xxAPI.functions.modul_click = function ( module_name, page_name, oarg ) {
     oarg = oarg ? oarg : { "item" : {} };
     module_name = module_name || "";
@@ -279,18 +392,41 @@ xxAPI.functions.modul_click = function ( module_name, page_name, oarg ) {
     });
 }
 
+/*
+    * xxAPI.modulClick is a backwardcompatible alias for xxAPI.functions.modul_click (deprecated)
+*/
 xxAPI.modulClick = xxAPI.functions.modul_click;
 
+/*
+    * XXCLICK is used to execute Javascript if the item is clicked
+    
+    * Argument 1 (can be blank) is the text shown on Visu
+    * Argument 2 is the Javascript 
+*/
 xxAPI.functions.XXCLICK = function ( oarg ) {
     debug(2,"XXCLICK",oarg);
     oarg.item.text = '';
 }
 
+/*
+    * XXTRIGGER is used as a timer function that triggers
+    * the items action and commands to a given time.
+    
+    * Argument 1 (optional defaults to 50ms) is the delay in milliseconds
+     XXTRIGGER*30000 (30 seconds)
+*/
 xxAPI.functions.XXTRIGGER = function ( oarg ) {
     debug(2,"XXTRIGGER",oarg);
     oarg.item.hidden = true;
 }
 
+/*
+    * XXIMG is used to load an image from an URL and refresh it
+    
+    * Argument 1 is the image URL
+    * Argument 2 (optinal) is the refreshtime in seconds
+     XXIMG*http://1.2.3.4/image?qual=1024*5
+*/
 xxAPI.functions.XXIMG = function ( oarg ) {
     debug(2,"XXIMG",oarg);
     oarg.item.type = "CAM";
@@ -300,12 +436,24 @@ xxAPI.functions.XXIMG = function ( oarg ) {
     }
 }
 
-xxAPI.functions.XXLONGPRESS = function ( oarg ) {
-    /*
+/*
+    * XXLONGPRESS is used to send different values based on
+    * duration the item is pressed. It is used in combination
+    * with the "Logikbaustein" XXLONGPRESSHELPER and must always
+    * be used with an item that has action "Werteingabe" with an
+    * internal KO of type EIS2,6 (8-Bit 0-255). It sends the
+    * following values:
         1 = click
         2 = longpress
         4 = longpress stopped
-    */
+    * which can be bitshiftet with optinal Argument 2
+    
+    * Argument 1 (optional) is the time in milliseconds 
+    * Argument 2 (optonal) is an integer used to bitshift the values
+    * Argument 3 (optonal) is Javascript code executed on longpress
+     XXLONGPRESS*
+*/
+xxAPI.functions.XXLONGPRESS = function ( oarg ) {
     debug(2,"XXLONGPRESS",oarg);
     var _longpress_duration = parseInt(oarg.args[1]) || 50;
     if (_longpress_duration < 50) {
@@ -361,6 +509,13 @@ xxAPI.functions.longpress_event = function( presstype, oarg ) {
     hs.functions.do_valset( oarg );
 }
 
+/*
+    * XXREGICON is used to register xxAPI functions to an image.
+    
+    * Argument 1 is the image icon-id found top right in Experte on symbol
+    * Argument 2 is the xxAPI function as it would be in a text item.
+     XXREGICON*GIRA0815*XXMODULCLICK**Modulname*Weatherstation
+*/
 xxAPI.functions.XXREGICON = function ( oarg ) {
     debug(2,"XXREGICON",oarg);
     if (oarg.args.length > 2) {
@@ -369,6 +524,19 @@ xxAPI.functions.XXREGICON = function ( oarg ) {
     oarg.item.hidden = true;
 }
 
+/*
+    * XXPAGE is either used as a text item or with
+    * images with icon-id XXPAGE or XXPOPUP
+    * XXPAGE is used to limit a page to a specifiv width,
+    * the position of this item. The backgroundimage is scaled.
+    * XXPAGE*POPUP is used to limit a page and open it as a popup.
+    
+    * Argument 1 (can be blank) is POPUP for a popup page.
+    * Argument 2 (optinonal) CSS attributes to change the page
+    * with special string MOUSE+0px can be used for top and left
+    * to open the popup near the mouseclick
+     XXPAGE*POPUP*top:MOUSE+10px;left:MOUSE+0px;
+*/
 xxAPI.functions.XXPAGE = function ( oarg ) {
     debug(2,"XXPAGE",oarg);
     oarg.item.page.width = oarg.item.left;
@@ -398,6 +566,12 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
     }
 }
 
+/*
+    * Text prefixed with XXWRAPTEXT is wraped inside the item text.
+    
+    * Argument 1 is the text that is to be wraped
+    XXWRAPTEXT*The quick brown fox jumps over the lazy dog
+*/
 xxAPI.functions.XXWRAPTEXT = function ( oarg ) {
     debug(2,"XXWRAPTEXT",oarg);
     oarg.item.customcss["white-space"] = "normal";
