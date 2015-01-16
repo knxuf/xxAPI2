@@ -237,7 +237,7 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     oarg.item.html = $("<div />", {
         "id"        : _modulname,
     });
-    var _page = oarg.item.open_page || hs.user.start_page;
+    var _page = oarg.item.open_page || xxAPI.marked_pages[oarg.args[1]] || hs.user.start_page;
     if(oarg.args.length > 2) {
         _page = xxAPI.marked_pages[oarg.args[2]] || _page;
     } 
@@ -258,19 +258,28 @@ xxAPI.functions.XXMODULCLICK = function ( oarg ) {
     var _args = oarg.args.slice(2);
     oarg.item.eventcode["click"] = function( oarg ) {
         for (var i = 0; i <_args.length; i+=2) {
-            var _session = _args[i] == "" ? hs.session.VISU : hs.session["MODUL_" + _args[i]];
-            var _page_id = _args[i+1] == "" ? oarg.item.open_page : xxAPI.marked_pages[_args[ i+1 ]];
-            if(!_session || !_page_id) {
-                debug(1,"XXMODULCLICK Error: Session " + _args[i] + " or Page " + _args[i+1] + " not found",oarg);
-                continue;
-            }
-            hs.functions.load_page({
-                "session"   : _session,
-                "page_id"   : _page_id,
-            });
+            xxAPI.functions.modul_click( _args[i],_args[i+1], oarg);
         }
     }
 }
+
+xxAPI.functions.modul_click = function ( module_name, page_name, oarg ) {
+    oarg = oarg ? oarg : { "item" : {} };
+    module_name = module_name || "";
+    page_name = page_name || "";
+    var _session = module_name == "" ? hs.session.VISU : hs.session["MODUL_" + module_name];
+    var _page_id = page_name == "" ? oarg.item.open_page : xxAPI.marked_pages[page_name];
+    if(!_session || !_page_id) {
+        debug(1,"XXMODULCLICK Error: Session " + module_name + " or Page " + page_name + " not found",oarg);
+        return;
+    }
+    hs.functions.load_page({
+        "session"   : _session,
+        "page_id"   : _page_id,
+    });
+}
+
+xxAPI.modulClick = xxAPI.functions.modul_click;
 
 xxAPI.functions.XXCLICK = function ( oarg ) {
     debug(2,"XXCLICK",oarg);
