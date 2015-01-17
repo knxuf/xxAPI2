@@ -251,7 +251,19 @@ xxAPI.functions.XXIFRAME = function ( oarg ) {
 */
 xxAPI.functions.XXEXECUTE = function ( oarg ) {
     debug(2,"XXEXECUTE:",oarg);
-    var _jscode = oarg.args[1] || "";
+    var _jscode = hs.functions.fix_hsjavascript( oarg.args[1] );
+    // item für Abwärtskompatiblität
+    var _func = new Function('item','"use strict"; ' + _jscode);
+    oarg.item.text = '';
+    try {
+        _func( oarg.item );
+    } catch (e) {
+        debug(1,"XXEXECUTE_ERROR:",e);
+    }
+}
+
+hs.functions.fix_hsjavascript = function ( broken ) {
+    var _jscode = broken || "";
     _jscode = _jscode.replace(/\[/g, "<");
     _jscode = _jscode.replace(/\(\?/g, "\(\"");
     _jscode = _jscode.replace(/=\?/g, "=\"");
@@ -263,16 +275,8 @@ xxAPI.functions.XXEXECUTE = function ( oarg ) {
     _jscode = _jscode.replace(/[,]\?/g, ",\"");
     _jscode = _jscode.replace(/\?\)/g, "\"\)");
     _jscode = _jscode.replace(/\]/g, ">");
-    // item für Abwärtskompatiblität
-    var _func = new Function('item','"use strict"; ' + _jscode);
-    oarg.item.text = '';
-    try {
-        _func( oarg.item );
-    } catch (e) {
-        debug(1,"XXEXECUTE_ERROR:",e);
-    }
+    return _jscode;
 }
-
 /*
     * XXEEXCECUTE is an base64 encoded version of XXEXECUTE an can be used 
     * for complexer code with quotes,linebreaks and specialchars
@@ -405,7 +409,18 @@ xxAPI.modulClick = xxAPI.functions.modul_click;
 */
 xxAPI.functions.XXCLICK = function ( oarg ) {
     debug(2,"XXCLICK",oarg);
-    oarg.item.text = '';
+    oarg.item.text = oarg.args[1];
+    var _jscode = hs.functions.fix_hsjavascript( oarg.args.slice(2).join("*") );
+    // remove deprecated XXEXECUTE prefix
+    _jscode = _jscode.replace(/^XXEXECUTE\*/,"");
+    var _func = new Function('item','"use strict"; ' + _jscode);
+    oarg.item.eventcode["click"] = function( oarg ) {
+        try {
+            _func( oarg.item );
+        } catch (e) {
+            debug(1,"XXCLICK_ERROR:",e);
+        }
+    }
 }
 
 /*
