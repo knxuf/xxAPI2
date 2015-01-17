@@ -41,7 +41,7 @@ $.x2js = new X2JS();
 $.xml2json = $.x2js.xml2json;
 
 var xxAPI = {};
-xxAPI.version = "2.021";
+xxAPI.version = "2.022";
 xxAPI.functions = {};
 xxAPI.events = {
     "lastclick" : {
@@ -277,6 +277,7 @@ hs.functions.fix_hsjavascript = function ( broken ) {
     _jscode = _jscode.replace(/\]/g, ">");
     return _jscode;
 }
+
 /*
     * XXEEXCECUTE is an base64 encoded version of XXEXECUTE an can be used 
     * for complexer code with quotes,linebreaks and specialchars
