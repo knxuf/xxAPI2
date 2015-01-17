@@ -417,6 +417,11 @@ xxAPI.functions.XXCLICK = function ( oarg ) {
 */
 xxAPI.functions.XXTRIGGER = function ( oarg ) {
     debug(2,"XXTRIGGER",oarg);
+    oarg.item.next_update = $.now() + parseInt(oarg.args[1]);
+    oarg.item.update_code = function ( oarg ) {
+        hs.functions.check_click ( oarg );
+        oarg.item.next_update = null;
+    }
     oarg.item.hidden = true;
 }
 
@@ -761,6 +766,7 @@ hs.functions.hs_item = function( oarg ) {
         oarg.item.object = null;
         oarg.item.title = "";
         oarg.item.event = null;
+        oarg.item.update_code = null;
         
         if(oarg.item.click && oarg.item.action_id == 1 && oarg.item.open_page == oarg.item.page.page_id) {
             debug(4,"hs_item: remove click from page",oarg.item);
@@ -1492,6 +1498,16 @@ hs.functions.update = function() {
                     });
                 }
             }
+            if(item.type == "TXT" && item.next_update && item.next_update + _delay <= _now) {
+                if(typeof item.update_code == 'function') {
+                    debug(4,"Update " + item.uid,session);
+                    item.update_code( { 
+                        "session"       : session,
+                        "item"          : item,
+                        "page_id"       : session.active_page.page_id,
+                    });
+                }
+            }
         });
     });
 }
@@ -1579,6 +1595,7 @@ hs.functions.mouse_event = function( oarg ) {
 hs.functions.check_click = function( oarg ) {
     debug(3,"check_click",oarg);
     var _session_position =  oarg.item.session.target_obj.position();
+    oarg.item.event = oarg.item.event || {};
     xxAPI.events.lastclick.top = oarg.item.event.pageY - _session_position.top;
     xxAPI.events.lastclick.left = oarg.item.event.pageX - _session_position.left;
     /*
