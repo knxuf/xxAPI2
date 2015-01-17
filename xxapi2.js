@@ -146,10 +146,10 @@ xxAPI.functions.XXSCRIPT = function( oarg ) {
     if (oarg.item.open_page > 0) {
         debug(2,"XXSCRIPT");
         oarg.item.page.hidden = true;
-        //window.setTimeout(function() {
+        window.setTimeout(function() {
             oarg.page_id = oarg.item.open_page;
             hs.functions.load_page( oarg );
-        //},1);
+        },1);
     }
 }
 
@@ -758,6 +758,7 @@ hs.functions.hs_item = function( oarg ) {
         oarg.item.font        = parseInt(oarg.json._fid   ||  0);
         oarg.item.align       = hs.functions.number2align( parseInt(oarg.json._align ||  0));
         oarg.item.indent      = parseInt(oarg.json._bord  ||  0);
+        oarg.item.info        = hs.functions.get_item_info( oarg );
     }
 
     oarg.item.json = oarg.json;
@@ -1257,11 +1258,52 @@ hs.functions.async.handler = function( oarg ) {
         // VISU Seite update und Befehl
         case "vcu"      : hs.functions.async.gv( oarg ); break;
         
+        case "getpag"   : hs.functions.item_handler( oarg ); break;
+        
         case "logout"   : break;
         default:
             break;
     }
 };
+
+hs.functions.item_handler = function( oarg ) {
+    debug(5,"item_handler",oarg);
+    var _id = "PAGE_" + oarg.item.page_id + "_" + oarg.item.type + "_" + oarg.item.id;
+    var _elem = "";
+    switch(oarg.item.action_id) {
+        case 8: _elem = "TIM"; break; // Wochenschaltuhr
+        case 9: _elem = "VAL"; break; // Werteingabe
+        case 10: _elem = "VAC"; break; // Urlaubskalender
+        case 11: _elem = "HOL"; break; // Feiertagskalender
+        case 12: _elem = "DATE"; break; // Datum/Uhrzeit
+        case 14: _elem = "MSG"; break; // Meldungsarchiv
+        case 15: _elem = "BUD"; break; // Buddyliste
+        case 16: _elem = "GRAF"; break; // Diagramm
+        case 17: _elem = "CAMA"; break; // Kamera-archiv
+        case 18: _elem = "UHR"; break; // Universal Zeitschaltuhr
+    }
+    hs.gui.items[_id] = {}
+    $.each(oarg.json.HS[_elem],
+        function(attr,val) {
+             hs.gui.items[_id][attr.toLowerCase()] = oarg.item.info[attr.toLowerCase()] = isNaN(val*1) ? val : val*1;
+        }
+    );
+    if (typeof oarg.callback == 'function') {
+    }
+}
+
+hs.functions.get_item_info = function ( oarg ) {
+    if($.inArray(oarg.item.action_id,[8,9,10,11,12,14,15,16,17,18]) == -1) {
+        return null;
+    }
+    var _id = "PAGE_" + oarg.item.page_id + "_" + oarg.item.type + "_" + oarg.item.id;
+    if(hs.gui.items.hasOwnProperty(_id)) {
+        return hs.gui.items[_id];
+    }
+    oarg.cmd = "getpag&id=" + oarg.item.id;
+    hs.functions.make_request( oarg );
+    return {};
+}
 
 hs.functions.error_handler = function( oarg ) {
     //handle Error
@@ -1614,7 +1656,7 @@ hs.functions.check_click = function( oarg ) {
     oarg.item.event = oarg.item.event || {};
     xxAPI.events.lastclick.top = oarg.item.event.pageY - _session_position.top;
     xxAPI.events.lastclick.left = oarg.item.event.pageX - _session_position.left;
-    /*
+    /* 
         Element .action_id
              0 = Nur Befehl
              1 = Seitenaufruf (optional Befehl)
