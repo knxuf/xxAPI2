@@ -866,7 +866,7 @@ hs.functions.hs_item = function( oarg ) {
             oarg.item.s_bg_color = oarg.item.bg_color;
             oarg.item.s_image = oarg.item.image;
             oarg.item.s_url = oarg.item.url;
-            oarg.item.object.css(oarg.item.customcss);
+            
 
         }
         oarg.item.page.items[oarg.item.uid] = oarg.item;
@@ -874,8 +874,7 @@ hs.functions.hs_item = function( oarg ) {
             oarg.item.page.object.append(oarg.item.object);
         }
     }
-    /*
-    */
+    oarg.item.object.css(oarg.item.customcss);
 }
 
 hs.functions.get_textobject = function ( oarg ) {
