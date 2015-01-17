@@ -1932,8 +1932,8 @@ hs.functions.set_viewport = function() {
     
     //return true;
     var _orientation = hs.functions.get_orientation();
-    var _visual_height = _orientation == "landscape" ? window.screen.availWidth  : window.screen.availHeight;
-    var _visual_width  = _orientation == "landscape" ? window.screen.availHeight : window.screen.availWidth;
+    var _visual_height = _orientation == "landscape" ? screen.width  : screen.height;
+    var _visual_width  = _orientation == "landscape" ? screen.height : screen.width;
     
     var _scaleto_width = Math.floor ( _visual_width / hs.gui.attr.visu_width * 100) / 100;
     var _scaleto_height = Math.floor ( _visual_height / hs.gui.attr.visu_height * 100) / 100;
@@ -1954,7 +1954,7 @@ hs.functions.get_orientation = function () {
     if (typeof orientation != "undefined") {
         return ( orientation % 180 ? "landscape":"portrait");
     } else {
-        return "unsupported";
+        return window.innerWidth > window.innerHeight ? "landscape" : "portrait";
     }
 }
 
