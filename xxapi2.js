@@ -1072,16 +1072,15 @@ hs.functions.hs_page = function( oarg ) {
         "class"         : "visupage",
     });
     
-
-
-    hs.functions.loop_items( oarg );
-    
     if (oarg.page.bg_image != "XXTRSPBG") {
         oarg.page.object.css({
             "background-image"      : "url(/guibg?id=" + oarg.page.bg_image + "&cl=" + hs.auth.gui_design + "&hash=" + hs.gui.hashes._bg + ")",
             "background-repeat"     : "no-repeat",
         });
     }
+
+    hs.functions.loop_items( oarg );
+
     oarg.page.object.css({
         "position"  : "absolute",
         "overflow"  : "hidden",
@@ -1269,7 +1268,7 @@ hs.functions.async.handler = function( oarg ) {
 };
 
 hs.functions.item_handler = function( oarg ) {
-    debug(5,"item_handler",oarg);
+    debug(4,"item_handler",oarg);
     var _id = "PAGE_" + oarg.item.page_id + "_" + oarg.item.type + "_" + oarg.item.id;
     var _elem = "";
     switch(oarg.item.action_id) {
@@ -1295,6 +1294,7 @@ hs.functions.item_handler = function( oarg ) {
 }
 
 hs.functions.get_item_info = function ( oarg ) {
+    debug(5,"get_item_info",oarg);
     if($.inArray(oarg.item.action_id,[8,9,10,11,12,14,15,16,17,18]) == -1) {
         return null;
     }
@@ -1302,8 +1302,12 @@ hs.functions.get_item_info = function ( oarg ) {
     if(hs.gui.items.hasOwnProperty(_id)) {
         return hs.gui.items[_id];
     }
-    oarg.cmd = "getpag&id=" + oarg.item.id;
-    hs.functions.make_request( oarg );
+    hs.functions.make_request({
+        "session"   : oarg.session,
+        "cmd"       : "getpag&id=" + oarg.item.id,
+        "item"      : oarg.item,
+        "page_id"   : oarg.page_id,
+     });
     return {};
 }
 
