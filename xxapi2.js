@@ -238,7 +238,7 @@ xxAPI.functions.XXIFRAME = function ( oarg ) {
     "width='" + oarg.item.width + "px' " +
     "height='" + oarg.item.height + "px' " +
     "allowtransparency='true'>";
-    oarg.item.click = 1;
+    oarg.item.customcss = { "pointer-events":"auto" };
 
 }
 
