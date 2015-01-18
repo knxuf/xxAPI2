@@ -336,6 +336,9 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
         "id"        : _modulname,
     });
     var _page = oarg.item.open_page || xxAPI.marked_pages[oarg.args[1]] || hs.user.start_page;
+    if(hs.session[_modulname] && hs.session[_modulname].active_page) {
+        _page = hs.session[_modulname].active_page.page_id;
+    }
     if(oarg.args.length > 2) {
         _page = xxAPI.marked_pages[oarg.args[2]] || _page;
     } 
