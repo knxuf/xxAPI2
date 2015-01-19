@@ -1110,7 +1110,9 @@ hs.functions.fade_page = function( oarg ) {
         }
         oarg.session.active_page = oarg.page;
         oarg.session.history.push(oarg.page_id);
-        document.title = "xxAPI² - " + oarg.page.title;
+        if(!oarg.page.is_modul) {
+            document.title = "xxAPI² - " + oarg.page.title;
+        }
 }
 
 hs.functions.loop_items = function ( oarg ) {
