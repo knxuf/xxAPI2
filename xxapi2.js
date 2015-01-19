@@ -1596,14 +1596,22 @@ hs.functions.do_command = function( oarg ) {
     }
 }
 
+hs.functions.math_round = function(value, digits) {
+    var _exp = parseInt("1" + Array(1 + digits).join("0"));
+    return Math.round(value * _exp) / _exp;
+}
+
 hs.functions.do_valset = function ( oarg ) {
-    debug(4,"do_valset: " +oarg.item.value,oarg);
+    debug(4,"do_valset: " + oarg.item.value,oarg);
     if(typeof oarg.item.value == 'undefined' || oarg.item.action_id != 9) {
         return;
     }
     if(oarg.item.session.active_page != oarg.item.page) {
         debug(1,"Error Valset page not the active page",oarg);
         return;
+    }
+    if(oarg.item.info) {
+        oarg.item.value = hs.functions.math_round(oarg.item.value,oarg.item.info._prec);
     }
     hs.functions.make_request( {
         "session"       : oarg.item.session,
