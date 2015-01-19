@@ -1534,8 +1534,15 @@ hs.functions.update = function() {
     var _now = $.now();
     var _delay = hs.gui.hidden ? hs.connection.hiddentime * 1000: 0;
     $.each(hs.session, function(index, session) {
-        if(!session.connected || !session.active_page || session.target_obj.is(":hidden")) {
+        if(!session.connected || !session.active_page) {
             return;
+        }
+        if(session.target_obj.length == 0 || session.target_obj.is(":hidden")) {
+            if(session.last_communication_time + (hs.connection.timeout * 1000 * 0.80)> _now) { // 80% of timeout
+                return;
+            } else {
+                debug(4,"Keep-alive Session " + session.target,session);
+            }
         }
         // timeout
         if(session.last_communication_time + (hs.connection.timeout * 1000) < _now) {
