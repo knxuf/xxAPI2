@@ -618,11 +618,9 @@ xxAPI.functions.geolocation_send = function ( attribute, value) {
     if (xxAPI.geolocation.hasOwnProperty(attribute)) {
         debug(2,"XXGEOLOCATE send: " + attribute + " auf ID " + xxAPI.geolocation[attribute].id + " Wert " + value);
         xxAPI.geolocation[attribute].value = value;
-        /*
         hs.functions.do_valset({
             "item"  : xxAPI.geolocation[attribute] ,
         });
-        */
     }
 }
 
@@ -830,8 +828,8 @@ hs.functions.hs_item = function( oarg ) {
                 });
                 oarg.item.object.addClass("visuclickelement");
             } else {
-                if(Object.keys(oarg.item.eventcode).length == 0) {
-                    oarg.item.object.css("pointer-events","none");
+                if(Object.keys(oarg.item.eventcode).length != 0) {
+                    oarg.item.object.addClass("visuclickelement");
                 }
             }
             if (oarg.item.type == "BOX") {
@@ -1594,10 +1592,14 @@ hs.functions.do_valset = function ( oarg ) {
     if(typeof oarg.item.value == 'undefined' || oarg.item.action_id != 9) {
         return;
     }
+    if(oarg.item.session.active_page != oarg.item.page) {
+        debug(1,"Error Valset page not the active page",oarg);
+        return;
+    }
     hs.functions.make_request( {
         "session"       : oarg.item.session,
         "cmd"           : "valset&id=" + oarg.item.id + "&val=" + oarg.item.value,
-        "page_id"       : oarg.page_id,
+        "page_id"       : oarg.item.page.page_id,
     });
 }
 
