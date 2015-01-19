@@ -638,7 +638,9 @@ xxAPI.functions.XXGEOLOCATE = function ( oarg ) {
         xxAPI.functions.geolocation_error,
         _options
     );
-    oarg.item.text = "";
+    if (oarg) {
+        oarg.item.text = "";
+    }
 }
 
 xxAPI.functions.XXGEOLOCATION = function ( oarg ) {
