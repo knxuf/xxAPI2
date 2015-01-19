@@ -394,10 +394,12 @@ xxAPI.functions.modul_click = function ( module_name, page_name, oarg ) {
         debug(1,"XXMODULCLICK Error: Session " + module_name + " or Page " + page_name + " not found",oarg);
         return;
     }
-    hs.functions.load_page({
-        "session"   : _session,
-        "page_id"   : _page_id,
-    });
+    setTimeout(function() {
+        hs.functions.load_page({
+            "session"   : _session,
+            "page_id"   : _page_id,
+        });
+    },1);
 }
 
 /*
