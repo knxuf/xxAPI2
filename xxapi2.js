@@ -1633,7 +1633,7 @@ hs.functions.update = function() {
             }
             if(item.type == "TXT" && item.next_update && item.next_update + _delay <= _now) {
                 if(typeof item.update_code == 'function') {
-                    debug(4,"Update " + item.uid,session);
+                    debug(5,"Update " + item.uid,session);
                     item.update_code( { 
                         "session"       : session,
                         "item"          : item,
@@ -2128,7 +2128,7 @@ hs.functions.post_loading = function () {
 }
 
 hs.functions.element_loader = function ( filename ) {
-    var _id = filename.replace(".","_").replace("/","_");
+    var _id = filename.replace(/http[s]?:\/\/.*?\//,"").replace(".","_").replace(/\//g,"_");
     var _type = filename.toLowerCase().split(".")[1];
     var _element = "script";
     if (_type == "css") {
