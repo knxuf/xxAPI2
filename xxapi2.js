@@ -1612,7 +1612,7 @@ hs.functions.do_command = function( oarg ) {
 }
 
 hs.functions.math_round = function(value, digits) {
-    var _exp = parseInt("1" + Array(1 + digits).join("0"));
+    var _exp = parseInt("1" + Array(1 + (digits || 0) ).join("0"));
     return Math.round(value * _exp) / _exp;
 }
 
