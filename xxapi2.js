@@ -47,12 +47,12 @@ xxAPI.events = {
     "lastclick" : {
         "top"   : 0,
         "left"  : 0,
-    },
+    }
 }
 xxAPI.XXLINKURL = "";
 xxAPI.registered_icons = { 
     "XXPAGE"    : "XXPAGE*",
-    "XXPOPUP"   : "XXPAGE*POPUP",
+    "XXPOPUP"   : "XXPAGE*POPUP"
 };
 xxAPI.marked_pages = {};
 xxAPI.geolocation = {};
@@ -73,7 +73,7 @@ hs.gui.attr = {
     "initial_visu_width"    : $(window).width(), 
     "initial_visu_height"   : $(window).height(),
     "visu_width"            : $(window).width(),
-    "visu_height"           : $(window).height(),
+    "visu_height"           : $(window).height()
 };
 hs.gui.hashes = {};
 hs.gui.pages = {};
@@ -88,7 +88,7 @@ hs.auth.gui_refresh="R1";
 hs.connection = {
     "timeout"    : 300, // 300sec
     "failure"    : 0,
-    "hiddentime" : 120, // 120sec if page is hidden
+    "hiddentime" : 120 // 120sec if page is hidden
 };
 hs.debuglevel = 0;
 
@@ -118,12 +118,12 @@ xxAPI.functions.XXAPICONFIG = function ( oarg ) {
         "background-color"  :"white",
         "width"             :"300px",
         "height"            :"300px",
-        "padding"           :"3px",
+        "padding"           :"3px"
     });
     _div.modal({
         "autoPosition"  : true,
         "modal"         : true,
-        "overlayClose"  : true,
+        "overlayClose"  : true
     });
     if ( oarg != null) {
         oarg.item.text = oarg.args[1];
@@ -333,7 +333,7 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     debug(2,"XXMODUL",oarg);
     var _modulname = "MODUL_" + oarg.args[1].toUpperCase();
     oarg.item.html = $("<div />", {
-        "id"        : _modulname,
+        "id"        : _modulname
     });
     var _page = oarg.item.open_page || xxAPI.marked_pages[oarg.args[1]] || hs.user.start_page;
     if(hs.session[_modulname] && hs.session[_modulname].active_page) {
@@ -348,7 +348,7 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     oarg.item.click = false;
     oarg.item.text = '';
     oarg.item.customcss = {
-        "pointer-events"    : "auto",
+        "pointer-events"    : "auto"
     }
 }
 
@@ -397,7 +397,7 @@ xxAPI.functions.modul_click = function ( module_name, page_name, oarg ) {
     setTimeout(function() {
         hs.functions.load_page({
             "session"   : _session,
-            "page_id"   : _page_id,
+            "page_id"   : _page_id
         });
     },1);
 }
@@ -542,7 +542,7 @@ xxAPI.functions.longpress_event = function( presstype, oarg ) {
     var _typeval = {
         "click"         : 1,
         "longpress"     : 2,
-        "longpressup"   : 4,
+        "longpressup"   : 4
     };
     oarg.item.value = _typeval[presstype]<<oarg.item.xxapi.longpress_bit;
     hs.functions.do_valset( oarg );
@@ -716,7 +716,7 @@ hs.functions.hs_session = function(target,start_page) {
         _session.start_page = start_page;
         hs.functions.load_page({ 
             "session"   : _session,
-            "page_id"   : _session.start_page,
+            "page_id"   : _session.start_page
         });
         return;
     }
@@ -731,7 +731,7 @@ hs.functions.hs_session = function(target,start_page) {
         "tan"           : 0,
         "tan_counter"   : 0,
         "glob_key1"     : "",
-        "glob_key2"     : "",
+        "glob_key2"     : ""
     };
     
     this.ajax_queue = $({});
@@ -823,7 +823,7 @@ hs.functions.hs_item = function( oarg ) {
                     "left"          : oarg.item.left,
                     "height"        : oarg.item.height + "px",
                     "width"         : oarg.item.width  + "px",
-                    "line-height"   : oarg.item.height + "px",
+                    "line-height"   : oarg.item.height + "px"
                 },
                 "class"         : "visuelement"
                 
@@ -854,7 +854,7 @@ hs.functions.hs_item = function( oarg ) {
                         "height"            : (oarg.item.height -2) + "px",
                         "border-width"      : "1px",
                         "border-style"      : "solid",
-                        "border-color"      : oarg.item.bg_color,
+                        "border-color"      : oarg.item.bg_color
                     });
                 }
                 oarg.item.object.css("background-color", oarg.item.bg_color);
@@ -866,7 +866,7 @@ hs.functions.hs_item = function( oarg ) {
                     "background-color"  : oarg.item.bg_color,
                     "color"             : oarg.item.color,
                     "white-space"       : "nowrap",
-                    "text-align"        : oarg.item.align,
+                    "text-align"        : oarg.item.align
                 });
                 if (oarg.item.html == null) {
                     oarg.item.object.append(hs.functions.get_textobject( oarg ));
@@ -932,7 +932,7 @@ hs.functions.update_item = function ( oarg ) {
             debug(4,"BOX/TEXT BGCOLORT changed '" + oarg.item.s_bg_color + "' != '" + oarg.item.bg_color + "'");
             oarg.item.object.css({
                 "background-color"  : oarg.item.bg_color,
-                "border-color"      : oarg.item.bg_color,
+                "border-color"      : oarg.item.bg_color
             });
         }
     }
@@ -974,7 +974,7 @@ hs.functions.load_image = function ( oarg ) {
             _url = hs.functions.get_url ({ 
                 "session"   : oarg.item.session, 
                 "url"       : "/guicamv?id=" + oarg.item.id, 
-                "cmd"       : "", 
+                "cmd"       : ""
             });
         }
     }
@@ -983,7 +983,7 @@ hs.functions.load_image = function ( oarg ) {
         _url = hs.functions.get_url ({ 
             "session"   : oarg.item.session, 
             "url"       : "/guigrafv?id=" + oarg.item.id, 
-            "cmd"       : "",
+            "cmd"       : ""
         });
     }
     if(oarg.item.type == "ICO") {
@@ -997,7 +997,7 @@ hs.functions.load_image = function ( oarg ) {
         "width"     : oarg.item.width,
         "height"    : oarg.item.height,
         "css"       : {
-            "position"  : "absolute",
+            "position"  : "absolute"
         },
         "on"        : {
             "dragstart" : function () { return false; },
@@ -1022,7 +1022,7 @@ hs.functions.load_image = function ( oarg ) {
                 oarg.item.image_loading = false;
                 oarg.item.next_update = hs.functions.get_next_update ( oarg.item );
                 return true;
-            },
+            }
         }    
     })
 }
@@ -1084,13 +1084,13 @@ hs.functions.hs_page = function( oarg ) {
     oarg.page.items      = {};
     oarg.page.object = $("<div />", {
         "id"            : oarg.page.id,
-        "class"         : "visupage",
+        "class"         : "visupage"
     });
     
     if (oarg.page.bg_image != "XXTRSPBG") {
         oarg.page.object.css({
             "background-image"      : "url(/guibg?id=" + oarg.page.bg_image + "&cl=" + hs.auth.gui_design + "&hash=" + hs.gui.hashes._bg + ")",
-            "background-repeat"     : "no-repeat",
+            "background-repeat"     : "no-repeat"
         });
     }
 
@@ -1100,7 +1100,7 @@ hs.functions.hs_page = function( oarg ) {
         "position"  : "absolute",
         "overflow"  : "hidden",
         "width"     : oarg.page.width,
-        "height"    : oarg.page.height,
+        "height"    : oarg.page.height
     })
     
     if (!oarg.page.hidden) {
@@ -1140,7 +1140,7 @@ hs.functions.loop_items = function ( oarg ) {
                             "json"      : _json,
                             "session"   : oarg.session,
                             "page"      : oarg.page,
-                            "page_id"   : oarg.page_id,
+                            "page_id"   : oarg.page_id
                         });
                     }
                 );
@@ -1151,7 +1151,7 @@ hs.functions.loop_items = function ( oarg ) {
                     "json"      : _json,
                     "session"   : oarg.session,
                     "page"      : oarg.page,
-                    "page_id"   : oarg.page_id,
+                    "page_id"   : oarg.page_id
                 });
             }
         }
@@ -1323,7 +1323,7 @@ hs.functions.get_item_info = function ( oarg ) {
         "session"   : oarg.session,
         "cmd"       : "getpag&id=" + oarg.item.id,
         "item"      : oarg.item,
-        "page_id"   : oarg.page_id,
+        "page_id"   : oarg.page_id
      });
     return {};
 }
@@ -1419,7 +1419,7 @@ hs.functions.entity = new (function() {
         "<" : "&lt;",
         ">" : "&gt;",
         '"' : "&quot;",
-        "'" : "&apos;",
+        "'" : "&apos;"
     };
     var rmap = hs.functions.swap_object( map ); 
 
@@ -1483,7 +1483,7 @@ hs.functions.async.login = function( oarg ) {
     oarg.session.auth.glob_key2 = hs.functions.make_globkey(0x36);
     hs.functions.make_request( {
         "session"     : oarg.session,
-        "cmd"         : "login",
+        "cmd"         : "login"
     });
 };
 
@@ -1519,14 +1519,14 @@ hs.functions.async.logged_in = function(  oarg ) {
     if (hs.gui.hashes._font != oarg.json.HS.HASH._font) {
         hs.functions.make_request( {
             "session"     : oarg.session,
-            "cmd"         : "getfont",
+            "cmd"         : "getfont"
         });
     }
     // überprüfen ob die Parameter geändert wurden
     if (hs.gui.hashes._para != oarg.json.HS.HASH._para) {
         hs.functions.make_request( {
             "session"     : oarg.session,
-            "cmd"         : "getattr",
+            "cmd"         : "getattr"
         });
     }
     hs.gui.hashes = oarg.json.HS.HASH;
@@ -1573,7 +1573,7 @@ hs.functions.update = function() {
             hs.functions.make_request( {
                 "session"     : session,
                 "cmd"         : "gvu&id=" + session.active_page.page_id,
-                "page_id"     : session.active_page.page_id,
+                "page_id"     : session.active_page.page_id
             });
         }
         $.each(session.active_page.items, function(index,item) {
@@ -1582,7 +1582,7 @@ hs.functions.update = function() {
                     item.next_update = null;
                     debug(4,"Update " + item.uid,item);
                     hs.functions.load_image({
-                        "item" : item, 
+                        "item" : item
                     });
                 }
             }
@@ -1592,7 +1592,7 @@ hs.functions.update = function() {
                     item.update_code( { 
                         "session"       : session,
                         "item"          : item,
-                        "page_id"       : session.active_page.page_id,
+                        "page_id"       : session.active_page.page_id
                     });
                 }
             }
@@ -1606,7 +1606,7 @@ hs.functions.do_command = function( oarg ) {
         hs.functions.make_request( {
             "session"     : oarg.item.session,
             "cmd"         : "vcu&id=" + oarg.item.id,
-            "page_id"     : oarg.page_id,
+            "page_id"     : oarg.page_id
         });
     }
 }
@@ -1631,7 +1631,7 @@ hs.functions.do_valset = function ( oarg ) {
     hs.functions.make_request( {
         "session"       : oarg.item.session,
         "cmd"           : "valset&id=" + oarg.item.id + "&val=" + oarg.item.value,
-        "page_id"       : oarg.item.page.page_id,
+        "page_id"       : oarg.item.page.page_id
     });
 }
 
@@ -1662,7 +1662,7 @@ hs.functions.load_page = function( oarg ) {
     hs.functions.make_request( {
         "session"     : oarg.session,
         "cmd"         : "gv&id=" + oarg.page_id + _extra_request,
-        "page_id"     : oarg.page_id,
+        "page_id"     : oarg.page_id
     });
 };
 
@@ -1827,7 +1827,7 @@ hs.functions.async.getfont = function( oarg ) {
             hs.gui.fonts[item._id] = { 
                 'font-family'  : item._name,
                 'font-size'    : item._size + "pt",
-                'font-weight'  : item._bold == 1 ? "bold":"normal",
+                'font-weight'  : item._bold == 1 ? "bold":"normal"
             };
         }
     );
@@ -2017,7 +2017,7 @@ jQuery.fn.center = function (parent) {
     this.css({
         "position"  : "absolute",
         "top"       : parent.height() < this.height() ? 0 : parent.height()/2 - this.height()/2,
-        "left"      : parent.width() < this.width()   ? 0 : parent.width()/2 - this.width()/2,
+        "left"      : parent.width() < this.width()   ? 0 : parent.width()/2 - this.width()/2
     });
 }
 
@@ -2027,7 +2027,7 @@ hs.functions.set_viewport = function() {
         "display"   : "block",
         "position"  : "absolute",
         "width"     : hs.gui.attr.visu_width,
-        "height"    : hs.gui.attr.visu_height,
+        "height"    : hs.gui.attr.visu_height
     }).center(window);
     
     //return true;
