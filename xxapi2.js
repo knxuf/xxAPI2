@@ -434,12 +434,25 @@ xxAPI.functions.XXCLICK = function ( oarg ) {
     * the items action and commands to a given time.
     
     * Argument 1 (optional defaults to 50ms) is the delay in milliseconds
+    * Argument 2 (optional) is Javascript code
      XXTRIGGER*30000 (30 seconds)
 */
 xxAPI.functions.XXTRIGGER = function ( oarg ) {
     debug(2,"XXTRIGGER",oarg);
     oarg.item.next_update = $.now() + parseInt(oarg.args[1]);
+    var _func = null;
+    if(oarg.args.length > 2) {
+        var _jscode = hs.functions.fix_hsjavascript( oarg.args.slice(2).join("*") );
+        var _func = new Function('item','"use strict"; ' + _jscode);
+    }
     oarg.item.update_code = function ( oarg ) {
+        if(_func) {
+            try {
+                _func( oarg.item );
+            } catch (e) {
+                debug(1,"XXTRIGGER_ERROR:",e);
+            }
+        }
         hs.functions.check_click ( oarg );
         oarg.item.next_update = null;
     }
