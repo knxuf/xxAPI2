@@ -1122,10 +1122,28 @@ hs.functions.fade_page = function( oarg ) {
             });
         }
         oarg.session.active_page = oarg.page;
-        oarg.session.history.push(oarg.page_id);
+        hs.functions.add_history( oarg );
         if(!oarg.page.is_modul) {
             document.title = "xxAPI² - " + oarg.page.title;
         }
+}
+
+hs.functions.popup_overlay = function( status, blur ) {
+    if(blur) {
+        $("#VISU").addClass("popup");
+    }
+    if(status) {
+        $("#POPUP").css("display","block");
+    } else {
+        $("#POPUP").css("display","none");
+        $("#VISU").removeClass("popup");
+    }
+}
+
+hs.functions.add_history = function( oarg ) {
+   if(oarg.session.history[oarg.session.history.length -1] != oarg.page_id) {
+        oarg.session.history.push(oarg.page_id);
+    }
 }
 
 hs.functions.loop_items = function ( oarg ) {
@@ -1401,12 +1419,26 @@ hs.functions.error_handler = function( oarg ) {
 }
 
 hs.functions.reconnect = function( oarg ) {
-    oarg.session.connected = false;
+    hs.functions.popup_overlay(true,true);
     hs.connection.failure += 1;
     debug(3,"reconnect " + hs.connection.failure,oarg);
     var _waittime = Math.min(2000 * (hs.connection.failure -1) ,60000); // max 60sec
+    $.each(hs.session,function(index,session) {
+        session.connected = false;
+        session.ajax_queue.stop(true);
+        debug(3,"clear_session",session);
+        // remove all session except main VISU session
+        if(session.target != "VISU") {
+            delete hs.session[session.target];
+        }
+    });
+
     setTimeout(function() {
-        hs.functions.login_init( oarg );
+        if(!hs.session.VISU.connected) {
+            hs.functions.login_init({ 
+                "session"   : hs.session.VISU
+            });
+        }
     },_waittime + 1);
 }
 
@@ -1469,8 +1501,6 @@ hs.functions.login_init = function( oarg ) {
     _url += "&user=" + hs.auth.username;
     _url += "&cid="  + hs.auth.gui_design;
     _url += "&ref="  + hs.auth.gui_refresh;
-    oarg.session.ajax_queue = $({});
-    oarg.session.connected = false;
     hs.functions.make_request( {
         "session"     : oarg.session,
         "cmd"         : _cmd,
@@ -1535,10 +1565,20 @@ hs.functions.async.logged_in = function(  oarg ) {
         });
     }
     hs.gui.hashes = oarg.json.HS.HASH;
+
     // Visuseite laden
-        
     oarg.page_id = oarg.session.active_page ? oarg.session.active_page.page_id : null || oarg.session.start_page || hs.user.start_page;
     hs.functions.load_page( oarg );
+    // remove old pages after reconnect
+    debug(4,"Remove old pages",hs.gui.pages);
+    $.each(hs.gui.pages,function(index,page) {
+        if(page.session.target == oarg.session.target) {
+            page.object.remove()
+            delete hs.gui.pages[page.id];
+        }
+    });
+
+    setTimeout(hs.functions.popup_overlay,500);
 };
 
 hs.functions.update_timer = function() {
@@ -1656,7 +1696,7 @@ hs.functions.load_page = function( oarg ) {
                 debug(5,"load_page:FadeIn Cached Page "+oarg.page_id);
                 _page.object.css("z-index","50");
                 _page.object.fadeIn(20);
-                oarg.session.history.push(oarg.page_id);
+                hs.functions.add_history( oarg );
                 document.title = "xxAPI - " + _page.text1;
             }
             oarg.cmd = "gv&id=" + oarg.page_id + _extra_request;
@@ -2118,7 +2158,6 @@ hs.functions.element_loader = function ( filename ) {
 }
 
 $(document).ready(function() {
-    $("#POPUP").remove();
     if(hs.functions.get_query_parameter("logout")) {
         localStorage.removeItem('password');
         window.location.replace(location.protocol + '//' + location.host + location.pathname);
