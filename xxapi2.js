@@ -1368,7 +1368,12 @@ hs.functions.error_handler = function( oarg ) {
                     _xml = _xml.replace(/<(TXT|BOX|ICO|GRAF|CAM)\s\w+=[^]*?\/>/g, function(match, capture) {
                         return match.replace(capture,'ITEM type="' + capture + '"');
                     });
-                    oarg.xhttpobj.responseXML = $.parseXML(_xml)
+                    try {
+                        oarg.xhttpobj.responseXML = $.parseXML(_xml)
+                    } catch (e) {
+                        debug(0,"INVALID XML",e);
+                        return null;
+                    }
                 }
 
                 try {
