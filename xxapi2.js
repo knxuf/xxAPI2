@@ -347,6 +347,7 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     },1);
     oarg.item.click = false;
     oarg.item.text = '';
+    oarg.item.bg_color = "transparent";
     oarg.item.customcss = {
         "pointer-events"    : "auto"
     }
