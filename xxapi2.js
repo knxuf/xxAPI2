@@ -1112,20 +1112,20 @@ hs.functions.hs_page = function( oarg ) {
 }
 
 hs.functions.fade_page = function( oarg ) {
-        hs.functions.set_viewport();
-        oarg.session.target_obj.prepend(oarg.page.object);
-        oarg.page.object.show();
-        if(oarg.session.active_page && oarg.session.active_page.page_id != oarg.page.page_id) {
-            //FIXME Popup
-            oarg.session.active_page.object.fadeOut(10,function() { 
-                $(this).detach();
-            });
-        }
-        oarg.session.active_page = oarg.page;
-        hs.functions.add_history( oarg );
-        if(!oarg.page.is_modul) {
-            document.title = "xxAPI² - " + oarg.page.title;
-        }
+    hs.functions.set_viewport();
+    oarg.session.target_obj.prepend(oarg.page.object);
+    oarg.page.object.show();
+    if(oarg.session.active_page && oarg.session.active_page.page_id != oarg.page.page_id) {
+        //FIXME Popup
+        oarg.session.active_page.object.fadeOut(10,function() { 
+            $(this).detach();
+        });
+    }
+    oarg.session.active_page = oarg.page;
+    hs.functions.add_history( oarg );
+    if(!oarg.page.is_modul) {
+        document.title = "xxAPI² - " + oarg.page.title;
+    }
 }
 
 hs.functions.popup_overlay = function( status, blur ) {
