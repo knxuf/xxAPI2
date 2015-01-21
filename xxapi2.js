@@ -1361,6 +1361,7 @@ hs.functions.error_handler = function( oarg ) {
             switch (oarg.xhttpobj.status) {
                 case 0: oarg.error = "connreset"; break;
                 case 404: oarg.error = "notfound"; break;
+                case 503: oarg.error = "connreset"; break;
             }
         } else {
             if (oarg.xhttpobj.responseText.length == 0) {
