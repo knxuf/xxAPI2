@@ -738,7 +738,7 @@ hs.functions.hs_session = function(target,start_page) {
     this.ajax_queue = $({});
     this.update_timer = null;
 
-    this.connected = false;
+    this.connection_status = "initial";
     this.last_communication_time = 0;
 
     this.active_page = null;
@@ -1238,8 +1238,8 @@ hs.functions.make_request = function ( oarg ) {
     function doRequest( next ) {
         ajaxOpts.url = hs.functions.get_url( oarg );
         debug(5,"do_request (" + oarg.session.target + "): " + oarg.cmd + " / url=" + oarg.url, ajaxOpts);
-        jqXHR = $.ajax( ajaxOpts );
-        jqXHR.done( dfd.resolve )
+        oarg.session.ajax_xhr = $.ajax( ajaxOpts );
+        oarg.session.ajax_xhr.done( dfd.resolve )
             .fail( dfd.reject )
             .then( next, next );
     }
@@ -1253,8 +1253,8 @@ hs.functions.make_request = function ( oarg ) {
     promise.abort = function( statusText ) {
 
         // proxy abort to the jqXHR if it is active
-        if ( jqXHR ) {
-            return jqXHR.abort( statusText );
+        if ( oarg.session.ajax_xhr ) {
+            return oarg.session.ajax_xhr.abort( statusText );
         }
 
         // if there wasn't already a jqXHR we need to remove from queue
@@ -1426,8 +1426,9 @@ hs.functions.reconnect = function( oarg ) {
     debug(3,"reconnect " + hs.connection.failure,oarg);
     var _waittime = Math.min(2000 * (hs.connection.failure -1) ,60000); // max 60sec
     $.each(hs.session,function(index,session) {
-        session.connected = false;
+        session.connection_status = "reconnect";
         session.ajax_queue.stop(true);
+        session.ajax_xhr.abort('reconnect');
         debug(3,"clear_session",session);
         // remove all session except main VISU session
         if(session.target != "VISU") {
@@ -1436,7 +1437,7 @@ hs.functions.reconnect = function( oarg ) {
     });
 
     setTimeout(function() {
-        if(!hs.session.VISU.connected) {
+        if(hs.session.VISU.connection_status != "connected") {
             hs.functions.login_init({ 
                 "session"   : hs.session.VISU
             });
@@ -1498,6 +1499,8 @@ hs.functions.fix_xml = function ( xml ) {
 
 hs.functions.login_init = function( oarg ) {
     debug(5,"login_init:",oarg);
+    oarg.session.connection_status = "init";
+    oarg.session.ajax_queue.stop(true);
     var _cmd = "init";
     var _url =  "/hsgui?cmd=" + _cmd;
     _url += "&user=" + hs.auth.username;
@@ -1512,6 +1515,7 @@ hs.functions.login_init = function( oarg ) {
 
 hs.functions.async.login = function( oarg ) {
     debug(5,"async.login:",oarg);
+    oarg.session.connection_status = "authenticate";
     oarg.session.auth.handle = oarg.json.HS.HND;
     oarg.session.auth.tan = oarg.json.HS.TAN;
     oarg.session.auth.tan_counter = 0;
@@ -1528,7 +1532,7 @@ hs.functions.async.logged_in = function(  oarg ) {
     debug(5,"async.logged_in (" + oarg.session.target + "):",oarg.json);
     // check main
     hs.connection.failure = 0;
-    oarg.session.connected = true;
+    oarg.session.connection_status = "connected";
     if (hs.user == null) {
         hs.user = {};
         hs.user.load_background = parseInt(oarg.json.HS.VIS._bgi);  // unwichtig ? 
@@ -1568,9 +1572,6 @@ hs.functions.async.logged_in = function(  oarg ) {
     }
     hs.gui.hashes = oarg.json.HS.HASH;
 
-    // Visuseite laden
-    oarg.page_id = oarg.session.active_page ? oarg.session.active_page.page_id : null || oarg.session.start_page || hs.user.start_page;
-    hs.functions.load_page( oarg );
     // remove old pages after reconnect
     debug(4,"Remove old pages",hs.gui.pages);
     $.each(hs.gui.pages,function(index,page) {
@@ -1580,6 +1581,9 @@ hs.functions.async.logged_in = function(  oarg ) {
         }
     });
 
+    // Visuseite laden
+    oarg.page_id = oarg.session.active_page ? oarg.session.active_page.page_id : null || oarg.session.start_page || hs.user.start_page;
+    hs.functions.load_page( oarg );
     setTimeout(hs.functions.popup_overlay,500);
 };
 
@@ -1596,22 +1600,9 @@ hs.functions.update_timer = function() {
 
 hs.functions.update = function() {
     var _now = $.now();
-    var _delay = hs.gui.hidden ? hs.connection.hiddentime * 1000: 0;
     $.each(hs.session, function(index, session) {
-        if(!session.connected || !session.active_page) {
-            return;
-        }
-        if(session.target_obj.length == 0 || session.target_obj.is(":hidden")) {
-            if(session.last_communication_time + (hs.connection.timeout * 1000 * 0.80)> _now) { // 80% of timeout
-                return;
-            } else {
-                debug(4,"Keep-alive Session " + session.target,session);
-            }
-        }
-        // timeout
-        if(session.last_communication_time + (hs.connection.timeout * 1000) < _now) {
-            debug(3,"connection_timeout",session);
-            hs.functions.login_init( { "session" : session } );
+        var _delay = (hs.gui.hidden || !session.target_obj.is(":visible")) ? hs.connection.hiddentime * 1000: 0;
+        if(session.connection_status != "connected" || !session.active_page) {
             return;
         }
         if (session.active_page.next_update && session.active_page.next_update + _delay <= _now) {
@@ -1917,7 +1908,7 @@ hs.functions.async.getattr = function( oarg ) {
 
 hs.functions.login_dialog = function( oarg ) {
     if( oarg ) {
-        oarg.session.connected = false;
+        oarg.session.connection_status = "login";
         var errortype = oarg.error == "auth_error" ? "Benutzer falsch" : "Passwort falsch";
 
     }
