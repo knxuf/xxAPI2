@@ -1705,12 +1705,16 @@ hs.functions.load_page = function( oarg ) {
 };
 
 hs.functions.async.gv = function( oarg ) {
-    debug(5,"async.gv (" + oarg.session.target + "): ",oarg);
-    if (oarg.json.HS == "") {
-        return false;
+    debug(4,"async.gv (" + oarg.session.target + "): ",oarg);
+    if (oarg.session.target == "VISU" && oarg.json.HS.VISU && (oarg.json.HS.VISU._pop*1) > 0) {
+        hs.functions.load_page({
+            "session"   : oarg.session,
+            "page_id"   : oarg.json.HS.VISU._pop*1
+        }) ;
     }
-
-    var _page = new hs.functions.hs_page( oarg );
+    if (oarg.json.HS.ITEMS) {
+        new hs.functions.hs_page( oarg );
+    }
 };
 
 hs.functions.mouse_event = function( oarg ) {
