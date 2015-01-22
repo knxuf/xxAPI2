@@ -332,6 +332,12 @@ xxAPI.functions.XXMARK = function ( oarg ) {
 xxAPI.functions.XXMODUL = function ( oarg ) {
     debug(2,"XXMODUL",oarg);
     var _modulname = "MODUL_" + oarg.args[1].toUpperCase();
+    if(oarg.session.target == _modulname) {
+        debug(1,"Error: nested Modul",oarg);
+        oarg.item.text = "";
+        oarg.item.hidden = true;
+        return;
+    }
     oarg.item.html = $("<div />", {
         "id"        : _modulname
     });
@@ -1582,7 +1588,8 @@ hs.functions.async.logged_in = function(  oarg ) {
     });
 
     // Visuseite laden
-    oarg.page_id = oarg.session.active_page ? oarg.session.active_page.page_id : null || oarg.session.start_page || hs.user.start_page;
+    oarg.session.start_page = oarg.session.start_page || hs.user.start_page;
+    oarg.page_id = oarg.session.active_page ? oarg.session.active_page.page_id : null || oarg.session.start_page;
     hs.functions.load_page( oarg );
     setTimeout(hs.functions.popup_overlay,500);
 };
