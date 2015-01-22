@@ -587,9 +587,9 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
     debug(2,"XXPAGE",oarg);
     oarg.item.page.width = oarg.item.left;
     oarg.item.page.height = oarg.item.top;
-    oarg.item.page.popup = oarg.args[1] == "POPUP";
+    oarg.item.page.is_popup = oarg.args[1] == "POPUP";
     
-    if(!oarg.item.page.is_modul && !oarg.item.page.popup) {
+    if(!oarg.item.page.is_modul && !oarg.item.page.is_popup) {
         hs.gui.attr.visu_width = oarg.page.width;
         hs.gui.attr.visu_height = oarg.page.height;
     }
@@ -1078,9 +1078,8 @@ hs.functions.hs_page = function( oarg ) {
     oarg.page.next_update = hs.functions.get_next_update( oarg.page );
     hs.gui.pages[oarg.page.id] = oarg.page;
     oarg.page.hidden     = false;
-    oarg.page.popup      = false;
+    oarg.page.is_popup   = false;
     oarg.page.centered   = true;
-    oarg.page.popup_object = null;
     oarg.page.bg_image   = oarg.json.HS.VISU._bg;
     oarg.page.icon       = oarg.json.HS.VISU._ico;
     oarg.page.qanz       = parseInt(oarg.json.HS.VISU._bg);
@@ -1120,19 +1119,24 @@ hs.functions.hs_page = function( oarg ) {
 
 hs.functions.fade_page = function( oarg ) {
     hs.functions.set_viewport();
-    oarg.session.target_obj.prepend(oarg.page.object);
-    oarg.page.object.show();
-    if(oarg.session.active_page && oarg.session.active_page.page_id != oarg.page.page_id) {
-        //FIXME Popup
-        oarg.session.active_page.object.fadeOut(10,function() { 
-            $(this).detach();
-        });
+    if(oarg.page.is_popup) {
+        $("#POPUP").append(oarg.page.object);
+        hs.functions.popup_overlay(true);
+    } else {
+        oarg.session.target_obj.prepend(oarg.page.object);
+        if(oarg.session.active_page && oarg.session.active_page.page_id != oarg.page.page_id) {
+            oarg.session.active_page.object.fadeOut(10,function() { 
+                $(this).detach();
+            });
+            hs.functions.popup_overlay(false);
+        }
     }
-    oarg.session.active_page = oarg.page;
-    hs.functions.add_history( oarg );
-    if(!oarg.page.is_modul) {
+    if(!oarg.page.is_modul || oarg.page.is_popup) {
         document.title = "xxAPI² - " + oarg.page.title;
     }
+    hs.functions.add_history( oarg );
+    oarg.page.object.show();
+    oarg.session.active_page = oarg.page;
 }
 
 hs.functions.popup_overlay = function( status, blur ) {
