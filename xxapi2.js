@@ -2101,7 +2101,7 @@ hs.functions.set_viewport = function() {
     debug(5,"Viewport: " +  _viewport_meta + " orientation: " + _orientation + " vheight: " + _visual_height + " vwidth: " + _visual_width);
     var _container_scale_width = $(window).width()/hs.gui.attr.visu_width;
     var _container_scale_height = $(window).height()/hs.gui.attr.visu_height;
-    var _container_scale = Math.min(_container_scale_width,_container_scale_height);
+    var _container_scale = Math.max(Math.min(_container_scale_width,_container_scale_height),1.0);
     $("#VISUCONTAINER").css("transform","scale(" + _container_scale + "," + _container_scale + ")");
 }
 
