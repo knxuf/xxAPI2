@@ -41,7 +41,7 @@ $.x2js = new X2JS();
 $.xml2json = $.x2js.xml2json;
 
 var xxAPI = {};
-xxAPI.version = "2.022";
+xxAPI.version = "2.023";
 xxAPI.functions = {};
 xxAPI.events = {
     "lastclick" : {
@@ -2076,13 +2076,12 @@ jQuery.fn.center = function (parent) {
 
 hs.functions.set_viewport = function() {
     debug(5,"Set Viewport",hs.gui.attr);
-    $("#VISU").css({
+    $("#VISUCONTAINER").css({
         "display"   : "block",
         "position"  : "absolute",
         "width"     : hs.gui.attr.visu_width,
         "height"    : hs.gui.attr.visu_height
     }).center(window);
-    
     //return true;
     var _orientation = hs.functions.get_orientation();
     var _visual_height = _orientation == "landscape" ? screen.width  : screen.height;
@@ -2100,7 +2099,10 @@ hs.functions.set_viewport = function() {
         ",user-scalable=" + (_scale_min != _scale_max ? "yes":"no");
     $("#meta_viewport").attr("content", _viewport_meta );
     debug(5,"Viewport: " +  _viewport_meta + " orientation: " + _orientation + " vheight: " + _visual_height + " vwidth: " + _visual_width);
-
+    var _container_scale_width = $(window).width()/hs.gui.attr.visu_width;
+    var _container_scale_height = $(window).height()/hs.gui.attr.visu_height;
+    var _container_scale = Math.min(_container_scale_width,_container_scale_height);
+    $("#VISUCONTAINER").css("transform","scale(" + _container_scale + "," + _container_scale + ")");
 }
 
 hs.functions.get_orientation = function () {
@@ -2165,7 +2167,19 @@ hs.functions.element_loader = function ( filename ) {
      });
 }
 
+hs.functions.fix_old_start = function() {
+    if($("#VISUCONTAINER").length == 0) {
+        var _container = $("<div />",{
+            "id"    : "VISUCONTAINER"
+        });
+        _container.prependTo($("body"));
+        $("#VISU").detach().appendTo(_container);
+        $("#POPUP").detach().appendTo(_container);
+    }
+}
+
 $(document).ready(function() {
+    hs.functions.fix_old_start();
     if(hs.functions.get_query_parameter("logout")) {
         localStorage.removeItem('password');
         window.location.replace(location.protocol + '//' + location.host + location.pathname);
