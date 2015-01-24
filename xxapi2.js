@@ -348,9 +348,8 @@ xxAPI.functions.XXMARK = function ( oarg ) {
 xxAPI.functions.XXMODUL = function ( oarg ) {
     debug(2,"XXMODUL",oarg);
     var _modulname = "MODUL_" + oarg.args[1].toUpperCase();
-    if(oarg.session.target == _modulname) {
+    if($("#" +_modulname).is(":visible")) {
         debug(1,"Error: nested Modul",oarg);
-        oarg.item.text = "";
         oarg.item.hidden = true;
         return;
     }
@@ -1628,7 +1627,7 @@ hs.functions.update_timer = function() {
 hs.functions.update = function() {
     var _now = $.now();
     $.each(hs.session, function(index, session) {
-        var _delay = (hs.gui.hidden || !session.target_obj.is(":visible")) ? hs.connection.hiddentime * 1000: 0;
+        var _delay = (hs.gui.hidden || (session.target_obj.is(":visible") == false) ) ? hs.connection.hiddentime * 1000: 0;
         if(session.connection_status != "connected" || !session.active_page) {
             return;
         }
