@@ -189,6 +189,18 @@ xxAPI.functions.XXEHTML = function ( oarg ) {
 }
 
 /*
+    * XXETEXT is similar to XXEHTML, but the arguments is base64-encoded Text not HTML
+    
+    * Argument 1 is the base64 encoded Text
+     XXETEXT*base64 encoded Text
+*/
+xxAPI.functions.XXETEXT = function ( oarg ) {
+    debug(2,"XXETEXT:",oarg);
+    var _text = $.base64.decode(oarg.args[1]);
+    oarg.item.text = _text;
+}
+
+/*
     * XXLINK is used to set the URL for XXIFRAME elements.
     * To access Homeserver-archivs the URL can also be
     * The first argument can be omitted if used as an overlay
