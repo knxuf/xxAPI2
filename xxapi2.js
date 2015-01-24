@@ -1156,13 +1156,13 @@ hs.functions.fade_page = function( oarg ) {
 
 hs.functions.popup_overlay = function( status, blur ) {
     if(blur) {
-        $("#VISU").addClass("popup");
+        $("#VISU").addClass("popupeffect");
     }
     if(status) {
         $("#POPUP").css("display","block");
     } else {
         $("#POPUP").css("display","none");
-        $("#VISU").removeClass("popup");
+        $("#VISU").removeClass("popupeffect");
     }
 }
 

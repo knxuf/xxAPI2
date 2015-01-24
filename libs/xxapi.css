@@ -22,7 +22,7 @@ body {
     opacity:    0.5;
 }
 
-.popup {
+.popupeffect {
     filter: blur(2px);
     -webkit-filter: blur(2px);
 }
