@@ -841,14 +841,14 @@ hs.functions.hs_item = function( oarg ) {
             });
 
             $.each( $.merge(["mousedown","mouseup","touchstart","touchend","mouseleave","blur"],Object.keys(oarg.item.eventcode)) ,function(index, value) {
-                oarg.item.object.bind(value,function (event) {
+                oarg.item.object.on(value,function (event) {
                     oarg.item.event = event;
                     hs.functions.mouse_event( oarg )
                 });
             });
 
             if (oarg.item.click) {
-                oarg.item.object.bind("click",function (event) {
+                oarg.item.object.on("click",function (event) {
                     oarg.item.event = event;
                     hs.functions.check_click( oarg );
                 });
@@ -2202,7 +2202,7 @@ $(document).ready(function() {
     }
 });
 
-$(window).bind('orientationchange', function(event) {
+$(window).on('orientationchange', function(event) {
     hs.functions.set_viewport();
     //hs.functions.get_orientation();
 });
