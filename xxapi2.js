@@ -39,6 +39,10 @@
 // xml2json library
 $.x2js = new X2JS();
 $.xml2json = $.x2js.xml2json;
+$.base64 = {
+    "decode"    : function(arg) { return window.atob(arg);},
+    "encode"    : function(arg) { return window.btoa(arg);}
+}
 
 var xxAPI = {};
 xxAPI.version = "2.023";
