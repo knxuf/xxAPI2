@@ -2291,6 +2291,7 @@ $(document).ready(function() {
         hs.auth.username = localStorage.getItem('username');
         hs.auth.password = localStorage.getItem('password');
         hs.auth.gui_design = localStorage.getItem('gui_design');
+        hs.auth.gui_refresh = hs.functions.get_query_parameter('refresh') || hs.auth.gui_refresh ;
         hs.debuglevel      = localStorage.getItem('debuglevel') || 0;
     }
 
