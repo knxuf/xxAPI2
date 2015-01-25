@@ -45,7 +45,7 @@ $.base64 = {
 }
 
 var xxAPI = {};
-xxAPI.version = "2.023";
+xxAPI.version = "2.024";
 xxAPI.functions = {};
 xxAPI.events = {
     "lastclick" : {
