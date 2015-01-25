@@ -73,6 +73,7 @@ hs.gui = {};
 hs.gui.update_timer = null;
 hs.gui.fonts = {};
 hs.gui.systemfonts = {};
+hs.gui.popup_layer = 0;
 hs.gui.attr = {
     "initial_visu_width"    : $(window).width(), 
     "initial_visu_height"   : $(window).height(),
@@ -1157,11 +1158,16 @@ hs.functions.fade_page = function( oarg ) {
 hs.functions.popup_overlay = function( status, blur ) {
     if(blur) {
         $("#VISU").addClass("popupeffect");
+        hs.gui.popup_layer = 1;
     }
     if(status) {
+        hs.gui.popup_layer +=1;
         $("#POPUP").css("display","block");
     } else {
-        $("#POPUP").css("display","none");
+        hs.gui.popup_layer = hs.gui.popup_layer > 0 ? hs.gui.popup_layer -1 : 0;
+        if(hs.gui.popup_layer < 1) {
+            $("#POPUP").css("display","none");
+        }
         $("#VISU").removeClass("popupeffect");
     }
 }
