@@ -1245,7 +1245,8 @@ hs.functions.popup_werteingabe = function ( oarg ) {
         "max"       : oarg.item.info._max,
         "value"     : oarg.item.info._val,
     });
-    _div.append($("<div />").append(_input));
+    var _idiv = $("<div />").html("<span>" + oarg.item.info._einh + "</span>");
+    _div.append(_idiv.append(_input));
     var _numpad = $("<ul class='werteingabe' />");
     $.each(["1","2","3","C","4","5","6","AC","7","8","9","&#8630;","&bull;","0","+/&minus;","&#10003;"],function (index,key) {
         _numpad.append(
