@@ -1227,10 +1227,10 @@ hs.functions.write_input = function ( input, value ) {
     }
     if(value != ".") {
         _val = parseFloat(_val);
-        if(_max && _val > _max ) {
+        if(!isNaN(_max) && _val > _max ) {
             return false;
         }
-        if(_min && _val < _min ) {
+        if(!isNaN(_min) && _val < _min ) {
             return false;
         }
     }
@@ -1906,9 +1906,6 @@ hs.functions.check_click = function( oarg ) {
             break;
         case 9:
             // Werteingabe
-            /*
-                /hsgui?cmd=valset&id=2&val=8.123456
-            */
             hs.functions.popup_werteingabe( oarg );
             break;
         case 12:
