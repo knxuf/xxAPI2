@@ -1202,6 +1202,87 @@ hs.functions.loop_items = function ( oarg ) {
     );
 }
 
+hs.functions.write_input = function ( input, value ) {
+    var _val = input.val();
+    var _min = input.attr("min")*1;
+    var _max = input.attr("max")*1;
+    var _pattern = new RegExp(input.attr("pattern"));
+    if(value == "-") {
+        _val = _val*-1;
+    } else {
+        if(_val == "0" && value != ".") {
+            _val = value;
+        } else {
+            _val = _val + value;
+        }
+    }
+    if(!_pattern.test(_val)) {
+        return false;
+    }
+    if(value != ".") {
+        _val = parseFloat(_val);
+        if(_max && _val > _max ) {
+            return false;
+        }
+        if(_min && _val < _min ) {
+            return false;
+        }
+    }
+    input.val(_val);
+}
+
+hs.functions.popup_werteingabe = function ( oarg ) {
+    var _div = $("<div class='popupbox werteingabe' />").html(
+        "<span>" + oarg.item.info._txt1 + "</span>"
+    );
+    var _prec = oarg.item.info._prec;
+    var _input = $("<input />",{
+        "class"     : "werteingabe",
+        "readonly"  : "true",
+        "type"      : "text",
+        "pattern"   : _prec ==  0 ? "^[-]?\\d+$": "^[-]?\\d+(\\.\\d{0," + _prec + "})?$",
+        "min"       : oarg.item.info._min,
+        "max"       : oarg.item.info._max,
+        "value"     : oarg.item.info._val,
+    });
+    _div.append($("<div />").append(_input));
+    var _numpad = $("<ul class='werteingabe' />");
+    $.each(["1","2","3","C","4","5","6","AC","7","8","9","&#8630;","&bull;","0","+/&minus;","&#10003;"],function (index,key) {
+        _numpad.append(
+            $("<li />",{
+                "rel"     : key,
+                "class"     : "popupboxbutton werteingabe visuclickelement",
+                "on"        : {
+                    "click" : function() {
+                        var _key = $(this).attr("rel");
+                        switch(_key) {
+                            case "C":  _input.val(function(index,value) { return value.length > 1 ? value.substr(0,value.length-1) : "0";} ); return;
+                            case "AC":  _input.val("0"); return;
+                            case "&#8630;":
+                                _div.remove();
+                                hs.functions.popup_overlay(false);
+                                return;
+                            case "&#10003;":
+                                _div.remove();
+                                hs.functions.popup_overlay(false);
+                                oarg.item.info._val = oarg.item.value = _input.val();
+                                hs.functions.do_valset( oarg );
+                                return;
+                            case "&bull;": _key = "."; break;
+                            case "+/&minus;": _key = "-"; break;
+                        };
+                        hs.functions.write_input(_input,_key);
+                    }
+                }
+            }).html(key)
+        );
+    });
+    _numpad.appendTo(_div);
+    hs.functions.popup_overlay(true);
+    $("#POPUP").append(_div);
+    _div.center();
+};
+
 hs.functions.make_globkey = function(xor) {
     var _key = "";
     var _temp = string_padding(hs.auth.password,64,String.fromCharCode(0));
@@ -1821,7 +1902,7 @@ hs.functions.check_click = function( oarg ) {
             /*
                 /hsgui?cmd=valset&id=2&val=8.123456
             */
-            alert("Werteingabe noch nicht implementiert");
+            hs.functions.popup_werteingabe( oarg );
             break;
         case 12:
             // Datum/Zeit setzen
