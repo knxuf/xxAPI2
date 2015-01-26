@@ -638,7 +638,10 @@ xxAPI.functions.XXWRAPTEXT = function ( oarg ) {
     debug(2,"XXWRAPTEXT",oarg);
     oarg.item.customcss["white-space"] = "normal";
     oarg.item.customcss["line-height"] = "130%";
-    oarg.item.text = oarg.item.text.substring(11);
+    var _text = oarg.item.text.substring(11);
+    var _elem = $("<span />").text(_text);
+    _text = _elem.html().replace(/\$\$BR\$\$/g,"<br>");
+    oarg.item.html = $("<p>").append( _elem.html(_text)).html();
 }
 
 xxAPI.functions.geolocation_callback = function ( position ) {
@@ -891,8 +894,21 @@ hs.functions.hs_item = function( oarg ) {
                     "white-space"       : "nowrap",
                     "text-align"        : oarg.item.align
                 });
+                if (oarg.item.indent > 0) {
+                    var _multiply = 0;
+                    if ($.inArray(oarg.item.align,["left","center"]) > -1) {
+                        oarg.item.object.css( "padding-left",oarg.item.indent + "px");
+                        _multiply += 1;
+                    } 
+                    if ($.inArray(oarg.item.align,["center","right"]) > -1) {
+                        oarg.item.object.css( "padding-right",oarg.item.indent + "px");
+                        _multiply += 1;
+                    }
+                    oarg.item.object.css("width",oarg.item.width - (oarg.item.indent * _multiply ) ); 
+                }
+
                 if (oarg.item.html == null) {
-                    oarg.item.object.append(hs.functions.get_textobject( oarg ));
+                    oarg.item.object.append($("<span />").text(oarg.item.text));
                 } else {
                     oarg.item.object.html(oarg.item.html);
                 }
@@ -918,19 +934,6 @@ hs.functions.hs_item = function( oarg ) {
     oarg.item.object.css(oarg.item.customcss);
 }
 
-hs.functions.get_textobject = function ( oarg ) {
-        var _txtobject = $("<span />").text(oarg.item.text);
-        if (oarg.item.indent > 0) {
-            if ($.inArray(oarg.item.align,["left","center"]) > -1) {
-                _txtobject.css( "margin-left",oarg.item.indent + "px");
-            } 
-            if ($.inArray(oarg.item.align,["center","right"]) > -1) {
-                _txtobject.css( "margin-right",oarg.item.indent + "px");
-            } 
-        }
-        return _txtobject;
-}
-
 hs.functions.update_item = function ( oarg ) {
     // xxAPI update check
     hs.functions.xxapi_check( oarg );
@@ -943,7 +946,7 @@ hs.functions.update_item = function ( oarg ) {
         if (oarg.item.s_text != oarg.item.text) {
             debug(4,"TEXT CHANGED '" + oarg.item.s_text + "' != '" + oarg.item.text + "'")
             if (oarg.item.html == null) {
-                oarg.item.object.children().replaceWith(hs.functions.get_textobject( oarg ));
+                oarg.item.object.children().replaceWith($("<span />").text(oarg.item.text));
             } else {
                 oarg.item.object.html(oarg.item.html);
             }
