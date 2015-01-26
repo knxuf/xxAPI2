@@ -2237,34 +2237,24 @@ hs.functions.post_loading = function () {
     hs.functions.element_loader("custom.js");
 }
 
-hs.functions.element_loader = function ( filename ) {
+hs.functions.element_loader = function ( filename, elementname ) {
     var _id = filename.replace(/http[s]?:\/\/.*?\//,"").replace(".","_").replace(/\//g,"_");
     var _type = filename.toLowerCase().split(".")[1];
-    var _element = "script";
+    var _elementname = elementname || "script";
     if (_type == "css") {
-        _element = "style";
+        _elementname = "style";
     }
-    $("head").append(
-        $("<"+_element+" />", { 
-            "id" : _id
-        })
-    )
-    debug(4,"element_loader", { "filename" : filename, "type" : _type, "id" : _id });
-    $.ajax({ 
-        url     : filename, 
-        cache   : true, 
-        complete: function(xhttpobj) { 
-            var _html = xhttpobj.responseText;
-            if (_html == "") { 
-                return;
-            }
-            debug(5,"element_loader_ajax",{ "html" : _html });
-            if (_element == "script") {
-                _html = '"use strict"; ' + _html;
-            }
-            $("#"+_id).html(_html)
-         } 
-     });
+    var _element = $("<" + _elementname + " />", { 
+        "id" : _id
+    });
+    if(_elementname == "script") {
+        //$.ajaxSetup({ cache: true });
+        $.getScript(filename);
+    } else {
+        _element.load(filename);
+        $("head").append(_element);
+    }
+    
 }
 
 hs.functions.fix_old_start = function() {
