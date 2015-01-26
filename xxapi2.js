@@ -1227,9 +1227,11 @@ hs.functions.write_input = function ( input, value ) {
 }
 
 hs.functions.set_validinput = function ( input, value, deny_invalid_pattern) {
+    debug(5,"set_validinput " + value,input);
     if(typeof value == 'function') {
         value = value(0,input.val());
     }
+    value = value || "";
     var _min = input.attr("min")*1;
     var _max = input.attr("max")*1;
     var _pattern = new RegExp(input.attr("pattern"));
@@ -1252,29 +1254,61 @@ hs.functions.set_validinput = function ( input, value, deny_invalid_pattern) {
     } else {
         input.parent().addClass("invalidinput");
     }
+   
     input.attr("valid",_valid);
     input.val(value);
     input.fitsize();
+}
+
+hs.functions.option_parser = function ( text , defaults) {
+    var _obj = defaults || {};
+    var _regex = /(.*?)(?::|=)(?:"(.*?)"|'(.*?)'|([^;]*?))(?:;|$)/g;
+    var _match;
+    while(_match = _regex.exec(text)) {
+        var _val = _match[2] || _match[3] || _match[4];
+        var _numval = _val*1;
+        _val = isNaN(_numval) ? _val : _numval;
+        _obj[_match[1].toLowerCase()] = _val;
+    }
+    return _obj;
 }
 
 hs.functions.popup_werteingabe = function ( oarg ) {
     var _div = $("<div class='popupbox werteingabe' />").html(
         "<span>" + oarg.item.info._txt1 + "</span>"
     );
+    var _options = {
+        "type"      : "text",
+        "pattern"   : null,
+        "class"     : "",
+        "buttons"   : "1,2,3,C,4,5,6,AC,7,8,9,&#8630;,&bull;,0,+/&minus;,&#10003;",
+        "okbutton"       : "&#10003;",
+        "cancelbutton"   : "&#8630;",
+        "clearbutton"    : "C",
+        "clearallbutton" : "AC",
+        "initvalue"      : oarg.item.info._val || "0",
+        "clearvalue"     : "0",
+        "top"   : null,
+        "left"  : null
+    };
+    if(oarg.item.info._txt2.match(/^XXOPTIONS\*/)) {
+        _options = hs.functions.option_parser(oarg.item.info._txt2.substring(10),_options);
+    }
     var _prec = oarg.item.info._prec;
     var _input = $("<input />",{
-        "class"     : "werteingabe",
+        "class"     : "werteingabe " + _options.class,
         "readonly"  : "true",
-        "type"      : "text",
-        "pattern"   : _prec ==  0 ? "^[-]?\\d+$": "^[-]?\\d+(\\.\\d{0," + _prec + "})?$",
+        "type"      : _options.type,
+        "pattern"   : _options.pattern || (_prec ==  0 ? "^[-]?\\d+$": "^[-]?\\d+(\\.\\d{0," + _prec + "})?$"),
         "min"       : oarg.item.info._min,
         "max"       : oarg.item.info._max
     });
-    hs.functions.set_validinput(_input,oarg.item.info._val);
     var _idiv = $("<div />").html("<span>" + oarg.item.info._einh + "</span>");
     _div.append(_idiv.append(_input));
+    hs.functions.set_validinput(_input,_options.initvalue);
     var _numpad = $("<ul class='werteingabe' />");
-    $.each(["1","2","3","C","4","5","6","AC","7","8","9","&#8630;","&bull;","0","+/&minus;","&#10003;"],function (index,key) {
+    var _buttons = _options.buttons.split(",");
+    $.each(_buttons,function (index,key) {
         _numpad.append(
             $("<li />",{
                 "rel"     : key,
@@ -1282,14 +1316,17 @@ hs.functions.popup_werteingabe = function ( oarg ) {
                 "on"        : {
                     "click" : function() {
                         var _key = $(this).attr("rel");
+                        if(!_key) {
+                            return;
+                        }
                         switch(_key) {
-                            case "C":  hs.functions.set_validinput(_input,function(index,value) { return value.length > 1 ? value.substr(0,value.length-1) : "0";} ); return;
-                            case "AC":  hs.functions.set_validinput(_input,"0"); return;
-                            case "&#8630;":
+                            case _options.clearbutton:  hs.functions.set_validinput(_input,function(index,value) { return value.length > 1 ? value.substr(0,value.length-1) : _options.clearvalue;} ); return;
+                            case _options.clearallbutton:  hs.functions.set_validinput(_input,_options.clearvalue); return;
+                            case _options.cancelbutton:
                                 _div.remove();
                                 hs.functions.popup_overlay(false);
                                 return;
-                            case "&#10003;":
+                            case _options.okbutton:
                                 if(_input.attr("valid") != "true") { 
                                     return; 
                                 }
@@ -1311,6 +1348,12 @@ hs.functions.popup_werteingabe = function ( oarg ) {
     hs.functions.popup_overlay(true);
     $("#POPUP").append(_div);
     _div.center();
+    if(_options.top) {
+        _div.css("top",_options.top);
+    }
+    if(_options.left) {
+        _div.css("left",_options.left);
+    }
 };
 
 hs.functions.make_globkey = function(xor) {
