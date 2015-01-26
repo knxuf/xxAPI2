@@ -70,16 +70,25 @@ div.werteingabe > div > span {
     float: right;
 }
 
+div.invalidinput {
+    background-color: #FF4500 !important;
+}
+
+div.invalidinput * {
+    background-color: #FF4500 !important;
+}
+
 input.werteingabe {
-    position: relative;
     font-size: 38px;
     color: teal;
-    display: inline-flex;
     max-width: 60%;
+    height: 100%;
+    line-height: 100%;
     border: 0;
     text-align: right;
     padding-right: 5px;
     float: right;
+    box-sizing: border-box;
 }
 
 ul.werteingabe {
@@ -107,6 +116,16 @@ li.popupboxbutton {
 
 li.werteingabe {
     width:  22%;
+}
+
+li.werteingabe:nth-child(12) {
+    background-color: red;
+    color: white;
+}
+
+li.werteingabe:nth-child(16) {
+    background-color: green;
+    color: white;
 }
 
 .visupage {

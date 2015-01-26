@@ -1210,9 +1210,6 @@ hs.functions.loop_items = function ( oarg ) {
 
 hs.functions.write_input = function ( input, value ) {
     var _val = input.val();
-    var _min = input.attr("min")*1;
-    var _max = input.attr("max")*1;
-    var _pattern = new RegExp(input.attr("pattern"));
     if(value == "-") {
         _val = _val*-1;
     } else {
@@ -1222,19 +1219,38 @@ hs.functions.write_input = function ( input, value ) {
             _val = _val + value;
         }
     }
-    if(!_pattern.test(_val)) {
-        return false;
+    hs.functions.set_validinput(input,_val,true);
+}
+
+hs.functions.set_validinput = function ( input, value, deny_invalid_pattern) {
+    if(typeof value == 'function') {
+        value = value(0,input.val());
     }
-    if(value != ".") {
-        _val = parseFloat(_val);
-        if(!isNaN(_max) && _val > _max ) {
+    var _min = input.attr("min")*1;
+    var _max = input.attr("max")*1;
+    var _pattern = new RegExp(input.attr("pattern"));
+    var _valid = true;
+    if(!_pattern.test(value)) {
+        _valid = false;
+        if(deny_invalid_pattern) {
             return false;
         }
-        if(!isNaN(_min) && _val < _min ) {
-            return false;
-        }
     }
-    input.val(_val);
+    var _val = parseFloat(value);
+    if(!isNaN(_max) && _val > _max ) {
+        _valid = false;
+    }
+    if(!isNaN(_min) && _val < _min ) {
+        _valid = false;
+    }
+    if(_valid) {
+       input.parent().removeClass("invalidinput");
+    } else {
+        input.parent().addClass("invalidinput");
+    }
+    input.attr("valid",_valid);
+    input.val(value);
+    input.fitsize();
 }
 
 hs.functions.popup_werteingabe = function ( oarg ) {
@@ -1248,9 +1264,9 @@ hs.functions.popup_werteingabe = function ( oarg ) {
         "type"      : "text",
         "pattern"   : _prec ==  0 ? "^[-]?\\d+$": "^[-]?\\d+(\\.\\d{0," + _prec + "})?$",
         "min"       : oarg.item.info._min,
-        "max"       : oarg.item.info._max,
-        "value"     : oarg.item.info._val,
+        "max"       : oarg.item.info._max
     });
+    hs.functions.set_validinput(_input,oarg.item.info._val);
     var _idiv = $("<div />").html("<span>" + oarg.item.info._einh + "</span>");
     _div.append(_idiv.append(_input));
     var _numpad = $("<ul class='werteingabe' />");
@@ -1263,13 +1279,16 @@ hs.functions.popup_werteingabe = function ( oarg ) {
                     "click" : function() {
                         var _key = $(this).attr("rel");
                         switch(_key) {
-                            case "C":  _input.val(function(index,value) { return value.length > 1 ? value.substr(0,value.length-1) : "0";} ); return;
-                            case "AC":  _input.val("0"); return;
+                            case "C":  hs.functions.set_validinput(_input,function(index,value) { return value.length > 1 ? value.substr(0,value.length-1) : "0";} ); return;
+                            case "AC":  hs.functions.set_validinput(_input,"0"); return;
                             case "&#8630;":
                                 _div.remove();
                                 hs.functions.popup_overlay(false);
                                 return;
                             case "&#10003;":
+                                if(_input.attr("valid") != "true") { 
+                                    return; 
+                                }
                                 _div.remove();
                                 hs.functions.popup_overlay(false);
                                 oarg.item.info._val = oarg.item.value = _input.val();
@@ -2172,6 +2191,39 @@ jQuery.fn.center = function (parent) {
         "top"       : parent.height() < this.height() ? 0 : parent.height()/2 - this.height()/2,
         "left"      : parent.width() < this.width()   ? 0 : parent.width()/2 - this.width()/2
     });
+}
+
+jQuery.fn.fitsize = function () {
+    var _elem = $(this);
+    if(!_elem.is(":visible")) {
+        return;
+    }
+    var _clone = _elem.data('fitsize-clone');
+    if(!_clone) {
+        _clone = $("<span />", {
+            css  : {
+                "visbility"     : "hidden",
+                "font-size"      : _elem.css('font-size'),
+                "font-family"    : _elem.css('font-family'),
+                "font-style"     : _elem.css('font-style'),
+                "font-weight"    : _elem.css('font-weight'),
+                "font-variant"   : _elem.css('font-variant')
+            }
+        });
+        _elem.data('fitsize-clone', _clone);
+    }
+    _clone.appendTo("body");
+    var _txt = _elem.prop("tagName") == "INPUT" ? _elem.val() : _elem.text();
+    _clone.html(_txt.replace(/\s/g,"&nbsp;"));
+    var _width = _elem.innerWidth() * 0.9;
+    var _ratio = _width / (_clone.width() || 1);
+    var _fontsize = parseInt(_clone.css("font-size"),10);
+    if(_ratio < 1) {
+        _fontsize = Math.floor(_fontsize * _ratio);
+        debug(5,"font_change: " + _fontsize + "/" + _ratio + " " + _clone.width() + "/" + _width,_elem);
+    }
+    _clone.detach();
+    _elem.css("font-size",_fontsize);
 }
 
 hs.functions.set_viewport = function() {
