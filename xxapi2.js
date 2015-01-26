@@ -1274,9 +1274,6 @@ hs.functions.option_parser = function ( text , defaults) {
 }
 
 hs.functions.popup_werteingabe = function ( oarg ) {
-    var _div = $("<div class='popupbox werteingabe' />").html(
-        "<span>" + oarg.item.info._txt1 + "</span>"
-    );
     var _options = {
         "type"      : "text",
         "pattern"   : null,
@@ -1294,6 +1291,9 @@ hs.functions.popup_werteingabe = function ( oarg ) {
     if(oarg.item.info._txt2.match(/^XXOPTIONS\*/)) {
         _options = hs.functions.option_parser(oarg.item.info._txt2.substring(10),_options);
     }
+    var _div = $("<div class='popupbox werteingabe " + _options.class + "' />").html(
+        "<span>" + oarg.item.info._txt1 + "</span>"
+    );
     var _prec = oarg.item.info._prec;
     var _input = $("<input />",{
         "class"     : "werteingabe " + _options.class,
@@ -1306,13 +1306,13 @@ hs.functions.popup_werteingabe = function ( oarg ) {
     var _idiv = $("<div />").html("<span>" + (oarg.item.info._einh || "") + "</span>");
     _div.append(_idiv.append(_input));
     hs.functions.set_validinput(_input,_options.initvalue);
-    var _numpad = $("<ul class='werteingabe' />");
+    var _numpad = $("<ul class='werteingabe " + _options.class + "' />");
     var _buttons = _options.buttons.split(",");
     $.each(_buttons,function (index,key) {
         _numpad.append(
             $("<li />",{
                 "rel"     : key,
-                "class"     : "popupboxbutton werteingabe visuclickelement",
+                "class"     : "popupboxbutton werteingabe visuclickelement " + _options.class,
                 "on"        : {
                     "click" : function() {
                         var _key = $(this).attr("rel");
