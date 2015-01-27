@@ -633,6 +633,8 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
     
     * Argument 1 is the text that is to be wraped
     XXWRAPTEXT*The quick brown fox jumps over the lazy dog
+    * $$BR$$ in the Text from Argument 1 will be replaced with newlines
+
 */
 xxAPI.functions.XXWRAPTEXT = function ( oarg ) {
     debug(2,"XXWRAPTEXT",oarg);
@@ -667,6 +669,11 @@ xxAPI.functions.geolocation_error = function ( err ) {
     debug(1,"Geolocation Failed", err);
 }
 
+/*
+    * The XXGEOLOCATE is used to fire the geoloaction from the browser
+    * it will send its data to predefined XXGEOLOCATION*attribute
+
+*/
 xxAPI.functions.XXGEOLOCATE = function ( oarg ) {
     debug(2,"XXGEOLOCATE",oarg)
     var _options = {
@@ -682,6 +689,15 @@ xxAPI.functions.XXGEOLOCATE = function ( oarg ) {
     }
 }
 
+/*
+    * With XXGEOLOCATION, attributes from the browsers geolocation
+    get tied to a Werteingabe function that will be called if attribute is received
+    
+    * Argument 1 is one of the getCurrentPosition attributes the Browser support
+    * latitude, longitude, altitude, accuracy, altitudeAccuracy heading, speed, timestamp
+
+    * The Element must be configured with Action "Werteingabe" with a 4 Byte EIS9 IEEE Float KO
+*/
 xxAPI.functions.XXGEOLOCATION = function ( oarg ) {
     debug(2,"XXGEOLOCATION",oarg)
     if (oarg.item.action_id != 9) {
