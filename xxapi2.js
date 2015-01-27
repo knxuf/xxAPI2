@@ -1288,8 +1288,9 @@ hs.functions.popup_werteingabe = function ( oarg ) {
         "top"   : null,
         "left"  : null
     };
-    if(oarg.item.info._txt2.match(/^XXOPTIONS\*/)) {
-        _options = hs.functions.option_parser(oarg.item.info._txt2.substring(10),_options);
+    var _text2 = oarg.item.info._txt2 || "";
+    if(_text2.match(/^XXOPTIONS\*/)) {
+        _options = hs.functions.option_parser(_text2.substring(10),_options);
     }
     var _div = $("<div class='popupbox werteingabe " + _options.class + "' />").html(
         "<span>" + oarg.item.info._txt1 + "</span>"
@@ -1337,6 +1338,8 @@ hs.functions.popup_werteingabe = function ( oarg ) {
                                 return;
                             case "&bull;": _key = "."; break;
                             case "+/&minus;": _key = "-"; break;
+                            default:
+                                debug(5,"button '" + _key + "' pressed");
                         };
                         hs.functions.write_input(_input,_key);
                     }
