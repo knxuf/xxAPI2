@@ -1290,6 +1290,11 @@ hs.functions.option_parser = function ( text , defaults) {
 }
 
 hs.functions.popup_werteingabe = function ( oarg ) {
+    if($.isEmptyObject(oarg.item.info)) {
+        oarg.item.item_callback = function() {
+            hs.functions.popup_werteingabe( oarg );
+        }
+    }
     var _options = {
         "type"      : "text",
         "pattern"   : null,
@@ -1525,7 +1530,10 @@ hs.functions.item_handler = function( oarg ) {
              hs.gui.items[_id][attr.toLowerCase()] = oarg.item.info[attr.toLowerCase()] = isNaN(val*1) ? val : val*1;
         }
     );
-    if (typeof oarg.callback == 'function') {
+    hs.functions.storage("set","CACHE_ITEM_" + _id, hs.gui.items[_id]);
+    if (typeof oarg.item.item_callback == 'function') {
+        oarg.item.item_callback.call(hs.gui.items[_id]);
+        oarg.item.item_callback = null;
     }
 }
 
@@ -1538,14 +1546,13 @@ hs.functions.get_item_info = function ( oarg ) {
     if(hs.gui.items.hasOwnProperty(_id)) {
         return hs.gui.items[_id];
     }
-    //var _localcopy;
     hs.functions.make_request({
         "session"   : oarg.session,
         "cmd"       : "getpag&id=" + oarg.item.id,
         "item"      : oarg.item,
         "page_id"   : oarg.page_id
      });
-    return {};
+    return hs.functions.storage("get","CACHE_ITEM_" + _id) || {};
 }
 
 hs.functions.error_handler = function( oarg ) {
