@@ -137,7 +137,7 @@ xxAPI.functions.XXAPICONFIG = function ( oarg ) {
 
 hs.functions.set_debuglevel = function ( level ) {
     hs.debuglevel      = level;
-    localStorage.setItem('debuglevel',level);
+    hs.functions.storage("set","debuglevel",level);
 }
 
 /* 
@@ -1538,6 +1538,7 @@ hs.functions.get_item_info = function ( oarg ) {
     if(hs.gui.items.hasOwnProperty(_id)) {
         return hs.gui.items[_id];
     }
+    //var _localcopy;
     hs.functions.make_request({
         "session"   : oarg.session,
         "cmd"       : "getpag&id=" + oarg.item.id,
@@ -2153,7 +2154,7 @@ hs.functions.login_form = function(errortype) {
     _form_html += "<label for'remember'>&#160;</label>";
     _form_html += "<button type='submit' tabindex='4'>Login</button>";
     _form_html += "<div class='wide'>";
-    _form_html += "<input name='remember' tabindex='5' type='checkbox'" + ((hs.auth.username != null) == (localStorage.getItem('username') == hs.auth.username) ? " checked": "" ) + ">";
+    _form_html += "<input name='remember' tabindex='5' type='checkbox'" + ((hs.auth.username != null) == (hs.functions.storage("get","username") == hs.auth.username) ? " checked": "" ) + ">";
     _form_html += "Kennwort speichern</div>";
     _form_html += "</form>";
     var _form_div = $('<div />').html(_form_html);
@@ -2182,12 +2183,12 @@ hs.functions.login_form = function(errortype) {
                 hs.auth.gui_design = $('#login_form > [name="cl"]').val();
                 debug(5,"CHECKED: ",$('#login_form  input[name="remember"]').prop("checked"));
                 if ($('#login_form  input[name="remember"]').prop("checked")) {
-                    localStorage.setItem('username',hs.auth.username);
-                    localStorage.setItem('password',hs.auth.password);
-                    localStorage.setItem('gui_design',hs.auth.gui_design);
+                    hs.functions.storage("set","username",hs.auth.username);
+                    hs.functions.storage("set","password",hs.auth.password);
+                    hs.functions.storage("set","gui_design",hs.auth.gui_design);
                 } else {
-                    localStorage.clear();
-                    debug(4,"Clear Storage",localStorage);
+                    hs.functions.storage("clear");
+                    debug(4,"Clear Storage");
                 }
                 new hs.functions.hs_session("VISU");
                 //$('#login_form',elements));
@@ -2377,6 +2378,30 @@ hs.functions.element_loader = function ( filename, elementname ) {
     
 }
 
+hs.functions.storage = function ( command, name, value ) {
+    if(typeof Storage == 'undefined') {
+        // no support
+        return;
+    }
+    switch(command) {
+        case "get":
+            var _json = localStorage.getItem(name);
+            try {
+                _json = JSON.parse(_json);
+            } catch(e) {
+                // convert localstorage to json
+                hs.functions.storage("set",name,_json);
+            }
+            return _json;
+        case "set":
+            localStorage.setItem(name,JSON.stringify(value || ""));return;
+        case "remove":
+            localStorage.removeItem(name);return;
+        case "clear":
+            localStorage.clear();return;
+    };
+}
+
 hs.functions.fix_old_start = function() {
     if($("#VISUCONTAINER").length == 0) {
         var _container = $("<div />",{
@@ -2391,16 +2416,14 @@ hs.functions.fix_old_start = function() {
 $(document).ready(function() {
     hs.functions.fix_old_start();
     if(hs.functions.get_query_parameter("logout")) {
-        localStorage.removeItem('password');
+        hs.functions.storage("remove","password");
         window.location.replace(location.protocol + '//' + location.host + location.pathname);
     }
-    if (typeof Storage != 'undefined') {
-        hs.auth.username = localStorage.getItem('username');
-        hs.auth.password = localStorage.getItem('password');
-        hs.auth.gui_design = localStorage.getItem('gui_design');
-        hs.auth.gui_refresh = hs.functions.get_query_parameter('refresh') || hs.auth.gui_refresh ;
-        hs.debuglevel      = localStorage.getItem('debuglevel') || 0;
-    }
+    hs.auth.username = hs.functions.storage("get","username");
+    hs.auth.password = hs.functions.storage("get","password");
+    hs.auth.gui_design = hs.functions.storage("get","gui_design");
+    hs.auth.gui_refresh = hs.functions.get_query_parameter('refresh') || hs.auth.gui_refresh ;
+    hs.debuglevel      = hs.functions.storage("get","debuglevel") || 0;
 
     if (hs.auth.username == null || hs.auth.password == null || hs.auth.gui_design == null) {
         hs.functions.login_dialog()
