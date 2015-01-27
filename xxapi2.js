@@ -1294,6 +1294,7 @@ hs.functions.popup_werteingabe = function ( oarg ) {
         oarg.item.item_callback = function() {
             hs.functions.popup_werteingabe( oarg );
         }
+        return;
     }
     var _options = {
         "type"      : "text",
