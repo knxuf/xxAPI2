@@ -1506,6 +1506,7 @@ hs.functions.item_handler = function( oarg ) {
     var _id = "PAGE_" + oarg.item.page_id + "_" + oarg.item.type + "_" + oarg.item.id;
     var _elem = "";
     switch(oarg.item.action_id) {
+        case 7: _elem = "CAM"; break; // Kamera
         case 8: _elem = "TIM"; break; // Wochenschaltuhr
         case 9: _elem = "VAL"; break; // Werteingabe
         case 10: _elem = "VAC"; break; // Urlaubskalender
@@ -1516,6 +1517,7 @@ hs.functions.item_handler = function( oarg ) {
         case 16: _elem = "GRAF"; break; // Diagramm
         case 17: _elem = "CAMA"; break; // Kamera-archiv
         case 18: _elem = "UHR"; break; // Universal Zeitschaltuhr
+        default: return;
     }
     hs.gui.items[_id] = {}
     $.each(oarg.json.HS[_elem],
@@ -1529,7 +1531,7 @@ hs.functions.item_handler = function( oarg ) {
 
 hs.functions.get_item_info = function ( oarg ) {
     debug(5,"get_item_info",oarg);
-    if($.inArray(oarg.item.action_id,[8,9,10,11,12,14,15,16,17,18]) == -1) {
+    if($.inArray(oarg.item.action_id,[7,8,9,10,11,12,14,15,16,17,18]) == -1) {
         return null;
     }
     var _id = "PAGE_" + oarg.item.page_id + "_" + oarg.item.type + "_" + oarg.item.id;
