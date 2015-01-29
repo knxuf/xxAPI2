@@ -37,15 +37,13 @@
 "use strict";
 
 // xml2json library
-$.x2js = new X2JS();
-$.xml2json = $.x2js.xml2json;
 $.base64 = {
     "decode"    : function(arg) { return window.atob(arg);},
     "encode"    : function(arg) { return window.btoa(arg);}
 }
 
 var xxAPI = {};
-xxAPI.version = "2.024";
+xxAPI.version = "2.025";
 xxAPI.functions = {};
 xxAPI.events = {
     "lastclick" : {
@@ -1430,6 +1428,7 @@ hs.functions.make_request = function ( oarg ) {
         dfd = $.Deferred(),
         promise = dfd.promise();
     var ajaxOpts = {
+        "cache"         : true,
         "datatype"      : "xml",
         "contentType"   : "application/x-www-form-urlencoded;charset=ISO-8859-1",
         "complete"      : function(xhttpobj) {
@@ -2353,37 +2352,88 @@ hs.functions.stringify = function (obj) {
 }
 
 hs.functions.post_loading = function () {
-    var _base = $("base");
-    if (typeof _base.attr("href") != "undefined" && _base.attr("href") != "") {
-        $("head").append('<link rel="stylesheet" href="libs/xxapi.css">');
-        // Clear Base
-        $("base").attr("href","");
-    } else {
-        // HS Fix for Content Type not text/css
-        hs.functions.element_loader("libs/xxapi.css");
-    }
-    hs.functions.element_loader("custom.css");
-    hs.functions.element_loader("custom.js");
 }
 
-hs.functions.element_loader = function ( filename, elementname ) {
-    var _id = filename.replace(/http[s]?:\/\/.*?\//,"").replace(".","_").replace(/\//g,"_");
-    var _type = filename.toLowerCase().split(".")[1];
-    var _elementname = elementname || "script";
-    if (_type == "css") {
-        _elementname = "style";
-    }
-    var _element = $("<" + _elementname + " />", { 
-        "id" : _id
-    });
-    if(_elementname == "script") {
-        //$.ajaxSetup({ cache: true });
-        $.getScript(filename);
-    } else {
-        _element.load(filename);
-        $("head").append(_element);
+hs.functions.element_loader = function ( urls, cache, callback ) {
+    var _failure = false;
+    var _finish = function(url, failure) {
+        var _index = _queue.indexOf(url);
+        if(_index < 0) {
+            return;
+        }
+        if(failure) {
+            _failure = true;
+        }
+        _queue.splice(_index,1);
+        if(_queue.length == 0) {
+            debug(3,"element_loader callback is called");
+            if(typeof callback == "function") {
+                callback(_failure);
+            }
+        }
+        debug(5,"element_loader finished loading " + url + " from (" + _queue.length + ")");
+    };
+    var _getid = function(filename) {
+        return filename.replace(/http[s]?:\/\/.*?\//,"").replace(/\./g,"_").replace(/\//g,"_");
     }
     
+    urls = typeof urls == 'string' ? [urls] : urls.concat();
+    var _base = $("base").attr("href") || "";
+    var _cache = typeof cache == "undefined" ? true : cache;
+    var _queue = [];
+    var _i,_filename, _id, _type, _element, _old_elem;
+    $.ajaxSetup({ cache: _cache });
+    for (_i=0; _i < urls.length; _i++) {
+        _filename = _base + urls[_i];
+        debug(3,"element_loader loading " + _filename);
+        _id = _getid(_filename);
+        _queue.push(_id);
+        _type = _filename.toLowerCase().split(".");
+        _type = _type[_type.length -1];
+        switch(_type) {
+            case "js":
+                $.getScript(_filename)
+                    .done(function(xhr) {
+                        _finish(_getid(this.url));
+                    })
+                    .fail(function(xhr) {
+                        _finish(_getid(this.url,true));
+                    }
+                );
+                break;
+            case "css":
+                _old_elem = $("#" + _id);
+                if(_base != "") {
+                    _element = $("<link />", {
+                        "id"    : _id,
+                        "rel"   : "stylesheet",
+                        "href"  : _filename
+                    });
+                    _element.one("load", function() {
+                        _old_elem.remove();
+                        _finish(this.id);
+                    });
+                    _element.one("error", function() {
+                            _finish(this.id,true);
+                    });
+                } else {
+                    // HS Fix for Content Type not text/css
+                    _element = $("<style />", {
+                        "id"    : _id,
+                    }).html(hs.functions.storage("get","CACHE_FILE_" + _id) || "");
+                    _element.load(_filename,function(content,status,xhr) {
+                        _finish(this.id,status != "success");
+                        if(status == "success") {
+                            _old_elem.remove();
+                            hs.functions.storage("set","CACHE_FILE_" + _id,content);
+                        }
+                    });
+                }
+                if(!$.contains(document, _element[0])) {
+                    $("head:first").append(_element);
+                }
+        }
+    }
 }
 
 hs.functions.storage = function ( command, name, value ) {
@@ -2421,25 +2471,6 @@ hs.functions.fix_old_start = function() {
     }
 }
 
-$(document).ready(function() {
-    hs.functions.fix_old_start();
-    if(hs.functions.get_query_parameter("logout")) {
-        hs.functions.storage("remove","password");
-        window.location.replace(location.protocol + '//' + location.host + location.pathname);
-    }
-    hs.auth.username = hs.functions.storage("get","username");
-    hs.auth.password = hs.functions.storage("get","password");
-    hs.auth.gui_design = hs.functions.storage("get","gui_design");
-    hs.auth.gui_refresh = hs.functions.get_query_parameter('refresh') || hs.auth.gui_refresh ;
-    hs.debuglevel      = hs.functions.storage("get","debuglevel") || 0;
-
-    if (hs.auth.username == null || hs.auth.password == null || hs.auth.gui_design == null) {
-        hs.functions.login_dialog()
-    } else {
-        new hs.functions.hs_session("VISU");
-    }
-});
-
 $(window).on('orientationchange', function(event) {
     hs.functions.set_viewport();
     //hs.functions.get_orientation();
@@ -2473,3 +2504,49 @@ window.addEventListener('load', function(e) {
         }
     });
 });
+
+hs.functions.start_client = function() {
+    $.x2js = new X2JS();
+    $.xml2json = $.x2js.xml2json;
+
+    FastClick.attach(document.body);
+
+    hs.functions.fix_old_start();
+    if(hs.functions.get_query_parameter("logout")) {
+        hs.functions.storage("remove","password");
+        window.location.replace(location.protocol + '//' + location.host + location.pathname);
+    }
+    hs.auth.username = hs.functions.storage("get","username");
+    hs.auth.password = hs.functions.storage("get","password");
+    hs.auth.gui_design = hs.functions.storage("get","gui_design");
+    hs.auth.gui_refresh = hs.functions.get_query_parameter('refresh') || hs.auth.gui_refresh ;
+
+    if (hs.auth.username == null || hs.auth.password == null || hs.auth.gui_design == null) {
+        hs.functions.login_dialog()
+    } else {
+        new hs.functions.hs_session("VISU");
+    }
+}
+
+hs.debuglevel = hs.functions.storage("get","debuglevel") || 0;
+hs.functions.element_loader([
+    "libs/fastclick.js",
+    "libs/xml2json.min.js",
+    "libs/jquery.md5.js",
+    "libs/jquery.simplemodal.js",
+    "libs/xxapi.css"
+    ],true,
+    function(fail) {
+        if(fail) {
+            alert("failed to load all require javascript libraries");
+        }
+        $("base").attr("href","");
+        hs.functions.element_loader([
+            "custom.css",
+            "custom.js"
+            ],true);
+        $(document).ready(function() {
+            hs.functions.start_client();
+        });
+    }
+);
