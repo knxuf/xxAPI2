@@ -2496,6 +2496,12 @@ $(document).on("visibilitychange",  function() {
     hs.gui.hidden = document.hidden;
 });
 
+// Fix iOS alert when using FastClick
+var broken_alert = window.alert;
+window.alert = function(msg) {
+    setTimeout(function() { broken_alert(msg); },0);
+}
+
 window.addEventListener('load', function(e) {
     window.applicationCache.addEventListener('updateready', function (e) {
         if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
