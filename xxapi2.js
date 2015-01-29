@@ -2232,8 +2232,9 @@ hs.functions.get_hexcolor = function(numcolor) {
 }
 
 function string_padding(str, len, pad) {
-    if (typeof len == "undefined") { var len = 0; }
-    if (typeof pad == "undefined") { var pad = ' '; }
+    str || (str = "")
+    len || (len = 0);
+    pad || (pad = " ");
     len += 1;
     if (len >= str.length) {
         return str + Array(len - str.length).join(pad);
