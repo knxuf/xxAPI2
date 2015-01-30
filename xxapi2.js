@@ -460,11 +460,11 @@ xxAPI.functions.XXCLICK = function ( oarg ) {
 */
 xxAPI.functions.XXTRIGGER = function ( oarg ) {
     debug(2,"XXTRIGGER",oarg);
-    oarg.item.next_update = $.now() + parseInt(oarg.args[1]);
+    oarg.item.next_update = $.now() + (parseInt(oarg.args[1]) || 0);
     var _func = null;
     if(oarg.args.length > 2) {
         var _jscode = hs.functions.fix_hsjavascript( oarg.args.slice(2).join("*") );
-        var _func = new Function('item','"use strict"; ' + _jscode);
+        _func = new Function('item','"use strict"; ' + _jscode);
     }
     oarg.item.update_code = function ( oarg ) {
         if(_func) {
