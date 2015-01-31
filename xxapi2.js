@@ -1248,6 +1248,10 @@ hs.functions.set_validinput = function ( input, value, deny_invalid_pattern) {
     value = value || "";
     var _min = input.attr("min")*1;
     var _max = input.attr("max")*1;
+    var _maxlen = input.attr("size")*1;
+    if(value.length > _maxlen) {
+        return false;
+    }
     var _pattern = new RegExp(input.attr("pattern"));
     var _valid = true;
     if(!_pattern.test(value)) {
@@ -1266,12 +1270,11 @@ hs.functions.set_validinput = function ( input, value, deny_invalid_pattern) {
     if(_valid) {
        input.parent().removeClass("invalidinput");
     } else {
-        input.parent().addClass("invalidinput");
+       input.parent().addClass("invalidinput");
     }
    
     input.attr("valid",_valid);
     input.val(value);
-    input.fitsize();
 }
 
 hs.functions.option_parser = function ( text , defaults) {
@@ -1312,20 +1315,48 @@ hs.functions.popup_werteingabe = function ( oarg ) {
     if(_text2.match(/^XXOPTIONS\*/)) {
         _options = hs.functions.option_parser(_text2.substring(10),_options);
     }
-    var _div = $("<div class='popupbox werteingabe " + _options.class + "' />").html(
-        "<span>" + oarg.item.info._txt1 + "</span>"
-    );
+    var _div = $("<div />",{
+        "class"     : "popupbox werteingabe " + _options.class,
+        "css"       : hs.gui.systemfonts["WERT"]
+    });
+    var _title = $("<span />",{
+        "class"     : "popuptitle " + _options.class,
+        "css"       : hs.gui.systemfonts["TITEL1"]
+    }).text(oarg.item.info._txt1);
+    _div.append(_title);
     var _prec = oarg.item.info._prec;
+    var _maxsize = Math.max(oarg.item.info._min.toString().length, oarg.item.info._max.toString().length) + ( _prec > 0 ? _prec +1 : 0);
+    var _display_div = $("<div />",{
+        "class"     : "werteingabe popupdisplay " + _options.class,
+    });
+
+
     var _input = $("<input />",{
-        "class"     : "werteingabe " + _options.class,
         "readonly"  : "true",
         "type"      : _options.type,
         "pattern"   : _options.pattern || (_prec ==  0 ? "^[-]?\\d+$": "^[-]?\\d+(\\.\\d{0," + _prec + "})?$"),
         "min"       : oarg.item.info._min,
-        "max"       : oarg.item.info._max
+        "max"       : oarg.item.info._max,
+        "css"       : {
+            "padding"   : "0",
+            "height"    : "100%",    
+            "color"     : "inherit",
+            "font-size" : "inherit",
+            "font-weight": "inherit",
+            "font-family": "inherit",
+            "text-align": "right",
+        }
     });
-    var _idiv = $("<div />").html("<span>" + (oarg.item.info._einh || "") + "</span>");
-    _div.append(_idiv.append(_input));
+    _input.attr("size",_maxsize.toString());
+    var _unit_span = $("<span />",{
+        "css"       : {
+            "height"    : "100%",
+        }
+    }).text(oarg.item.info._einh || "");
+
+    _display_div.append(_input);
+    _display_div.append(_unit_span);
+    _div.append(_display_div);
     hs.functions.set_validinput(_input,_options.initvalue);
     var _numpad = $("<ul class='werteingabe " + _options.class + "' />");
     var _buttons = _options.buttons.split(",");
@@ -2541,7 +2572,8 @@ hs.functions.element_loader([
     "libs/xml2json.min.js",
     "libs/jquery.md5.js",
     "libs/jquery.simplemodal.js",
-    "libs/xxapi.css"
+    "libs/xxapi.css",
+    "libs/theme.css"
     ],true,
     function(fail) {
         if(fail) {
