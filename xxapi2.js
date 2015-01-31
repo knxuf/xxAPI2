@@ -1372,7 +1372,12 @@ hs.functions.popup_werteingabe = function ( oarg ) {
                             return;
                         }
                         switch(_key) {
-                            case _options.clearbutton:  hs.functions.set_validinput(_input,function(index,value) { return value.length > 1 ? value.substr(0,value.length-1) : _options.clearvalue;} ); return;
+                            case _options.clearbutton:  
+                                hs.functions.set_validinput(_input,function(index,value) { 
+                                    return value.length > 1 && !value.match(/-\d$/) ? 
+                                        value.substr(0,value.length-1) : _options.clearvalue;
+                                }); 
+                                return;
                             case _options.clearallbutton:  hs.functions.set_validinput(_input,_options.clearvalue); return;
                             case _options.cancelbutton:
                                 _div.remove();
