@@ -13,8 +13,7 @@ body {
 }
 
 .popupbox {
-    background-color: black;
-    opacity: 0.8;
+    background-color: rgba(0,0,0,0.4);
     border: 2px solid white;
     border-radius: 15px;
 }
@@ -43,6 +42,7 @@ div.popupdisplay {
     left: 10px;
     font-size: 22px;
     font-weight: bold;
+    opacity: 0.6;
 }
 
 div.popupdisplay::before {
@@ -80,9 +80,8 @@ li.popupboxbutton {
     font-size: 28px;
     font-weight: bold;
     color: white;
-    background-color: black;
+    background-color: rgba(0,0,0,0.5);
     border: 1px solid white;
-    opacity: 0.8;
     border-radius: 5px;
     height: 45px;
     padding-top: 15px;
@@ -98,6 +97,11 @@ li.werteingabe:nth-child(12) {
 li.werteingabe:nth-child(16) {
     background-color: green;
     color: white;
+}
+
+li.activevisuelement::after {
+    border-radius: 5px;
+    background-color: rgba(200,0,0,0.15);
 }
 
 .activevisuelement::after {

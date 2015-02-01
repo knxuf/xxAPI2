@@ -68,6 +68,7 @@ ul.werteingabe {
 
 li.popupboxbutton {
     float: left;
+    position: relative;
     list-style: none;
 }
 

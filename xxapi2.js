@@ -1013,7 +1013,7 @@ hs.functions.load_image = function ( oarg ) {
         } else {
             _url = hs.functions.get_url ({ 
                 "session"   : oarg.item.session, 
-                "url"       : "/guicamv?id=" + oarg.item.id, 
+                "url"       : "/guicam?id=" + oarg.item.id, 
                 "cmd"       : ""
             });
         }
@@ -1022,7 +1022,7 @@ hs.functions.load_image = function ( oarg ) {
     if (oarg.item.type == "GRAF") {
         _url = hs.functions.get_url ({ 
             "session"   : oarg.item.session, 
-            "url"       : "/guigrafv?id=" + oarg.item.id, 
+            "url"       : oarg.item.page ? "/guigrafv?id=" + oarg.item.id : "/guigraf?id=" + oarg.item.id, 
             "cmd"       : ""
         });
     }
@@ -1361,47 +1361,45 @@ hs.functions.popup_werteingabe = function ( oarg ) {
     var _numpad = $("<ul class='werteingabe " + _options.class + "' />");
     var _buttons = _options.buttons.split(",");
     $.each(_buttons,function (index,key) {
-        _numpad.append(
-            $("<li />",{
-                "rel"     : key,
-                "class"     : "popupboxbutton werteingabe visuclickelement " + _options.class,
-                "on"        : {
-                    "click" : function() {
-                        var _key = $(this).attr("rel");
-                        if(!_key) {
-                            return;
-                        }
-                        switch(_key) {
-                            case _options.clearbutton:  
-                                hs.functions.set_validinput(_input,function(index,value) { 
-                                    return value.length > 1 && !value.match(/-\d$/) ? 
-                                        value.substr(0,value.length-1) : _options.clearvalue;
-                                }); 
-                                return;
-                            case _options.clearallbutton:  hs.functions.set_validinput(_input,_options.clearvalue); return;
-                            case _options.cancelbutton:
-                                _div.remove();
-                                hs.functions.popup_overlay(false);
-                                return;
-                            case _options.okbutton:
-                                if(_input.attr("valid") != "true") { 
-                                    return; 
-                                }
-                                _div.remove();
-                                hs.functions.popup_overlay(false);
-                                oarg.item.info._val = oarg.item.value = _input.val();
-                                hs.functions.do_valset( oarg );
-                                return;
-                            case "&bull;": _key = "."; break;
-                            case "+/&minus;": _key = "-"; break;
-                            default:
-                                debug(5,"button '" + _key + "' pressed");
-                        };
-                        hs.functions.write_input(_input,_key);
+        var _button = $("<li />",{
+            "rel"     : key,
+            "class"     : "popupboxbutton werteingabe" + _options.class
+        }).html(key);
+        _button.on("click",function() {
+            var _key = $(this).attr("rel");
+            if(!_key) {
+                return;
+            }
+            switch(_key) {
+                case _options.clearbutton:  
+                    hs.functions.set_validinput(_input,function(index,value) { 
+                        return value.length > 1 && !value.match(/-\d$/) ? 
+                            value.substr(0,value.length-1) : _options.clearvalue;
+                    }); 
+                    return;
+                case _options.clearallbutton:  hs.functions.set_validinput(_input,_options.clearvalue); return;
+                case _options.cancelbutton:
+                    _div.remove();
+                    hs.functions.popup_overlay(false);
+                    return;
+                case _options.okbutton:
+                    if(_input.attr("valid") != "true") { 
+                        return; 
                     }
-                }
-            }).html(key)
-        );
+                    _div.remove();
+                    hs.functions.popup_overlay(false);
+                    oarg.item.info._val = oarg.item.value = _input.val();
+                    hs.functions.do_valset( oarg );
+                    return;
+                case "&bull;": _key = "."; break;
+                case "+/&minus;": _key = "-"; break;
+                default:
+                    debug(5,"button '" + _key + "' pressed");
+            };
+            hs.functions.write_input(_input,_key);
+        });
+        hs.functions.default_click_element(_button);
+        _numpad.append(_button);
     });
     _numpad.appendTo(_div);
     hs.functions.popup_overlay(true);
@@ -1414,6 +1412,136 @@ hs.functions.popup_werteingabe = function ( oarg ) {
         _div.css("left",_options.left);
     }
 };
+
+hs.functions.default_click_element = function ( obj ) {
+    obj.addClass("visuelement visuclickelement");
+    obj.on({
+        "mousedown touchstart": function() {
+            $(this).addClass("activevisuelement");
+        },
+        "mouseup touchend": function() {
+            $(this).removeClass("activevisuelement");
+        }
+    });
+}
+
+hs.functions.popup_image = function ( oarg ) {
+    debug(3,"popup_image",oarg);
+    if($.isEmptyObject(oarg.item.info)) {
+        oarg.item.item_callback = function() {
+            hs.functions.popup_image( oarg );
+        }
+        return;
+    }
+    var _options = {
+        "class"     : "",
+        "defaultclass"  : " ",
+        "imgtype"       : "CAM",
+        "top"       : null,
+        "left"      : null,
+        "width"     : oarg.item.info._w || 640,
+        "height"    : oarg.item.info._h || 480
+    };
+    var _text2 = oarg.item.info._txt2 || "";
+    if(_text2.match(/^XXOPTIONS\*/)) {
+        _options = hs.functions.option_parser(_text2.substring(10),_options);
+    }
+    switch(oarg.item.action_id) {
+        case 7:
+            _options.defaultclass = " kamerapopup ";
+            break;
+        case 16:
+            _options.defaultclass = " diagrammpopup ";
+            _options.imgtype = "GRAF";
+            break;
+    }
+
+    var _div = $("<div />",{
+        "class"     : "popupbox" + _options.defaultclass + _options.class,
+        "css"       : hs.gui.systemfonts["CAMARCH1"]
+    });
+    _div.css("width",_options.width + 30);
+    var _title = $("<span />",{
+        "class"     : "popuptitle " + _options.defaultclass + _options.class,
+        "css"       : hs.gui.systemfonts["TITEL1"]
+    }).text(oarg.item.info._txt1);
+    _div.append(_title);
+
+    var _imgdiv = $("<div />",{
+        "css"   : {
+            "min-width" : "640px",
+            "min-height": "480px",
+            "width"     : _options.width,
+            "height"    : _options.height,
+            "max-width" : (hs.gui.attr.visu_width - 30) + "px",
+            "max-height": (hs.gui.attr.visu_height - 20) + "px",
+            "background-color"   : "black",
+            "margin"             : "15px"
+        }
+    }).on("click",function() {
+        _div.remove();
+        delete oarg.item.page.items["POPUP"];
+        hs.functions.popup_overlay(false);
+
+    });
+    var _fake_item = {
+        "session"   : oarg.item.session,
+        "id"        : oarg.item.id,
+        "type"      : _options.imgtype,
+        "object"    : _imgdiv,
+        "width"     : _options.width,
+        "height"    : _options.height,
+        "url"       : oarg.item.info._url,
+        "auth"      : oarg.item.info._aith
+    };
+    
+    if(oarg.item.info._mot == 1) {
+        oarg.item.page.items["POPUP"] = _fake_item;
+    }
+    
+    hs.functions.load_image({ "item"    : _fake_item });
+    _div.append(_imgdiv);
+
+    if(oarg.item.info.tast) {
+        var _button_div = $("<div />",{
+            "css"       : {
+                "width"             : "100%",
+                "text-align"        : "center", // fixme 
+                "margin-bottom"     : "10px",
+                "background-color"  : "black",
+            }
+        }).appendTo(_div);
+        $.each(oarg.item.info.tast, function(index,obj) {
+            var _button = $("<div />").append($("<img />",{
+                "class"     : _options.defaultclass + _options.class,
+                "src"       : "/guiico?id=" +  obj._ico + "&cl=" + hs.auth.gui_design + "&hash=" + hs.gui.hashes._ico
+            }));
+            _button.css({
+                "position"  : "relative",
+                "display"   : "inline-block"
+            });
+            _button.on({
+                "click" : function() {
+                    hs.functions.do_list_command(oarg, obj._pos);
+                }
+            });
+
+            hs.functions.default_click_element(_button);
+            _button_div.append(_button);
+        });
+    }
+
+    hs.functions.popup_overlay(true);
+    $("#POPUP").append(_div);
+
+    _div.center();
+    if(_options.top) {
+        _div.css("top",_options.top);
+    }
+    if(_options.left) {
+        _div.css("left",_options.left);
+    }
+}
 
 hs.functions.make_globkey = function(xor) {
     var _key = "";
@@ -1894,6 +2022,17 @@ hs.functions.do_command = function( oarg ) {
     }
 }
 
+hs.functions.do_list_command = function( oarg, pos ) {
+    debug(4,"do_list_command:",oarg);
+    if (oarg.item.has_command) {
+        hs.functions.make_request( {
+            "session"     : oarg.item.session,
+            "cmd"         : "lstcmd&id=" + oarg.item.id + "&pos=" + pos,
+            "page_id"     : oarg.page_id
+        });
+    }
+}
+
 hs.functions.math_round = function(value, digits) {
     var _exp = parseInt("1" + Array(1 + (digits || 0) ).join("0"));
     return Math.round(value * _exp) / _exp;
@@ -2027,7 +2166,9 @@ hs.functions.check_click = function( oarg ) {
             oarg.page_id = oarg.item.open_page;
             hs.functions.load_page( oarg );
             break;
-            
+        case 7:
+            hs.functions.popup_image( oarg );
+            break;
         case 8:
             // Wochenschaltuhr
             /*
@@ -2054,7 +2195,7 @@ hs.functions.check_click = function( oarg ) {
                 /hsgui?cmd=getpag&id=32&hnd=4&code=C65F9B4058
                 <HS><GRAF txt1="Diagramm" txt2="" ico="MLOGO"/></HS>
             */
-            alert("Diagrammaufruf noch nicht implementiert");
+            hs.functions.popup_image( oarg );
             break;
         case 21:
             // 21 = Navigation: Startseite
