@@ -2730,7 +2730,7 @@ hs.functions.element_loader([
         hs.functions.element_loader([
             "custom.css",
             "custom.js"
-            ],true);
+            ],false);
         $(document).ready(function() {
             hs.functions.start_client();
         });
