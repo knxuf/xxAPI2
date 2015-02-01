@@ -1162,6 +1162,9 @@ hs.functions.fade_page = function( oarg ) {
             oarg.session.active_page.object.fadeOut(10,function() { 
                 $(this).detach();
             });
+            $.each($("#POPUP").children(),function() {
+                $(this).detach();
+            });
             hs.functions.popup_overlay(false);
         }
     }
@@ -1183,7 +1186,8 @@ hs.functions.popup_overlay = function( status, blur ) {
         $("#POPUP").css("display","block");
     } else {
         hs.gui.popup_layer = hs.gui.popup_layer > 0 ? hs.gui.popup_layer -1 : 0;
-        if(hs.gui.popup_layer < 1) {
+        debug(5,"popup_remove " + $("#POPUP").children().length,$("#POPUP").children());
+        if($("#POPUP").children().length == 0) {
             $("#POPUP").css("display","none");
             hs.gui.popup_layer = 0;
         }
@@ -1192,7 +1196,12 @@ hs.functions.popup_overlay = function( status, blur ) {
 }
 
 hs.functions.add_history = function( oarg ) {
-   if(oarg.session.history[oarg.session.history.length -1] != oarg.page_id) {
+    var _popindex = oarg.session.history.indexOf(oarg.page_id);
+    debug(1,"add_history " + _popindex,oarg);
+    if(oarg.page.is_popup &&  _popindex > -1) {
+        oarg.session.history.splice(_popindex,1);
+    }
+    if(oarg.session.history[oarg.session.history.length -1] != oarg.page_id) {
         oarg.session.history.push(oarg.page_id);
     }
 }
