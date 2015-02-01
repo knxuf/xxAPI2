@@ -347,7 +347,7 @@ xxAPI.functions.XXMARK = function ( oarg ) {
 xxAPI.functions.XXMODUL = function ( oarg ) {
     debug(2,"XXMODUL",oarg);
     var _modulname = "MODUL_" + oarg.args[1].toUpperCase();
-    if($("#" +_modulname).is(":visible")) {
+    if($("#" +_modulname).is(":visible") && oarg.item.cmd == "create") {
         debug(1,"Error: nested Modul",oarg);
         oarg.item.hidden = true;
         return;
