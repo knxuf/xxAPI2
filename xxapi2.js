@@ -1197,7 +1197,7 @@ hs.functions.popup_overlay = function( status, blur ) {
 
 hs.functions.add_history = function( oarg ) {
     var _popindex = oarg.session.history.indexOf(oarg.page_id);
-    debug(1,"add_history " + _popindex,oarg);
+    debug(5,"add_history " + _popindex,oarg);
     if(oarg.page.is_popup &&  _popindex > -1) {
         oarg.session.history.splice(_popindex,1);
     }
