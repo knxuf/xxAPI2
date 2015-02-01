@@ -1178,7 +1178,7 @@ hs.functions.fade_page = function( oarg ) {
 
 hs.functions.popup_overlay = function( status, blur ) {
     if(blur) {
-        $("#VISU").addClass("popupeffect");
+        $("#VISUCONTAINER").addClass("popupeffect");
         hs.gui.popup_layer = 0;
     }
     if(status) {
@@ -1191,7 +1191,7 @@ hs.functions.popup_overlay = function( status, blur ) {
             $("#POPUP").css("display","none");
             hs.gui.popup_layer = 0;
         }
-        $("#VISU").removeClass("popupeffect");
+        $("#VISUCONTAINER").removeClass("popupeffect");
     }
 }
 
