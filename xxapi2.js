@@ -1014,7 +1014,7 @@ hs.functions.load_image = function ( oarg ) {
         } else {
             _url = hs.functions.get_url ({ 
                 "session"   : oarg.item.session, 
-                "url"       : "/guicam?id=" + oarg.item.id, 
+                "url"       : oarg.item.page ? "/guicamv?id=" + oarg.item.id : "/guicam?id=" + oarg.item.id, 
                 "cmd"       : ""
             });
         }
