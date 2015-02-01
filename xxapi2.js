@@ -602,6 +602,7 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
     oarg.item.page.width = oarg.item.left;
     oarg.item.page.height = oarg.item.top;
     oarg.item.page.is_popup = oarg.args[1] == "POPUP";
+    oarg.item.hidden = true;
     
     if(!oarg.item.page.is_modul && !oarg.item.page.is_popup) {
         hs.gui.attr.visu_width = oarg.page.width;
