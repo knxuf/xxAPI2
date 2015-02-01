@@ -1449,8 +1449,8 @@ hs.functions.popup_image = function ( oarg ) {
         "imgtype"       : "CAM",
         "top"       : null,
         "left"      : null,
-        "width"     : oarg.item.info._w || 640,
-        "height"    : oarg.item.info._h || 480
+        "width"     : Math.min(oarg.item.info._w || 640,hs.gui.attr.visu_width - 60),
+        "height"    : Math.min(oarg.item.info._h || 480,hs.gui.attr.visu_height - 40)
     };
     var _text2 = oarg.item.info._txt2 || "";
     if(_text2.match(/^XXOPTIONS\*/)) {
