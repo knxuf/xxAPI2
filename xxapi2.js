@@ -1201,7 +1201,7 @@ hs.functions.fade_page = function( oarg ) {
     hs.functions.set_viewport();
     if(oarg.page.is_popup) {
         $("#POPUP").append(oarg.page.object);
-        hs.functions.popup_overlay(true);
+        hs.functions.popup_overlay(true,false,oarg);
     } else {
         oarg.session.target_obj.prepend(oarg.page.object);
         if(oarg.session.active_page && oarg.session.active_page.page_id != oarg.page.page_id) {
@@ -1211,7 +1211,7 @@ hs.functions.fade_page = function( oarg ) {
             $.each($("#POPUP").children(),function() {
                 $(this).detach();
             });
-            hs.functions.popup_overlay(false);
+            hs.functions.popup_overlay(false,false,oarg);
         }
     }
     if(!oarg.page.is_modul || oarg.page.is_popup) {
@@ -1222,16 +1222,24 @@ hs.functions.fade_page = function( oarg ) {
     oarg.session.active_page = oarg.page;
 }
 
-hs.functions.popup_overlay = function( status, blur ) {
+hs.functions.popup_overlay = function( status, blur, oarg ) {
     if(blur) {
         $("#VISUCONTAINER").addClass("popupeffect");
         hs.gui.popup_layer = 0;
     }
     if(status) {
         hs.gui.popup_layer +=1;
+        if(oarg) {
+            oarg.session.target_obj.addClass("blocked");
+        }
         $("#POPUP").css("display","block");
     } else {
         hs.gui.popup_layer = hs.gui.popup_layer > 0 ? hs.gui.popup_layer -1 : 0;
+        if(oarg) {
+            oarg.session.target_obj.removeClass("blocked");
+        } else {
+            $(".blocked").removeClass("blocked");
+        }
         debug(5,"popup_remove " + $("#POPUP").children().length,$("#POPUP").children());
         if($("#POPUP").children().length == 0) {
             $("#POPUP").css("display","none");
@@ -1436,14 +1444,14 @@ hs.functions.popup_werteingabe = function ( oarg ) {
                 case _options.clearallbutton:  hs.functions.set_validinput(_input,_options.clearvalue); return;
                 case _options.cancelbutton:
                     _div.remove();
-                    hs.functions.popup_overlay(false);
+                    hs.functions.popup_overlay(false,false,oarg);
                     return;
                 case _options.okbutton:
                     if(_input.attr("valid") != "true") { 
                         return; 
                     }
                     _div.remove();
-                    hs.functions.popup_overlay(false);
+                    hs.functions.popup_overlay(false,false,oarg);
                     oarg.item.info._val = oarg.item.value = _input.val();
                     hs.functions.do_valset( oarg );
                     return;
@@ -1458,7 +1466,7 @@ hs.functions.popup_werteingabe = function ( oarg ) {
         _numpad.append(_button);
     });
     _numpad.appendTo(_div);
-    hs.functions.popup_overlay(true);
+    hs.functions.popup_overlay(true,false,oarg);
     $("#POPUP").append(_div);
     _div.center();
     if(_options.top) {
@@ -1537,7 +1545,7 @@ hs.functions.popup_image = function ( oarg ) {
     }).on("click",function() {
         _div.remove();
         delete oarg.item.page.items["POPUP"];
-        hs.functions.popup_overlay(false);
+        hs.functions.popup_overlay(false,false,oarg);
 
     });
     var _fake_item = {
@@ -1587,7 +1595,7 @@ hs.functions.popup_image = function ( oarg ) {
         });
     }
 
-    hs.functions.popup_overlay(true);
+    hs.functions.popup_overlay(true,false,oarg);
     $("#POPUP").append(_div);
 
     _div.center();
