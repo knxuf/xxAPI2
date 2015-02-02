@@ -359,15 +359,18 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
         });
     }
     var _page = oarg.item.open_page || xxAPI.marked_pages[oarg.args[1]] || hs.user.start_page;
+    var _active_page;
     if(hs.session[_modulname] && hs.session[_modulname].active_page) {
-        _page = hs.session[_modulname].active_page.page_id;
+        _active_page = hs.session[_modulname].active_page.page_id;
     }
     if(oarg.args.length > 2) {
         _page = xxAPI.marked_pages[oarg.args[2]] || _page;
-    } 
-    setTimeout(function() {
-        new hs.functions.hs_session(_modulname,_page);
-    },1);
+    }
+    if(_active_page != _page) {
+        setTimeout(function() {
+            new hs.functions.hs_session(_modulname,_page);
+        },1);
+    }
     oarg.item.click = false;
     oarg.item.text = '';
     oarg.item.bg_color = "transparent";
