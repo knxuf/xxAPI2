@@ -49,6 +49,7 @@ xxAPI.events = {
     "lastclick" : {
         "top"   : 0,
         "left"  : 0,
+        "event" : null
     }
 }
 xxAPI.XXLINKURL = "";
@@ -83,6 +84,7 @@ hs.gui.pages = {};
 hs.gui.items = {};
 hs.gui.designs_html = null;
 hs.gui.hidden = false;
+hs.gui.container_scale = 1;
 hs.auth = {};
 hs.auth.username = null;
 hs.auth.password = null;
@@ -615,22 +617,60 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
         hs.gui.attr.visu_height = oarg.page.height;
     }
     
-    if (oarg.args.length > 2) {
+    if (oarg.args.length > 2 && !oarg.item.page.object.is(":visible")) {
         var _match = null;
         var _regex =new RegExp(/([-\w]+)[:](.*?);/g);
+        var _offset = {
+            "x"       : 0,
+            "y"       : 0, 
+            "mirror"  : false
+        };
         while(_match = _regex.exec(oarg.args[2])) {
             if(_match[1] == "top" || _match[1] == "left") {
                 oarg.item.page.centered = false;
-                _match[2] = _match[2].replace(/MOUSE([+-]\d+)px/,function(match,capture) {
-                    var _mouse = _match[1] == "top" ? xxAPI.events.lastclick.top : xxAPI.events.lastclick.left;
-                    // eval should be save here 
-                    return eval(_mouse + capture) + "px";
+                _match[2] = _match[2].replace(/MOUSE([+-]\d+)(px|%)/,function(match,distance,unit) {
+                    _offset.mirror = true;
+                    _offset[_match[1] == "top" ? "y" : "x"] = parseInt(distance);
+                    return "0";
                 })
             }
-            debug(5,"XXPAGE: change_css '"+_match[1]+"':'"+_match[2]+"'");
+            debug(5,"XXPAGE: change_css '"+_match[1]+"':'"+_match[2]+"'",_offset);
             oarg.item.page.object.css(_match[1],_match[2]);
         }
+        if(_offset.mirror) {
+            hs.functions.open_at_mouseclick( oarg.item.page.object, _offset);
+        }
     }
+}
+
+hs.functions.open_at_mouseclick = function ( object, offset ) {
+    object.css({
+        "visibility"    : "hidden",
+        "top"           : "0px", // top and left must be reset to 0
+        "left"          : "0px"
+    });
+    setTimeout(function() {
+        var _calculator = new $.PositionCalculator({
+            "item"          : object,
+            "target"        : xxAPI.events.lastclick.event.currentTarget,
+            "boundary"      : "#VISUCONTAINER",
+            "itemAt"        : "top left",
+            "targetAt"      : "bottom right",
+            "flip"          : "item",
+            "stick"         : "all",
+            "itemOffset"    : offset || {x: 0, y: 0, mirror: true}
+        });
+        var _result = _calculator.calculate();
+        var _top  = _result.moveBy.y / hs.gui.container_scale;
+        var _left = _result.moveBy.x / hs.gui.container_scale;
+        debug(4,"calculated_position " + _top + "/" +_left + "(" + offset.y + "/" + offset.x + ")",_result);
+        object.css({
+            "position"      : "fixed",
+            "visibility"    : "visible",
+            "top"           : parseInt(_top) + "px",
+            "left"          : parseInt(_left) + "px"
+        });
+    },0);
 }
 
 /*
@@ -2137,7 +2177,7 @@ hs.functions.mouse_event = function( oarg ) {
 hs.functions.check_click = function( oarg ) {
     debug(3,"check_click",oarg);
     var _session_position =  oarg.item.session.target_obj.position();
-    oarg.item.event = oarg.item.event || {};
+    xxAPI.events.lastclick.event = oarg.item.event = oarg.item.event || {};
     xxAPI.events.lastclick.top = oarg.item.event.pageY - _session_position.top;
     xxAPI.events.lastclick.left = oarg.item.event.pageX - _session_position.left;
     /* 
@@ -2226,7 +2266,9 @@ hs.functions.check_click = function( oarg ) {
             if (oarg.session.history.length > 1) {
                 oarg.session.history.pop();
                 var _lastpage = oarg.session.history.pop();
-            
+                if(oarg.item.page.is_popup) {
+                    oarg.item.page.object.detach()
+                }
                 if (_lastpage !== undefined) {
                     oarg.page_id = _lastpage;
                     hs.functions.load_page( oarg );
@@ -2523,8 +2565,8 @@ hs.functions.set_viewport = function() {
     debug(5,"Viewport: " +  _viewport_meta + " orientation: " + _orientation + " vheight: " + _visual_height + " vwidth: " + _visual_width);
     var _container_scale_width = $(window).width()/hs.gui.attr.visu_width;
     var _container_scale_height = $(window).height()/hs.gui.attr.visu_height;
-    var _container_scale = Math.max(Math.min(_container_scale_width,_container_scale_height),1.0);
-    $("#VISUCONTAINER").css("transform","scale(" + _container_scale + "," + _container_scale + ")");
+    hs.gui.container_scale = Math.max(Math.min(_container_scale_width,_container_scale_height),1.0);
+    $("#VISUCONTAINER").css("transform","scale(" + hs.gui.container_scale + "," + hs.gui.container_scale + ")");
 }
 
 hs.functions.get_orientation = function () {
@@ -2734,6 +2776,7 @@ hs.functions.element_loader([
     "libs/xml2json.min.js",
     "libs/jquery.md5.js",
     "libs/jquery.simplemodal.js",
+    "libs/position-calculator.min.js",
     "libs/xxapi.css",
     "libs/theme.css"
     ],true,
