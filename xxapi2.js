@@ -347,14 +347,17 @@ xxAPI.functions.XXMARK = function ( oarg ) {
 xxAPI.functions.XXMODUL = function ( oarg ) {
     debug(2,"XXMODUL",oarg);
     var _modulname = "MODUL_" + oarg.args[1].toUpperCase();
-    if($("#" +_modulname).is(":visible") && oarg.item.cmd == "create") {
-        debug(1,"Error: nested Modul",oarg);
-        oarg.item.hidden = true;
-        return;
+    if($("#" +_modulname).is(":visible")) {
+        if(oarg.item.cmd == "create") {
+            debug(1,"Error: nested Modul",oarg);
+            oarg.item.hidden = true;
+            return;
+        }
+    } else {
+        oarg.item.html = $("<div />", {
+            "id"        : _modulname
+        });
     }
-    oarg.item.html = $("<div />", {
-        "id"        : _modulname
-    });
     var _page = oarg.item.open_page || xxAPI.marked_pages[oarg.args[1]] || hs.user.start_page;
     if(hs.session[_modulname] && hs.session[_modulname].active_page) {
         _page = hs.session[_modulname].active_page.page_id;
