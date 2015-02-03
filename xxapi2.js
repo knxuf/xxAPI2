@@ -1609,7 +1609,7 @@ hs.functions.popup_image = function ( oarg ) {
 
 hs.functions.make_globkey = function(xor) {
     var _key = "";
-    var _temp = string_padding(hs.auth.password,64,String.fromCharCode(0));
+    var _temp = hs.functions.string_padding(hs.auth.password,64,String.fromCharCode(0));
     for (var i=0; i < 64; i++) {
         _key += String.fromCharCode(_temp.charCodeAt(i)^xor);
     }
@@ -1712,7 +1712,7 @@ hs.functions.async.handler = function( oarg ) {
         return false;
     }
     oarg.session.last_communication_time = $.now();
-    oarg.cmd = string_cut_after_match(oarg.cmd,"&");
+    oarg.cmd = hs.functions.string_cut_after(oarg.cmd,"&");
     switch (oarg.cmd) {
         case "init"     : hs.functions.async.login( oarg ); break;
         case "login"    : hs.functions.async.logged_in(  oarg ); break;
@@ -2474,17 +2474,23 @@ hs.functions.get_hexcolor = function(numcolor) {
     return _hex;
 }
 
-function string_padding(str, len, pad) {
+hs.functions.string_padding = function(str, len, pad, prefix) {
     str || (str = "")
+    typeof str == "string" || (str = str.toString());
     len || (len = 0);
     pad || (pad = " ");
     len += 1;
     if (len >= str.length) {
-        return str + Array(len - str.length).join(pad);
+        if(prefix) {
+            return Array(len - str.length).join(pad) + str;
+        } else {
+            return str + Array(len - str.length).join(pad);
+        }
     }
     return str;
 };
-function string_cut_after_match(str,pattern) {
+
+hs.functions.string_cut_after = function(str,pattern) {
     var _idx = str.indexOf(pattern);
     var _str = str
     if (_idx != -1) {
@@ -2592,6 +2598,90 @@ hs.functions.stringify = function (obj) {
         return value.toString().replace("\n\"use strict\";\n","");
       }
       return value;
+    });
+}
+
+hs.functions.date_from_hs = function (dstr) {
+    var _match = dstr.match(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/);
+    if (_match == null) {
+        return $.now();
+    }
+    return new Date(
+        _match[1] + "-" +  // Year
+        _match[2] + "-" +  // Month
+        _match[3] + "T" +  // Day
+        _match[4] + ":" +  // Hour
+        _match[5] + ":" +  // Minute
+        _match[6]          // Seconds
+    );
+}
+    hs.datestrings = {
+        "monthnames"    : [ "","Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
+        "weekdaynames"  : [ "Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag" ]
+    }
+
+Date.prototype.getWeekNumber = function() {
+    var d = new Date(+this);
+    d.setHours(0,0,0);
+    d.setDate(d.getDate()+4-(d.getDay()||7));
+    return Math.ceil((((d-new Date(d.getFullYear(),0,1))/8.64e7)+1)/7);
+}
+
+Date.prototype.getDayNumber = function() {
+    var d = new Date(+this);
+    d.setHours(0,0,0);
+    return Math.floor((d - new Date(d.getFullYear(),0,1))/8.64e7)+1;
+}
+
+hs.functions.get_date_object = function ( date ) {
+    date || (date = (new Date()));
+    if(typeof date == 'string') {
+        date = new Date(date);
+    }
+    if(date == "Invalid Date") {
+        return;
+    }
+    var _date = {
+        "YYYY"  : date.getFullYear(),
+        "M"     : date.getMonth() + 1,
+        "d"     : date.getDate(),
+        "H"     : date.getHours(),
+        "m"     : date.getMinutes(),
+        "i"     : (function(hour) { return hour % 12 == 0 ? 12 : hour % 12 })(date.getHours()),
+        "s"     : date.getSeconds(),
+        "f"     : date.getMilliseconds(),
+        "w"     : date.getDay(),
+        "U"     : date.getWeekNumber(),
+        "j"     : date.getDayNumber()
+    };
+    $.extend(_date,{
+        "YY"    : _date.YYYY.toString().substring(2),
+        "MM"    : hs.functions.string_padding(_date.M,2,"0",true),
+        "MMM"   : hs.datestrings.monthnames[_date.M].substring(0,3),
+        "MMMM"  : hs.datestrings.monthnames[_date.M],
+        "dd"    : hs.functions.string_padding(_date.d,2,"0",true),
+        "ddd"   : hs.datestrings.weekdaynames[_date.w ].substring(0,3),
+        "dddd"  : hs.datestrings.weekdaynames[_date.w ],
+        "HH"    : hs.functions.string_padding(_date.H,2,"0",true),
+        "ii"    : hs.functions.string_padding(_date.i,2,"0",true),
+        "p"     : _date.H > 12 ? "P" : "A",
+        "pp"    : _date.H > 12 ? "PM" : "AM",
+        "mm"    : hs.functions.string_padding(_date.m,2,"0",true),
+        "mz"    : hs.functions.string_padding((_date.m - (_date.m % 10)),2,"0",true),
+        "ss"    : hs.functions.string_padding(_date.s,2,"0",true),
+        "sz"    : hs.functions.string_padding((_date.s - (_date.s % 10)),2,"0",true),
+        "ff"    : hs.functions.string_padding(_date.f,2,"0",true).substring(0,2),
+        "fff"   : hs.functions.string_padding(_date.f,3,"0",true).substring(0,3),
+        "f"     : _date.f.toString().substring(0,1),
+        
+    });
+    return _date;
+}
+
+hs.functions.format_date = function ( format, date ) {
+    var _date = hs.functions.get_date_object(date);
+    return format.replace(/%(\w+)\%/g,function(match,capture) {
+        return _date[capture] || match;
     });
 }
 
