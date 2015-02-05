@@ -73,6 +73,10 @@ hs.gui.update_timer = null;
 hs.gui.fonts = {};
 hs.gui.systemfonts = {};
 hs.gui.popup_layer = 0;
+hs.gui.device = {
+    "width"  : $(window).width(),
+    "height" : $(window).height()
+};
 hs.gui.attr = {
     "initial_visu_width"    : $(window).width(), 
     "initial_visu_height"   : $(window).height(),
@@ -1084,7 +1088,7 @@ hs.functions.load_image = function ( oarg ) {
         "width"     : oarg.item.width,
         "height"    : oarg.item.height,
         "css"       : {
-            "position"  : "absolute"
+            "position"  : "relative"
         },
         "on"        : {
             "dragstart" : function () { return false; },
@@ -1503,8 +1507,8 @@ hs.functions.popup_image = function ( oarg ) {
         "imgtype"       : "CAM",
         "top"       : null,
         "left"      : null,
-        "width"     : Math.min(oarg.item.info._w || 640,hs.gui.attr.visu_width - 60),
-        "height"    : Math.min(oarg.item.info._h || 480,hs.gui.attr.visu_height - 40)
+        "width"     : hs.gui.attr.visu_width * 0.665,
+        "height"    : hs.gui.attr.visu_height * 0.665
     };
     var _text2 = oarg.item.info._txt2 || "";
     if(_text2.match(/^XXOPTIONS\*/)) {
@@ -1524,7 +1528,7 @@ hs.functions.popup_image = function ( oarg ) {
         "class"     : "popupbox" + _options.defaultclass + _options.class,
         "css"       : hs.gui.systemfonts["CAMARCH1"]
     });
-    _div.css("width",_options.width + 30);
+
     var _title = $("<span />",{
         "class"     : "popuptitle " + _options.defaultclass + _options.class,
         "css"       : hs.gui.systemfonts["TITEL1"]
@@ -1533,14 +1537,12 @@ hs.functions.popup_image = function ( oarg ) {
 
     var _imgdiv = $("<div />",{
         "css"   : {
-            "min-width" : "640px",
-            "min-height": "480px",
+            "position"  : "relative",
+            "text-align": "center",
+            "margin"    : "15px 40px 15px 40px",
             "width"     : _options.width,
             "height"    : _options.height,
-            "max-width" : (hs.gui.attr.visu_width - 30) + "px",
-            "max-height": (hs.gui.attr.visu_height - 20) + "px",
             "background-color"   : "black",
-            "margin"             : "15px"
         }
     }).on("click",function() {
         _div.remove();
@@ -1553,13 +1555,14 @@ hs.functions.popup_image = function ( oarg ) {
         "id"        : oarg.item.id,
         "type"      : _options.imgtype,
         "object"    : _imgdiv,
-        "width"     : _options.width,
-        "height"    : _options.height,
+        "width"     : "auto",
+        "height"    : "100%",
         "url"       : oarg.item.info._url,
-        "auth"      : oarg.item.info._aith
+        "auth"      : oarg.item.info._auth,
+        "info"      : oarg.item.info
     };
     
-    if(oarg.item.info._mot == 1) {
+    if(oarg.item.info._mot == 0) { // no manual refresh for Streams
         oarg.item.page.items["POPUP"] = _fake_item;
     }
     
@@ -1567,12 +1570,16 @@ hs.functions.popup_image = function ( oarg ) {
     _div.append(_imgdiv);
 
     if(oarg.item.info.tast) {
+        _imgdiv.css("margin-bottom","120px");
         var _button_div = $("<div />",{
             "css"       : {
                 "width"             : "100%",
+                "bottom"            : "0px",
+                "position"          : "absolute",
+                "white-space"       : "nowrap",
                 "text-align"        : "center", // fixme 
-                "margin-bottom"     : "10px",
-                "background-color"  : "black",
+                "margin-top"        : "15px",
+                "margin-bottom"     : "15px",
             }
         }).appendTo(_div);
         $.each(oarg.item.info.tast, function(index,obj) {
@@ -2155,6 +2162,7 @@ hs.functions.load_page = function( oarg ) {
 hs.functions.async.gv = function( oarg ) {
     debug(4,"async.gv (" + oarg.session.target + "): ",oarg);
     if (oarg.session.target == "VISU" && oarg.json.HS.VISU && (oarg.json.HS.VISU._pop*1) > 0) {
+        debug(3,"visu_alarm",oarg);
         hs.functions.load_page({
             "session"   : oarg.session,
             "page_id"   : oarg.json.HS.VISU._pop*1
@@ -2506,17 +2514,23 @@ hs.functions.get_query_parameter = function(item) {
 
 jQuery.fn.reverse = [].reverse;
 
-jQuery.fn.center = function (parent) {
-    if(typeof parent == 'undefined') {
-        parent = this.parent()
-    } else {
-        parent = $(parent);
+jQuery.fn.center = function (parent, dir) {
+    parent || (parent = this.parent());
+    parent = parent instanceof jQuery ? parent : $(parent);
+    var _elem = this instanceof jQuery ? this : $(this);
+    debug(5,"center " + parent.width()+"/" +parent.height()+ "/" + this.width() + "/" +this.height());
+    if(parent.width() == null || parent.height() == null) {
+        _elem.one("DOMNodeInsertedIntoDocument",function() {
+            _elem.center();
+        });
     }
-    this.css({
-        "position"  : "absolute",
-        "top"       : parent.height() < this.height() ? 0 : parent.height()/2 - this.height()/2,
-        "left"      : parent.width() < this.width()   ? 0 : parent.width()/2 - this.width()/2
-    });
+    this.css("position","absolute");
+    if(dir != "left") {
+        this.css("top",parent.height() < this.height() ? 0 : parent.height()/2 - this.height()/2);
+    }
+    if(dir != "top") {
+        this.css("left",parent.width() < this.width()  ? 0 : parent.width()/2 - this.width()/2);
+    }
 }
 
 jQuery.fn.fitsize = function () {
