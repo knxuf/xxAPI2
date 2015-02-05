@@ -1471,6 +1471,9 @@ hs.functions.popup_werteingabe = function ( oarg ) {
     });
     _numpad.appendTo(_div);
     hs.functions.popup_overlay(true,false,oarg);
+    if(hs.gui.device.scale > 1) {
+         _div.css("transform","scale(" + hs.gui.device.scale + "," + hs.gui.device.scale + ")");
+    }
     $("#POPUP").append(_div);
     _div.center();
     if(_options.top) {
@@ -2591,6 +2594,8 @@ hs.functions.set_viewport = function() {
         ",user-scalable=" + (_scale_min != _scale_max ? "yes":"no");
     $("#meta_viewport").attr("content", _viewport_meta );
     debug(5,"Viewport: " +  _viewport_meta + " orientation: " + _orientation + " vheight: " + _visual_height + " vwidth: " + _visual_width);
+    hs.gui.device.scale = Math.max(hs.gui.attr.visu_width,hs.gui.attr.visu_height) / Math.max(hs.gui.device.width,hs.gui.device.height);
+
     var _container_scale_width = $(window).width()/hs.gui.attr.visu_width;
     var _container_scale_height = $(window).height()/hs.gui.attr.visu_height;
     hs.gui.container_scale = Math.max(Math.min(_container_scale_width,_container_scale_height),1.0);
