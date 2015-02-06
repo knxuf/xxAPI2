@@ -1535,7 +1535,11 @@ hs.functions.popup_image = function ( oarg ) {
     var _title = $("<span />",{
         "class"     : "popuptitle " + _options.defaultclass + _options.class,
         "css"       : hs.gui.systemfonts["TITEL1"]
-    }).text(oarg.item.info._txt1);
+    }).text(oarg.item.info._txt1).on("click",function() {
+        _div.remove();
+        delete oarg.item.page.items["POPUP"];
+        hs.functions.popup_overlay(false,false,oarg);
+    });
     _div.append(_title);
 
     var _imgdiv = $("<div />",{
@@ -1615,6 +1619,152 @@ hs.functions.popup_image = function ( oarg ) {
     if(_options.left) {
         _div.css("left",_options.left);
     }
+}
+
+hs.functions.popup_lister = function ( oarg ) {
+    debug(3,"popup_lister",oarg);
+    if($.isEmptyObject(oarg.item.info)) {
+        oarg.item.item_callback = function() {
+            hs.functions.popup_image( oarg );
+        }
+        return;
+    }
+    var _options = {
+        "class"     : "",
+        "defaultclass"  : " ",
+        "top"       : null,
+        "left"      : null,
+        "width"     : hs.gui.attr.visu_width * 0.9,
+        "height"    : hs.gui.attr.visu_height * 0.9
+    };
+    var _cmd;
+    var _font;
+    switch(oarg.item.action_id) {
+        case 14:
+            _options.defaultclass = " meldungpopup ";
+            _cmd = "getmsg";
+            _font = hs.gui.systemfonts["MELDUNG1"];
+            break;
+        case 15:
+            _options.defaultclass = " buddypopup ";
+            _cmd = "getbud";
+            _font = hs.gui.systemfonts["BUDDY1"];
+            break;
+        case 17:
+            _options.defaultclass = " kameraarchivpopup ";
+            _cmd = "getcama";
+            _font = hs.gui.systemfonts["CAMARCH1"];
+            break;
+        default:
+            return;
+    }
+
+    var _text2 = oarg.item.info._txt2 || "";
+    if(_text2.match(/^XXOPTIONS\*/)) {
+        _options = hs.functions.option_parser(_text2.substring(10),_options);
+    }
+
+    var _list = $("<ul />");
+    var _scrolldiv = $("<div />",{
+        "class"     : "scrollwraper" + _options.defaultclass + _options.class
+    });
+    _scrolldiv.css({
+        "height"    : _options.height - 60,
+        "width"     : "90%",
+        "position"  : "absolute",
+        "overflow"  : "hidden"
+    });
+    hs.functions.make_request({
+        "session"   : oarg.session,
+        "cmd"       : _cmd + "&id=" + oarg.item.id + "&dir=0&cnt=1000",
+        "item"      : oarg.item,
+        "page_id"   : oarg.page_id,
+        "result"    : {
+            "list"      : _list,
+            "scroller"  : _scrolldiv,
+            "options"   : _options
+        }
+     });
+
+    var _div = $("<div />",{
+        "class"     : "popupbox" + _options.defaultclass + _options.class,
+        "css"       : _font
+    });
+    _div.css("width",_options.width + 30);
+    _div.css("height",_options.height + 40);
+    var _title = $("<span />",{
+        "class"     : "popuptitle " + _options.defaultclass + _options.class,
+        "css"       : hs.gui.systemfonts["TITEL1"]
+    }).text(oarg.item.info._txt1).on("click",function() {
+        _div.remove();
+        delete oarg.item.page.items["POPUP"];
+        hs.functions.popup_overlay(false,false,oarg);
+    });
+    _div.append(_title);
+    _scrolldiv.append($("<div class='scroller'/>").append(_list));
+    _div.append(_scrolldiv);
+    hs.functions.popup_overlay(true);
+    $("#POPUP").append(_div);
+    _div.center();
+    _scrolldiv.center(_div);
+    if(_options.top) {
+        _div.css("top",_options.top);
+    }
+    if(_options.left) {
+        _div.css("left",_options.left);
+    }
+
+}
+
+hs.functions.camarchive_handler = function( oarg ) {
+    debug(5,"camarchive_handler",oarg);
+    var _list = oarg.result.list;
+    $.each(oarg.json.HS.ARCH.PIC,function(index,obj) {
+        var _li = $("<li />",{
+            "class"     : "popuplist camarchiveitem" + oarg.result.options.defaultclass + oarg.result.options.class, 
+            "css"       : {
+                "width"     : "calc(30% - 5px)",
+                "height"    : "200px",
+            },
+            "on"        : {
+                "tap"   : function() {
+                    $(this).hasClass("camarchive-full") ? $(this).removeClass("camarchive-full") : $(this).addClass("camarchive-full")
+                    _scroller.refresh();
+                    _scroller.scrollToElement(this);
+                }
+            }
+        });
+        var _url = hs.functions.get_url ({ 
+            "session"   : oarg.item.session, 
+            "url"       : "/guicama?id=" + oarg.item.id + "&pid=" + obj._id, 
+            "cmd"       : ""
+        });
+
+        var _img = $("<img />",{
+            "src"       : _url,
+            "width"     : "100%",
+            "height"    : "auto"
+        });
+        _li.append(_img);
+        var _date = $("<div />",{
+            "class"     : "popuplist_date",
+        }).text(
+            hs.functions.format_date("%ddd% %dd%.%MM%.%YYYY% %HH%:%mm%:%ss%",hs.functions.date_from_hs(obj._date))
+        );
+        _li.append(_date);
+        _list.append(_li);
+    });
+
+    var _scroller = new IScroll(oarg.result.scroller[0],{
+        mouseWheel      : true,
+        scrollbars      : true,
+        fadeScrollbars  : true,
+        tap             : true,
+        snap            : "li"
+    });
+    oarg.result.scroller.on("DOMSubtreeModified",function() {
+        _scroller.refresh();
+    });
 }
 
 hs.functions.make_globkey = function(xor) {
@@ -1737,7 +1887,8 @@ hs.functions.async.handler = function( oarg ) {
         case "vcu"      : hs.functions.async.gv( oarg ); break;
         
         case "getpag"   : hs.functions.item_handler( oarg ); break;
-        
+        case "getcama"  : hs.functions.camarchive_handler( oarg ); break;
+
         case "logout"   : break;
         default:
             break;
@@ -2264,6 +2415,11 @@ hs.functions.check_click = function( oarg ) {
             */
             alert("Datum/Zeit setzen noch nicht implementiert");
             break;
+        case 14:
+        case 15:
+            //hs.functions.popup_lister( oarg );
+            alert("Meldung-/Buddyliste noch nicht implementier");
+            break;
         case 16:
             // Diagramm
             /*
@@ -2271,6 +2427,9 @@ hs.functions.check_click = function( oarg ) {
                 <HS><GRAF txt1="Diagramm" txt2="" ico="MLOGO"/></HS>
             */
             hs.functions.popup_image( oarg );
+            break;
+        case 17:
+            hs.functions.popup_lister( oarg );
             break;
         case 21:
             // 21 = Navigation: Startseite
@@ -2679,7 +2838,7 @@ hs.functions.get_date_object = function ( date ) {
         "MMM"   : hs.datestrings.monthnames[_date.M].substring(0,3),
         "MMMM"  : hs.datestrings.monthnames[_date.M],
         "dd"    : hs.functions.string_padding(_date.d,2,"0",true),
-        "ddd"   : hs.datestrings.weekdaynames[_date.w ].substring(0,3),
+        "ddd"   : hs.datestrings.weekdaynames[_date.w ].substring(0,2),
         "dddd"  : hs.datestrings.weekdaynames[_date.w ],
         "HH"    : hs.functions.string_padding(_date.H,2,"0",true),
         "ii"    : hs.functions.string_padding(_date.i,2,"0",true),
@@ -2894,6 +3053,7 @@ hs.functions.element_loader([
     "libs/jquery.md5.js",
     "libs/jquery.simplemodal.js",
     "libs/position-calculator.min.js",
+    "libs/iscroll.js",
     "libs/xxapi.css",
     "libs/theme.css"
     ],true,
