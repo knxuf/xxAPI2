@@ -1,12 +1,14 @@
 CACHE MANIFEST
-## change 2015-01-29-18:12
-## xxAPI2 Version 2.025
+## change 2015-02-05-21:09
+## xxAPI2 Version 2.026
 
+libs/jquery.min.js
 libs/fastclick.js
 libs/jquery.md5.js
 libs/jquery.simplemodal.js
-libs/jquery.min.js
 libs/xml2json.min.js
+libs/position-calculator.min.js
+libs/iscroll.js
 #libs/xxapi.css
 #xxapi2.js
 
