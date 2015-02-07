@@ -1096,7 +1096,7 @@ hs.functions.load_image = function ( oarg ) {
                 //debug(5,"Image:load",oarg)
                 if (this.naturalWidth == 0 && this.naturalHeight == 0) {
                     debug(1,"Error: Image '" + this.src + "' failed",{ "img" : this, "item" : oarg.item });
-                    return;
+                    this.remove();
                 }
                 oarg.item.image_loading = false;
                 oarg.item.image_object = $(this);
@@ -1104,6 +1104,7 @@ hs.functions.load_image = function ( oarg ) {
                 oarg.item.object.prepend( this );
                 if (_child != null) {
                     _child.fadeOut(20,function() {
+                        _child.attr("src","");
                         _child.remove();
                     });
                 }
