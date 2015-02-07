@@ -1723,10 +1723,6 @@ hs.functions.camarchive_handler = function( oarg ) {
     $.each(oarg.json.HS.ARCH.PIC,function(index,obj) {
         var _li = $("<li />",{
             "class"     : "popuplist camarchiveitem" + oarg.result.options.defaultclass + oarg.result.options.class, 
-            "css"       : {
-                "width"     : "calc(30% - 5px)",
-                "height"    : "200px",
-            },
             "on"        : {
                 "tap"   : function() {
                     $(this).hasClass("camarchive-full") ? $(this).removeClass("camarchive-full") : $(this).addClass("camarchive-full")
@@ -1742,7 +1738,8 @@ hs.functions.camarchive_handler = function( oarg ) {
         });
 
         var _img = $("<img />",{
-            "src"       : _url,
+            "data-original"  : _url,
+            "class"     : "lazyload",
             "width"     : "100%",
             "height"    : "auto"
         });
@@ -1756,12 +1753,20 @@ hs.functions.camarchive_handler = function( oarg ) {
         _list.append(_li);
     });
 
-    var _scroller = new IScroll(oarg.result.scroller[0],{
+    var _scroller = new IScroll(oarg.result.scroller.get(0),{
         mouseWheel      : true,
         scrollbars      : true,
         fadeScrollbars  : true,
         tap             : true,
-        snap            : "li"
+        snap            : "li",
+        bounce          : false,
+    }).on("scrollEnd", function() {
+        oarg.result.scroller.trigger("scroll");
+    });
+    $("img.lazyload").lazyload({
+        "container"     : oarg.result.scroller,
+        "threshold"     : 200,
+        "effect"        : "fadeIn"
     });
     oarg.result.scroller.on("DOMSubtreeModified",function() {
         _scroller.refresh();
@@ -3055,6 +3060,7 @@ hs.functions.element_loader([
     "libs/jquery.simplemodal.js",
     "libs/position-calculator.min.js",
     "libs/iscroll.js",
+    "libs/jquery.lazyload.min.js",
     "libs/xxapi.css",
     "libs/theme.css"
     ],true,

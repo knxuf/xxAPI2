@@ -20,6 +20,11 @@ body {
     height: 100%;
 }
 
+.camarchiveitem {
+    width: calc(30% - 5px);
+    height: 200px;
+}
+
 .popuptitle {
     top: 0px;
     width: 100%;
