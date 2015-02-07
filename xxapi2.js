@@ -660,7 +660,7 @@ hs.functions.open_at_mouseclick = function ( object, offset ) {
             "boundary"      : "#VISUCONTAINER",
             "itemAt"        : "top left",
             "targetAt"      : "bottom right",
-            "flip"          : "item",
+            "flip"          : "both",
             "stick"         : "all",
             "itemOffset"    : offset || {x: 0, y: 0, mirror: true}
         });
