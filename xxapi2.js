@@ -68,6 +68,10 @@ hs.session = {};  // keyname ist target
 
 // Globale
 hs.user = null;
+hs.options = {
+    "autoscale"     : true,
+    "dateformat"    : "%ddd% %dd%.%MM%.%YYYY% %HH%:%mm%:%ss%",
+}
 hs.gui = {};
 hs.gui.update_timer = null;
 hs.gui.fonts = {};
@@ -654,6 +658,7 @@ hs.functions.open_at_mouseclick = function ( object, offset ) {
         "left"          : "0px"
     });
     setTimeout(function() {
+        $("#VISUCONTAINER").css("transform","");
         var _calculator = new $.PositionCalculator({
             "item"          : object,
             "target"        : xxAPI.events.lastclick.event.currentTarget,
@@ -665,15 +670,16 @@ hs.functions.open_at_mouseclick = function ( object, offset ) {
             "itemOffset"    : offset || {x: 0, y: 0, mirror: true}
         });
         var _result = _calculator.calculate();
-        var _top  = _result.moveBy.y / hs.gui.container_scale;
-        var _left = _result.moveBy.x / hs.gui.container_scale;
-        debug(4,"calculated_position " + _top + "/" +_left + "(" + offset.y + "/" + offset.x + ")",_result);
+        var _top  = _result.moveBy.y;
+        var _left = _result.moveBy.x;
+        debug(1,"calculated_position " + _top + "/" +_left + "(" + offset.y + "/" + offset.x + ")",_result);
         object.css({
-            "position"      : "fixed",
+            "position"      : "absolute",
             "visibility"    : "visible",
             "top"           : parseInt(_top) + "px",
             "left"          : parseInt(_left) + "px"
         });
+        $("#VISUCONTAINER").css("transform","scale(" + hs.gui.container_scale + "," + hs.gui.container_scale + ")");
     },0);
 }
 
@@ -1752,7 +1758,7 @@ hs.functions.camarchive_handler = function( oarg ) {
         var _date = $("<div />",{
             "class"     : "popuplist_date",
         }).text(
-            hs.functions.format_date("%ddd% %dd%.%MM%.%YYYY% %HH%:%mm%:%ss%",hs.functions.date_from_hs(obj._date))
+            hs.functions.format_date(hs.options.dateformat,hs.functions.date_from_hs(obj._date))
         );
         _li.append(_date);
         _list.append(_li);
@@ -1809,7 +1815,7 @@ hs.functions.default_list_handler = function( oarg ) {
         var _date = $("<div />",{
             "class"     : "popuplist_date",
         }).text(
-            hs.functions.format_date("%ddd% %dd%.%MM%.%YYYY% %HH%:%mm%:%ss%",hs.functions.date_from_hs(obj._date))
+            hs.functions.format_date(hs.options.dateformat,hs.functions.date_from_hs(obj._date))
         );
         _li.append(_text);
         _li.append(_date);
@@ -2814,9 +2820,14 @@ hs.functions.set_viewport = function() {
     debug(5,"Viewport: " +  _viewport_meta + " orientation: " + _orientation + " vheight: " + _visual_height + " vwidth: " + _visual_width);
     hs.gui.device.scale = Math.max(hs.gui.attr.visu_width,hs.gui.attr.visu_height) / Math.max(hs.gui.device.width,hs.gui.device.height);
 
-    var _container_scale_width = $(window).width()/hs.gui.attr.visu_width;
-    var _container_scale_height = $(window).height()/hs.gui.attr.visu_height;
-    hs.gui.container_scale = Math.max(Math.min(_container_scale_width,_container_scale_height),1.0);
+    if(hs.options.autoscale) {
+        var _container_scale_width = $(window).width()/hs.gui.attr.visu_width;
+        var _container_scale_height = $(window).height()/hs.gui.attr.visu_height;
+        hs.gui.container_scale = Math.max(Math.min(_container_scale_width,_container_scale_height),1.0);
+        $("#VISUCONTAINER").css("transform","scale(" + hs.gui.container_scale + "," + hs.gui.container_scale + ")");
+    } else {
+        hs.gui.container_scale = 1;
+    }
     $("#VISUCONTAINER").css("transform","scale(" + hs.gui.container_scale + "," + hs.gui.container_scale + ")");
 }
 
