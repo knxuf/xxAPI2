@@ -58,10 +58,26 @@ ul {
     padding: 0;
 }
 
-li.popuplist {
+li.defaultlist {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid white;
+    border-radius: 15px;
+}
+
+li.camarchiveitem {
     display: inline-block;
     margin: 15px;
     background-color: blue;
+}
+
+li.defaultlist:nth-child(odd) {
+    background-color: rgba(30,60,150,0.25);
+}
+
+li.defaultlist:nth-child(even) {
+    background-color: rgba(30,60,150,0.5);
 }
 
 div.werteingabe {

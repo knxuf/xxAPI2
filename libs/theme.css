@@ -99,6 +99,14 @@ li.werteingabe:nth-child(16) {
     color: white;
 }
 
+li.defaultlist:nth-child(odd) {
+    background-color: rgba(30,60,150,0.25);
+}
+
+li.defaultlist:nth-child(even) {
+    background-color: rgba(30,60,150,0.5);
+}
+
 li.activevisuelement::after {
     border-radius: 5px;
     background-color: rgba(200,0,0,0.15);

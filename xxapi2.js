@@ -1644,12 +1644,14 @@ hs.functions.popup_lister = function ( oarg ) {
         case 14:
             _options.defaultclass = " meldungpopup ";
             _cmd = "getmsg";
-            _font = hs.gui.systemfonts["MELDUNG1"];
+            _font = hs.gui.systemfonts["MELD1"];
+            _options.width = hs.gui.attr.visu_width * 0.4
             break;
         case 15:
             _options.defaultclass = " buddypopup ";
             _cmd = "getbud";
             _font = hs.gui.systemfonts["BUDDY1"];
+            _options.width = hs.gui.attr.visu_width * 0.4
             break;
         case 17:
             _options.defaultclass = " kameraarchivpopup ";
@@ -1720,6 +1722,9 @@ hs.functions.popup_lister = function ( oarg ) {
 hs.functions.camarchive_handler = function( oarg ) {
     debug(5,"camarchive_handler",oarg);
     var _list = oarg.result.list;
+    if(!oarg.json.HS.ARCH) {
+        return;
+    }
     $.each(oarg.json.HS.ARCH.PIC,function(index,obj) {
         var _li = $("<li />",{
             "class"     : "popuplist camarchiveitem" + oarg.result.options.defaultclass + oarg.result.options.class, 
@@ -1739,7 +1744,7 @@ hs.functions.camarchive_handler = function( oarg ) {
 
         var _img = $("<img />",{
             "data-original"  : _url,
-            "class"     : "lazyload",
+            "class"     : "lazyload camarchiveitem",
             "width"     : "100%",
             "height"    : "auto"
         });
@@ -1759,18 +1764,65 @@ hs.functions.camarchive_handler = function( oarg ) {
         fadeScrollbars  : true,
         tap             : true,
         snap            : "li",
-        bounce          : false,
-    }).on("scrollEnd", function() {
+        bounce          : true,
+    })
+    _scroller.on("scrollEnd", function() {
         oarg.result.scroller.trigger("scroll");
     });
+    
     $("img.lazyload").lazyload({
         "container"     : oarg.result.scroller,
         "threshold"     : 200,
+        "failure_limit" : 10,
         "effect"        : "fadeIn"
     });
     oarg.result.scroller.on("DOMSubtreeModified",function() {
         _scroller.refresh();
     });
+}
+
+hs.functions.default_list_handler = function( oarg ) {
+    debug(5,"camarchive_handler",oarg);
+    var _list = oarg.result.list;
+    var _json;
+    var _class;
+    switch(true) {
+        case (oarg.json.HS.hasOwnProperty("MSGS")):
+            _json = oarg.json.HS.MSGS.MSG;
+            _class = " msgitem ";
+            break;
+        case (oarg.json.HS.hasOwnProperty("BUDS")):
+            _json = oarg.json.HS.BUDS.BUD;
+            _class = " buddyitem ";
+            break;
+    }
+    if(!_json) {
+        return;
+    }
+    $.each(_json,function(index,obj) {
+        var _li = $("<li />",{
+            "class"     : "popuplist defaultlist " + _class + oarg.result.options.defaultclass + oarg.result.options.class, 
+        });
+        var _text = $("<div />",{
+            "class"     : "popuplist_text",
+        }).text(obj._txt);
+        var _date = $("<div />",{
+            "class"     : "popuplist_date",
+        }).text(
+            hs.functions.format_date("%ddd% %dd%.%MM%.%YYYY% %HH%:%mm%:%ss%",hs.functions.date_from_hs(obj._date))
+        );
+        _li.append(_text);
+        _li.append(_date);
+        _list.append(_li);
+   });
+    var _scroller = new IScroll(oarg.result.scroller.get(0),{
+        mouseWheel      : true,
+        scrollbars      : true,
+        fadeScrollbars  : true,
+        tap             : true,
+        snap            : "li",
+        bounce          : true,
+    })
 }
 
 hs.functions.make_globkey = function(xor) {
@@ -1894,6 +1946,8 @@ hs.functions.async.handler = function( oarg ) {
         
         case "getpag"   : hs.functions.item_handler( oarg ); break;
         case "getcama"  : hs.functions.camarchive_handler( oarg ); break;
+        case "getmsg"   : hs.functions.default_list_handler( oarg ); break;
+        case "getbud"   : hs.functions.default_list_handler( oarg ); break;
 
         case "logout"   : break;
         default:
@@ -2423,8 +2477,7 @@ hs.functions.check_click = function( oarg ) {
             break;
         case 14:
         case 15:
-            //hs.functions.popup_lister( oarg );
-            alert("Meldung-/Buddyliste noch nicht implementier");
+            hs.functions.popup_lister( oarg );
             break;
         case 16:
             // Diagramm
