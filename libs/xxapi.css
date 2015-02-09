@@ -72,14 +72,6 @@ li.camarchiveitem {
     background-color: blue;
 }
 
-li.defaultlist:nth-child(odd) {
-    background-color: rgba(30,60,150,0.25);
-}
-
-li.defaultlist:nth-child(even) {
-    background-color: rgba(30,60,150,0.5);
-}
-
 div.werteingabe {
     width: 300px;
     height: 400px;
@@ -140,7 +132,6 @@ li.werteingabe {
     -moz-user-select: none;
     -ms-user-select: none;
     -webkit-user-drag: none;
-    overflow: hidden;
     border: 0;
     pointer-events: none;
 }

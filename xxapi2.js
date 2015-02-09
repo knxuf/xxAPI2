@@ -512,6 +512,52 @@ xxAPI.functions.XXIMG = function ( oarg ) {
     }
 }
 
+xxAPI.functions.XXSLIDER = function ( oarg ) {
+    debug(2,"XXSLIDER",oarg);
+    if($.isEmptyObject(oarg.item.info)) {
+        oarg.item.item_callback = function() {
+            xxAPI.functions.XXSLIDER( oarg );
+        }
+        return;
+    }
+    if(oarg.args[1] != "" && oarg.item.xxapi.hasOwnProperty("slider")) {
+        oarg.item.xxapi.slider.val(parseInt(oarg.args[1]));
+    } else {
+        var _orientation = oarg.item.width > oarg.item.height ? "horizontal" : "vertical";
+        oarg.item.xxapi.slider = $("<div />",{
+            "css"   : {
+                "width"             : _orientation == "horizontal" ? "100%" : "",
+                "height"            : _orientation == "vertical" ? "100%" : "",
+                "background-color"  : oarg.item.bg_color
+            }
+        }).noUiSlider({
+            "start"     : oarg.item.info._val,
+            "connect"   : "lower",
+            "orientation"   : _orientation,
+            "direction"     : _orientation == "horizontal" ? "ltr" : "rtl",
+            "step"          : 1,
+            "range"         : {
+                "min"   : oarg.item.info._min,
+                "max"   : oarg.item.info._max
+            }
+        });
+        oarg.item.xxapi.slider.on("DOMNodeInsertedIntoDocument",function() {
+            $(this).find(".noUi-connect").css("background-color",oarg.item.color);
+        });
+        oarg.item.xxapi.slider.on("slide",function() {
+            oarg.item.value = oarg.item.xxapi.slider.val();
+            hs.functions.do_valset( oarg );
+        });
+    }
+    oarg.item.customcss = {
+        "background-color"  : "transparent",
+        "pointer-events"    : "auto"
+    }
+    oarg.item.html = oarg.item.xxapi.slider;
+    oarg.item.text = "";
+    oarg.item.click = false;
+}
+
 /*
     * XXLONGPRESS is used to send different values based on
     * duration the item is pressed. It is used in combination
@@ -1094,7 +1140,7 @@ hs.functions.load_image = function ( oarg ) {
         "width"     : oarg.item.width,
         "height"    : oarg.item.height,
         "css"       : {
-            "position"  : "relative"
+            "position"  : "absolute"
         },
         "on"        : {
             "dragstart" : function () { return false; },
@@ -1552,7 +1598,6 @@ hs.functions.popup_image = function ( oarg ) {
     var _imgdiv = $("<div />",{
         "css"   : {
             "position"  : "relative",
-            "text-align": "center",
             "margin"    : "15px 40px 15px 40px",
             "width"     : _options.width,
             "height"    : _options.height,
@@ -1571,6 +1616,8 @@ hs.functions.popup_image = function ( oarg ) {
         "object"    : _imgdiv,
         "width"     : "auto",
         "height"    : "100%",
+        "top"       : "0px",
+        "left"      : "0px",
         "url"       : oarg.item.info._url,
         "auth"      : oarg.item.info._auth,
         "info"      : oarg.item.info
@@ -1998,15 +2045,15 @@ hs.functions.get_item_info = function ( oarg ) {
         return null;
     }
     var _id = "PAGE_" + oarg.item.page_id + "_" + oarg.item.type + "_" + oarg.item.id;
-    if(hs.gui.items.hasOwnProperty(_id)) {
-        return hs.gui.items[_id];
-    }
     hs.functions.make_request({
         "session"   : oarg.session,
         "cmd"       : "getpag&id=" + oarg.item.id,
         "item"      : oarg.item,
         "page_id"   : oarg.page_id
      });
+    if(hs.gui.items.hasOwnProperty(_id)) {
+        return hs.gui.items[_id];
+    }
     return hs.functions.storage("get","CACHE_ITEM_" + _id) || {};
 }
 
@@ -3125,6 +3172,9 @@ hs.functions.element_loader([
     "libs/position-calculator.min.js",
     "libs/iscroll.js",
     "libs/jquery.lazyload.min.js",
+    "libs/jquery.nouislider.min.css",
+    "libs/jquery.nouislider.pips.min.css",
+    "libs/jquery.nouislider.all.min.js",
     "libs/xxapi.css",
     "libs/theme.css"
     ],true,
