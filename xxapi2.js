@@ -71,7 +71,14 @@ hs.user = null;
 hs.options = {
     "autoscale"     : true,
     "dateformat"    : "%ddd% %dd%.%MM%.%YYYY% %HH%:%mm%:%ss%",
+    "timezone"      : -1
 }
+
+hs.datestrings = {
+    "monthnames"    : [ "","Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
+    "weekdaynames"  : [ "Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag" ]
+}
+
 hs.gui = {};
 hs.gui.update_timer = null;
 hs.gui.fonts = {};
@@ -2908,12 +2915,13 @@ hs.functions.date_from_hs = function (dstr) {
         _match[4] + ":" +  // Hour
         _match[5] + ":" +  // Minute
         _match[6]          // Seconds
-    );
+    ).diffhour(hs.options.timezone);
 }
-    hs.datestrings = {
-        "monthnames"    : [ "","Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
-        "weekdaynames"  : [ "Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag" ]
-    }
+
+Date.prototype.diffhour = function (hours) {
+    this.setHours(this.getHours() + hours);
+    return this;
+}
 
 Date.prototype.getWeekNumber = function() {
     var d = new Date(+this);
