@@ -295,9 +295,9 @@ xxAPI.functions.XXEXECUTE = function ( oarg ) {
     debug(2,"XXEXECUTE:",oarg);
     var _jscode = hs.functions.fix_hsjavascript( oarg.args[1] );
     // item für Abwärtskompatiblität
-    var _func = new Function('item','"use strict"; ' + _jscode);
     oarg.item.text = '';
     try {
+        var _func = new Function('item','"use strict"; ' + _jscode);
         _func( oarg.item );
     } catch (e) {
         debug(1,"XXEXECUTE_ERROR:",e);
@@ -308,14 +308,18 @@ hs.functions.fix_hsjavascript = function ( broken ) {
     var _jscode = broken || "";
     _jscode = _jscode.replace(/\[/g, "<");
     _jscode = _jscode.replace(/\(\?/g, "\(\"");
+    _jscode = _jscode.replace(/\{\?/g, "\{\"");
     _jscode = _jscode.replace(/=\?/g, "=\"");
     _jscode = _jscode.replace(/\? /g, "\" ");
+    _jscode = _jscode.replace(/\?:/g, "\":");
+    _jscode = _jscode.replace(/:\?/g, ":\"");
     _jscode = _jscode.replace(/\?[,]/g, "\",");
     _jscode = _jscode.replace(/\?[;]/g, "\";");
     _jscode = _jscode.replace(/\?[\+]/g, "\"\+");
     _jscode = _jscode.replace(/[\+]\?/g, "\+\"");
     _jscode = _jscode.replace(/[,]\?/g, ",\"");
     _jscode = _jscode.replace(/\?\)/g, "\"\)");
+    _jscode = _jscode.replace(/\?\}/g, "\"\}");
     _jscode = _jscode.replace(/\]/g, ">");
     return _jscode;
 }
@@ -330,9 +334,9 @@ hs.functions.fix_hsjavascript = function ( broken ) {
 xxAPI.functions.XXEEXECUTE = function ( oarg ) {
     debug(2,"XXEEXECUTE:",oarg);
     var _jscode = $.base64.decode(oarg.args[1]);
-    var _func = new Function('item','"use strict"; ' + _jscode);
     oarg.item.text = '';
     try {
+        var _func = new Function('item','"use strict"; ' + _jscode);
         _func( oarg.item );
     } catch (e) {
         debug(1,"XXEEXECUTE_ERROR:",e);
@@ -473,13 +477,17 @@ xxAPI.functions.XXCLICK = function ( oarg ) {
     var _jscode = hs.functions.fix_hsjavascript( oarg.args.slice(2).join("*") );
     // remove deprecated XXEXECUTE prefix
     _jscode = _jscode.replace(/^XXEXECUTE\*/,"");
-    var _func = new Function('item','"use strict"; ' + _jscode);
-    oarg.item.eventcode["click"] = function( oarg ) {
-        try {
-            _func( oarg.item );
-        } catch (e) {
-            debug(1,"XXCLICK_ERROR:",e);
+    try {
+        var _func = new Function('item','"use strict"; ' + _jscode);
+        oarg.item.eventcode["click"] = function( oarg ) {
+            try {
+                _func( oarg.item );
+            } catch (e) {
+                debug(1,"XXCLICK_ERROR:",e);
+            }
         }
+    } catch (e) {
+        debug(1,"XXCLICK_JS_COMPILE_ERROR:",e);
     }
 }
 
@@ -497,7 +505,11 @@ xxAPI.functions.XXTRIGGER = function ( oarg ) {
     var _func = null;
     if(oarg.args.length > 2) {
         var _jscode = hs.functions.fix_hsjavascript( oarg.args.slice(2).join("*") );
-        _func = new Function('item','"use strict"; ' + _jscode);
+        try {
+            _func = new Function('item','"use strict"; ' + _jscode);
+        } catch (e) {
+            debug(1,"XXTRIGGER_JS_COMPILE_ERROR",e);
+        }
     }
     oarg.item.update_code = function ( oarg ) {
         if(_func) {
@@ -627,7 +639,7 @@ xxAPI.functions.XXLONGPRESS = function ( oarg ) {
         oarg.item.xxapi.longpress_bit = parseInt(oarg.args[2]) || 0;
     }
     if (oarg.args.length > 3) {
-        oarg.item.xxapi.longpress_code = oarg.args.slice(3).join("*");
+        oarg.item.xxapi.longpress_code = oarg.args.slice(3).join("*"); //FIXME
     }
 
     oarg.item.eventcode["touchstart"] = oarg.item.eventcode["mousedown"] = function( oarg ) {
