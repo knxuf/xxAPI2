@@ -141,13 +141,22 @@ xxAPI.functions.XXAPICONFIG = function ( oarg ) {
         "height"            :"300px",
         "padding"           :"3px"
     });
-    _div.modal({
-        "autoPosition"  : true,
-        "modal"         : true,
-        "overlayClose"  : true
-    });
     if ( oarg != null) {
         oarg.item.text = oarg.args[1];
+        oarg.item.eventcode["click"] = function( oarg ) {
+            _div.modal({
+                "autoPosition"  : true,
+                "modal"         : true,
+                "overlayClose"  : true
+            });
+        }
+    } else {
+        _div.modal({
+            "autoPosition"  : true,
+            "modal"         : true,
+            "overlayClose"  : true
+        });
+    
     }
 }
 
