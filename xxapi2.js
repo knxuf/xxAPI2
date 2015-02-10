@@ -71,7 +71,8 @@ hs.user = null;
 hs.options = {
     "autoscale"     : true,
     "dateformat"    : "%ddd% %dd%.%MM%.%YYYY% %HH%:%mm%:%ss%",
-    "timezone"      : -1
+    "timezone"      : -1,
+    "sliderstep_px" : 10,
 }
 
 hs.datestrings = {
@@ -525,36 +526,58 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
         oarg.item.item_callback = function() {
             xxAPI.functions.XXSLIDER( oarg );
         }
-        return;
     }
-    if(oarg.args[1] != "" && oarg.item.xxapi.hasOwnProperty("slider")) {
-        oarg.item.xxapi.slider.val(parseInt(oarg.args[1]));
-    } else {
-        var _orientation = oarg.item.width > oarg.item.height ? "horizontal" : "vertical";
-        oarg.item.xxapi.slider = $("<div />",{
-            "css"   : {
-                "width"             : _orientation == "horizontal" ? "100%" : "",
-                "height"            : _orientation == "vertical" ? "100%" : "",
-                "background-color"  : oarg.item.bg_color
-            }
-        }).noUiSlider({
+    var _orientation = oarg.item.width > oarg.item.height ? "horizontal" : "vertical";
+    if(oarg.item.info && !oarg.item.xxapi.slider_step) {
+        var _range = Math.abs(oarg.item.info._min - oarg.item.info._max);
+        var _size = Math.max(oarg.item.width, oarg.item.height);
+        var _numsteps = _size / hs.options.sliderstep_px;
+        oarg.item.xxapi.slider_step = hs.functions.math_round(_range / _numsteps,oarg.item.info._prec) || 1;
+        debug(4,"XXSLIDER: set step to " + oarg.item.xxapi.slider_step,oarg);
+    }
+    if(oarg.item.xxapi.hasOwnProperty("slider")) {
+        if(oarg.args[1] != "") {
+            oarg.item.xxapi.slider.val(parseInt(oarg.args[1]));
+        }
+        oarg.item.xxapi.slider.noUiSlider({
             "start"     : oarg.item.info._val,
-            "connect"   : "lower",
-            "orientation"   : _orientation,
-            "direction"     : _orientation == "horizontal" ? "ltr" : "rtl",
-            "step"          : 1,
+            "step"          : oarg.item.xxapi.slider_step || 1,
             "range"         : {
                 "min"   : oarg.item.info._min,
                 "max"   : oarg.item.info._max
             }
+        },true);
+    } else {
+        oarg.item.xxapi.slider = $("<div />",{
+            "css"   : {
+                "width"             : _orientation == "horizontal" ? "100%" : "",
+                "height"            : _orientation == "vertical" ? "100%" : ""
+            }
         });
-        oarg.item.xxapi.slider.on("DOMNodeInsertedIntoDocument",function() {
-            $(this).find(".noUi-connect").css("background-color",oarg.item.color);
+        oarg.item.xxapi.slider.noUiSlider({
+            "start"     : oarg.item.info._val || 0,
+            "connect"   : "lower",
+            "orientation"   : _orientation,
+            "direction"     : _orientation == "horizontal" ? "ltr" : "rtl",
+            "step"          : oarg.item.xxapi.slider_step || 1,
+            "range"         : {
+                "min"   : oarg.item.info._min || 0,
+                "max"   : oarg.item.info._max || 1
+            }
         });
         oarg.item.xxapi.slider.on("slide",function() {
             oarg.item.value = oarg.item.xxapi.slider.val();
             hs.functions.do_valset( oarg );
         });
+    }
+    if(oarg.item.object) {
+        oarg.item.object.find(".noUi-connect").css("background-color",oarg.item.color);
+        oarg.item.object.find(".noUi-background").css("background-color",oarg.item.bg_color);
+    } else {
+        setTimeout(function() {
+            oarg.item.object.find(".noUi-connect").css("background-color",oarg.item.color);
+            oarg.item.object.find(".noUi-background").css("background-color",oarg.item.bg_color);
+        },0);
     }
     oarg.item.customcss = {
         "background-color"  : "transparent",
