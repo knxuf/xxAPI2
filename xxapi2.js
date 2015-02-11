@@ -1464,6 +1464,7 @@ hs.functions.option_parser = function ( text , defaults) {
 }
 
 hs.functions.popup_werteingabe = function ( oarg ) {
+    hs.functions.get_item_info( oarg );
     if($.isEmptyObject(oarg.item.info)) {
         oarg.item.item_callback = function() {
             hs.functions.popup_werteingabe( oarg );
@@ -1533,6 +1534,7 @@ hs.functions.popup_werteingabe = function ( oarg ) {
     hs.functions.set_validinput(_input,_options.initvalue);
     var _numpad = $("<ul class='werteingabe " + _options.class + "' />");
     var _buttons = _options.buttons.split(",");
+    var _firstkey = true;
     $.each(_buttons,function (index,key) {
         var _button = $("<li />",{
             "rel"     : key,
@@ -1567,6 +1569,10 @@ hs.functions.popup_werteingabe = function ( oarg ) {
                 case "&bull;": _key = "."; break;
                 case "+/&minus;": _key = "-"; break;
                 default:
+                    if(_firstkey) {
+                         hs.functions.set_validinput(_input,_options.clearvalue);
+                        _firstkey = false;
+                    }
                     debug(5,"button '" + _key + "' pressed");
             };
             hs.functions.write_input(_input,_key);
