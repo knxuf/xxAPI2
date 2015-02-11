@@ -70,6 +70,7 @@ hs.session = {};  // keyname ist target
 hs.user = null;
 hs.options = {
     "autoscale"     : true,
+    "scaledown"     : false,
     "dateformat"    : "%ddd% %dd%.%MM%.%YYYY% %HH%:%mm%:%ss%",
     "timezone"      : -1,
     "sliderstep_px" : 10,
@@ -2928,7 +2929,16 @@ hs.functions.set_viewport = function() {
     if(hs.options.autoscale) {
         var _container_scale_width = $(window).width()/hs.gui.attr.visu_width;
         var _container_scale_height = $(window).height()/hs.gui.attr.visu_height;
-        hs.gui.container_scale = Math.max(Math.min(_container_scale_width,_container_scale_height),1.0);
+        hs.gui.container_scale = Math.min(_container_scale_width,_container_scale_height)
+        if(!hs.options.scaledown) {
+            hs.gui.container_scale = Math.max(hs.gui.container_scale,1.0);
+        } 
+        if(hs.gui.container_scale < 1) {
+            $("#VISUCONTAINER").css({
+                "width"     : "",
+                "height"    : ""
+            });
+        }
         $("#VISUCONTAINER").css("transform","scale(" + hs.gui.container_scale + "," + hs.gui.container_scale + ")");
     } else {
         hs.gui.container_scale = 1;
