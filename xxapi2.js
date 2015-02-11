@@ -1497,7 +1497,10 @@ hs.functions.popup_werteingabe = function ( oarg ) {
     var _title = $("<span />",{
         "class"     : "popuptitle " + _options.class,
         "css"       : hs.gui.systemfonts["TITEL1"]
-    }).text(oarg.item.info._txt1);
+    }).text(oarg.item.info._txt1).on("click",function() {
+        _div.remove();
+        hs.functions.popup_overlay(false,false,oarg);
+    });
     _div.append(_title);
     var _prec = oarg.item.info._prec;
     var _maxsize = Math.max(oarg.item.info._min.toString().length, oarg.item.info._max.toString().length) + ( _prec > 0 ? _prec +1 : 0);
