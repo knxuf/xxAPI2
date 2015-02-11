@@ -602,7 +602,8 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
     }
     oarg.item.customcss = {
         "background-color"  : "transparent",
-        "pointer-events"    : "auto"
+        "pointer-events"    : "auto",
+        "overflow"          : "initial"
     }
     oarg.item.html = oarg.item.xxapi.slider;
     oarg.item.text = "";

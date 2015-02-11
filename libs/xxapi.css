@@ -136,6 +136,10 @@ li.werteingabe {
     pointer-events: none;
 }
 
+.visuelement {
+    overflow: hidden;
+}
+
 .visuelement > * {
     line-height:    normal;
 }
