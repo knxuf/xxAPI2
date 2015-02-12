@@ -380,15 +380,23 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     debug(2,"XXMODUL",oarg);
     var _modulname = "MODUL_" + oarg.args[1].toUpperCase();
     if($("#" +_modulname).is(":visible")) {
-        if(oarg.item.cmd == "create") {
+        if(!oarg.item.object) {
             debug(1,"Error: nested Modul",oarg);
             oarg.item.hidden = true;
             return;
         }
     } else {
-        oarg.item.html = $("<div />", {
-            "id"        : _modulname
-        });
+        if(hs.session.hasOwnProperty(_modulname)) {
+            if(oarg.item.object) {
+                oarg.item.object.append(hs.session[_modulname].target_obj);
+            } else {
+                oarg.item.html = hs.session[_modulname].target_obj;
+            }
+        } else {
+            oarg.item.html = $("<div />", {
+                "id"        : _modulname
+            });
+        }
     }
     var _page = oarg.item.open_page || xxAPI.marked_pages[oarg.args[1]] || hs.user.start_page;
     var _active_page;
@@ -401,7 +409,7 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     if(_active_page != _page) {
         setTimeout(function() {
             new hs.functions.hs_session(_modulname,_page);
-        },1);
+        },0);
     }
     oarg.item.click = false;
     oarg.item.text = '';
