@@ -43,7 +43,7 @@ $.base64 = {
 }
 
 var xxAPI = {};
-xxAPI.version = "2.026";
+xxAPI.version = "2.027";
 xxAPI.functions = {};
 xxAPI.events = {
     "lastclick" : {
@@ -301,12 +301,17 @@ xxAPI.functions.XXEXECUTE = function ( oarg ) {
         var _func = new Function('item','"use strict"; ' + _jscode);
         _func( oarg.item );
     } catch (e) {
-        debug(1,"XXEXECUTE_ERROR:",e);
+        debug(1,"XXEXECUTE_ERROR:",{
+            "e"      : e,
+            "oarg"   : oarg,
+            "jscode" : _jscode
+        });
     }
 }
 
 hs.functions.fix_hsjavascript = function ( broken ) {
     var _jscode = broken || "";
+    _jscode = _jscode.replace(/\s\?\s/g, " $?$ ");
     _jscode = _jscode.replace(/\[/g, "<");
     _jscode = _jscode.replace(/\(\?/g, "\(\"");
     _jscode = _jscode.replace(/\{\?/g, "\{\"");
@@ -322,6 +327,7 @@ hs.functions.fix_hsjavascript = function ( broken ) {
     _jscode = _jscode.replace(/\?\)/g, "\"\)");
     _jscode = _jscode.replace(/\?\}/g, "\"\}");
     _jscode = _jscode.replace(/\]/g, ">");
+    _jscode = _jscode.replace(/\$\?\$/g, "?");
     return _jscode;
 }
 
@@ -340,7 +346,11 @@ xxAPI.functions.XXEEXECUTE = function ( oarg ) {
         var _func = new Function('item','"use strict"; ' + _jscode);
         _func( oarg.item );
     } catch (e) {
-        debug(1,"XXEEXECUTE_ERROR:",e);
+        debug(1,"XXEEXECUTE_ERROR:",{
+            "e"      : e,
+            "oarg"   : oarg,
+            "jscode" : _jscode
+        });
     }
 }
 
@@ -379,24 +389,22 @@ xxAPI.functions.XXMARK = function ( oarg ) {
 xxAPI.functions.XXMODUL = function ( oarg ) {
     debug(2,"XXMODUL",oarg);
     var _modulname = "MODUL_" + oarg.args[1].toUpperCase();
-    if($("#" +_modulname).is(":visible")) {
-        if(!oarg.item.object) {
-            debug(1,"Error: nested Modul",oarg);
-            oarg.item.hidden = true;
+    if(hs.session.hasOwnProperty(_modulname)) {
+        if(oarg.item.session.target == _modulname) {
+            debug(1,"nested modul " + _modulname,oarg);
+            alert("NESTED MODUL '" + _modulname + "'");
             return;
         }
-    } else {
-        if(hs.session.hasOwnProperty(_modulname)) {
-            if(oarg.item.object) {
-                oarg.item.object.append(hs.session[_modulname].target_obj);
-            } else {
-                oarg.item.html = hs.session[_modulname].target_obj;
-            }
+
+        if(oarg.item.object) {
+            oarg.item.object.append(hs.session[_modulname].target_obj);
         } else {
-            oarg.item.html = $("<div />", {
-                "id"        : _modulname
-            });
+            oarg.item.html = hs.session[_modulname].target_obj;
         }
+    } else {
+        oarg.item.html = $("<div />", {
+            "id"        : _modulname
+        });
     }
     var _page = oarg.item.open_page || xxAPI.marked_pages[oarg.args[1]] || hs.user.start_page;
     var _active_page;
@@ -466,7 +474,7 @@ xxAPI.functions.modul_click = function ( module_name, page_name, oarg ) {
             "session"   : _session,
             "page_id"   : _page_id
         });
-    },1);
+    },0);
 }
 
 /*
@@ -492,7 +500,11 @@ xxAPI.functions.XXCLICK = function ( oarg ) {
             try {
                 _func( oarg.item );
             } catch (e) {
-                debug(1,"XXCLICK_ERROR:",e);
+                debug(1,"XXCLICK_ERROR:",{
+                    "e"      : e,
+                    "oarg"   : oarg,
+                    "jscode" : _jscode
+                });
             }
         }
     } catch (e) {
@@ -525,7 +537,11 @@ xxAPI.functions.XXTRIGGER = function ( oarg ) {
             try {
                 _func( oarg.item );
             } catch (e) {
-                debug(1,"XXTRIGGER_ERROR:",e);
+                debug(1,"XXTRIGGER_ERROR:",{
+                    "e"      : e,
+                    "oarg"   : oarg,
+                    "jscode" : _jscode
+                });
             }
         }
         hs.functions.check_click ( oarg );
@@ -544,7 +560,7 @@ xxAPI.functions.XXTRIGGER = function ( oarg ) {
 xxAPI.functions.XXIMG = function ( oarg ) {
     debug(2,"XXIMG",oarg);
     oarg.item.type = "CAM";
-    oarg.item.url = oarg.args[1];
+    oarg.item.url = hs.functions.format_date(oarg.args[1]);
     if(oarg.args.length > 2) {
         oarg.item.refresh = oarg.args[2]*1;
     }
@@ -552,12 +568,18 @@ xxAPI.functions.XXIMG = function ( oarg ) {
 
 xxAPI.functions.XXSLIDER = function ( oarg ) {
     debug(2,"XXSLIDER",oarg);
+    if(oarg.item.action_id != 9) {
+        debug(1,"XXSLIDER needs Action 'Werteingabe'",oarg);
+        return;
+    }
     if($.isEmptyObject(oarg.item.info)) {
         oarg.item.item_callback = function() {
+            debug(4,"no item info");
             xxAPI.functions.XXSLIDER( oarg );
         }
     }
     var _orientation = oarg.item.width > oarg.item.height ? "horizontal" : "vertical";
+    var _value = parseInt(oarg.args[1]) || oarg.item.info._val || 0;
     if(oarg.item.info && !oarg.item.xxapi.slider_step) {
         var _range = Math.abs(oarg.item.info._min - oarg.item.info._max);
         var _size = Math.max(oarg.item.width, oarg.item.height);
@@ -570,22 +592,22 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
             oarg.item.xxapi.slider.val(parseInt(oarg.args[1]));
         }
         oarg.item.xxapi.slider.noUiSlider({
-            "start"     : oarg.item.info._val,
-            "step"          : oarg.item.xxapi.slider_step || 1,
-            "range"         : {
-                "min"   : oarg.item.info._min,
-                "max"   : oarg.item.info._max
+            "start"     : _value,
+            "step"      : oarg.item.xxapi.slider_step || 1,
+            "range"     : {
+                "min" : oarg.item.info._min,
+                "max" : oarg.item.info._max
             }
         },true);
     } else {
         oarg.item.xxapi.slider = $("<div />",{
             "css"   : {
-                "width"             : _orientation == "horizontal" ? "100%" : "",
-                "height"            : _orientation == "vertical" ? "100%" : ""
+                "width"   : _orientation == "horizontal" ? "100%" : "",
+                "height"  : _orientation == "vertical" ? "100%" : ""
             }
         });
         oarg.item.xxapi.slider.noUiSlider({
-            "start"     : oarg.item.info._val || 0,
+            "start"     : _value,
             "connect"   : "lower",
             "orientation"   : _orientation,
             "direction"     : _orientation == "horizontal" ? "ltr" : "rtl",
@@ -779,7 +801,7 @@ hs.functions.open_at_mouseclick = function ( object, offset ) {
         var _result = _calculator.calculate();
         var _top  = _result.moveBy.y;
         var _left = _result.moveBy.x;
-        debug(1,"calculated_position " + _top + "/" +_left + "(" + offset.y + "/" + offset.x + ")",_result);
+        debug(4,"calculated_position " + _top + "/" +_left + "(" + offset.y + "/" + offset.x + ")",_result);
         object.css({
             "position"      : "absolute",
             "visibility"    : "visible",
@@ -1173,7 +1195,7 @@ hs.functions.load_image = function ( oarg ) {
             if (oarg.item.auth) {
                 _url = $.base64.decode(oarg.item.auth) + "@" + _url;
             }
-            _url = _url.match(/http?:\/\/.*/) ? _url : "http://" + _url;
+            _url = _url.match(/http[s]?:\/\/.*/) ? _url : "http://" + _url;
         } else {
             _url = hs.functions.get_url ({ 
                 "session"   : oarg.item.session, 
@@ -1550,7 +1572,7 @@ hs.functions.popup_werteingabe = function ( oarg ) {
     $.each(_buttons,function (index,key) {
         var _button = $("<li />",{
             "rel"     : key,
-            "class"     : "popupboxbutton werteingabe" + _options.class
+            "class"     : "popupboxbutton werteingabe " + _options.class
         }).html(key);
         _button.on("click",function() {
             var _key = $(this).attr("rel");

@@ -99,6 +99,18 @@ li.werteingabe:nth-child(16) {
     color: white;
 }
 
+li.passworteingabe {
+    width: 30%;
+}
+
+li.passworteingabe:nth-child(12) {
+    background-color: green;
+}
+
+li.passworteingabe:nth-child(10) {
+    background-color: red;
+}
+
 li.defaultlist:nth-child(odd) {
     background-color: rgba(30,60,150,0.25);
 }
