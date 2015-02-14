@@ -522,7 +522,8 @@ xxAPI.functions.XXCLICK = function ( oarg ) {
 */
 xxAPI.functions.XXTRIGGER = function ( oarg ) {
     debug(2,"XXTRIGGER",oarg);
-    oarg.item.next_update = $.now() + (parseInt(oarg.args[1]) || 0);
+    var _time = parseInt(oarg.args[1]) || 0;
+    oarg.item.next_update = $.now() + _time;
     var _func = null;
     if(oarg.args.length > 2) {
         var _jscode = hs.functions.fix_hsjavascript( oarg.args.slice(2).join("*") );
@@ -546,6 +547,11 @@ xxAPI.functions.XXTRIGGER = function ( oarg ) {
         }
         hs.functions.check_click ( oarg );
         oarg.item.next_update = null;
+    }
+    if(_time == 0) {
+        setTimeout(function() {
+            oarg.item.update_code( oarg );
+        },0);
     }
     oarg.item.hidden = true;
 }
@@ -2551,10 +2557,10 @@ hs.functions.mouse_event = function( oarg ) {
 
 hs.functions.check_click = function( oarg ) {
     debug(3,"check_click",oarg);
-    var _session_position =  oarg.item.session.target_obj.position();
+    //var _session_position =  oarg.item.session.target_obj.position();
     xxAPI.events.lastclick.event = oarg.item.event = oarg.item.event || {};
-    xxAPI.events.lastclick.top = oarg.item.event.pageY - _session_position.top;
-    xxAPI.events.lastclick.left = oarg.item.event.pageX - _session_position.left;
+    xxAPI.events.lastclick.top = oarg.item.event.pageY // - _session_position.top;
+    xxAPI.events.lastclick.left = oarg.item.event.pageX // - _session_position.left;
     /* 
         Element .action_id
              0 = Nur Befehl
