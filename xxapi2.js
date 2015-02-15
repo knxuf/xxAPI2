@@ -623,7 +623,7 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
                 "max"   : oarg.item.info._max || 1
             }
         });
-        oarg.item.xxapi.slider.on("slide",function() {
+        oarg.item.xxapi.slider.on("change",function() {
             oarg.item.value = oarg.item.xxapi.slider.val();
             hs.functions.do_valset( oarg );
         });
@@ -643,6 +643,56 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
         "overflow"          : "initial"
     }
     oarg.item.html = oarg.item.xxapi.slider;
+    oarg.item.text = "";
+    oarg.item.click = false;
+}
+
+xxAPI.functions.XXKNOB = function ( oarg ) {
+    debug(2,"XXKNOB",oarg);
+    if(oarg.item.action_id != 9) {
+        debug(1,"XXKNOB needs Action 'Werteingabe'",oarg);
+        return;
+    }
+    oarg.item.customcss = {
+        "background-color"  : "transparent",
+        "pointer-events"    : "auto",
+        "overflow"          : "initial"
+    }
+    if($.isEmptyObject(oarg.item.info)) {
+        oarg.item.item_callback = function() {
+            debug(4,"no item info");
+            xxAPI.functions.XXKNOB( oarg );
+        }
+        return;
+    }
+    var _min = Math.min(oarg.item.width,oarg.item.height);
+    if(oarg.item.xxapi.hasOwnProperty("knob_input")) {
+        oarg.item.xxapi.knob_input.val(oarg.args[1]).trigger("change");
+    } else {
+        oarg.item.xxapi.knob_input = $("<input />",{
+            "disabled"      : true,
+            "value"         : oarg.args[1],
+            "css"    : {
+                "user-select"   :"none",
+            }
+        })
+        oarg.item.xxapi.knob_obj = oarg.item.xxapi.knob_input.knob({
+            "width"     : _min,
+            "height"    : _min,    
+            "fgColor"   : oarg.item.color,
+            "bgColor"   : oarg.item.bg_color,
+            "font"      : hs.gui.fonts[oarg.item.font]["font-family"],
+            "fontWeight": hs.gui.fonts[oarg.item.font]["font-weight"],
+            "format"    : function(text) {
+                return text + " " + (oarg.item.info._einh || "");
+            },
+            "release"   : function(val) {
+                oarg.item.value = val;
+                hs.functions.do_valset( oarg );
+            }
+        });
+    }
+    oarg.item.html = oarg.item.xxapi.knob_obj;
     oarg.item.text = "";
     oarg.item.click = false;
 }
@@ -3283,6 +3333,7 @@ hs.functions.element_loader([
     "libs/jquery.nouislider.min.css",
     "libs/jquery.nouislider.pips.min.css",
     "libs/jquery.nouislider.all.min.js",
+    "libs/jquery.knob.min.js",
     "libs/xxapi.css",
     "libs/theme.css"
     ],true,
