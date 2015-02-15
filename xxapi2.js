@@ -623,7 +623,7 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
                 "max"   : oarg.item.info._max || 1
             }
         });
-        oarg.item.xxapi.slider.on("change",function() {
+        oarg.item.xxapi.slider.on("slide",function() {
             oarg.item.value = oarg.item.xxapi.slider.val();
             hs.functions.do_valset( oarg );
         });
