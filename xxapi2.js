@@ -2027,7 +2027,7 @@ hs.functions.make_request = function ( oarg ) {
     var ajaxOpts = {
         "cache"         : true,
         "datatype"      : "xml",
-        "contentType"   : "application/x-www-form-urlencoded;charset=ISO-8859-1",
+        "contentType"   : "application/x-www-form-urlencoded;charset=iso-8859-1",
         "complete"      : function(xhttpobj) {
             oarg.xhttpobj = xhttpobj;
             hs.functions.async.handler( oarg );
