@@ -657,8 +657,9 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
         return;
     }
     oarg.item.text = "";
+    oarg.item.value = parseInt(oarg.args[1]);
     if(oarg.item.xxapi.hasOwnProperty("knob_input")) {
-        oarg.item.xxapi.knob_input.val(oarg.args[1]).trigger("change");
+        oarg.item.xxapi.knob_input.val(oarg.item.value).trigger("change");
     } else {
         oarg.item.customcss = {
             "background-color"  : "transparent",
@@ -696,8 +697,10 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
                 return text + " " + (oarg.item.info._einh || "");
             },
             "release"   : function(val) {
-                oarg.item.value = val;
-                hs.functions.do_valset( oarg );
+                if(oarg.item.value != val) {
+                    oarg.item.value = val;
+                    hs.functions.do_valset( oarg );
+                }
             }
         };
         var _text2 = oarg.item.info._txt2 || "";
