@@ -3306,6 +3306,10 @@ $(document).on("visibilitychange",  function() {
     hs.gui.hidden = document.hidden;
 });
 
+$(document).on("touchmove", function(e) {
+    e.preventDefault();
+});
+
 // Fix iOS alert when using FastClick
 var broken_alert = window.alert;
 window.alert = function(msg) {
