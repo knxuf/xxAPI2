@@ -578,41 +578,36 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
         debug(1,"XXSLIDER needs Action 'Werteingabe'",oarg);
         return;
     }
-    if($.isEmptyObject(oarg.item.info)) {
-        oarg.item.item_callback = function() {
-            debug(4,"no item info");
-            xxAPI.functions.XXSLIDER( oarg );
+    oarg.item.text = "";
+    var _value = parseInt(oarg.args[1]) || oarg.item.info._val || 0;
+    if(oarg.item.xxapi.hasOwnProperty("slider")) {
+        oarg.item.xxapi.slider.val(_value);
+    } else {
+        oarg.item.click = false;
+        oarg.item.customcss = {
+            "background-color"  : "transparent",
+            "pointer-events"    : "auto",
+            "overflow"          : "initial"
         }
     }
-    var _orientation = oarg.item.width > oarg.item.height ? "horizontal" : "vertical";
-    var _value = parseInt(oarg.args[1]) || oarg.item.info._val || 0;
-    if(oarg.item.info && !oarg.item.xxapi.slider_step) {
+
+    if($.isEmptyObject(oarg.item.info)) {
+        debug(4,"XXSLIDER no item info " + oarg.item.uid,oarg);
+        oarg.item.item_callback = function() {
+            oarg.iscallback = true;
+            xxAPI.functions.XXSLIDER( oarg );
+        }
+        return;
+    }
+    
+    if(!oarg.item.xxapi.hasOwnProperty("slider")) {
+        var _orientation = oarg.item.width > oarg.item.height ? "horizontal" : "vertical";
         var _range = Math.abs(oarg.item.info._min - oarg.item.info._max);
         var _size = Math.max(oarg.item.width, oarg.item.height);
         var _numsteps = _size / hs.options.sliderstep_px;
         oarg.item.xxapi.slider_step = hs.functions.math_round(_range / _numsteps,oarg.item.info._prec) || 1;
         debug(4,"XXSLIDER: set step to " + oarg.item.xxapi.slider_step,oarg);
-    }
-    if(oarg.item.xxapi.hasOwnProperty("slider")) {
-        if(oarg.args[1] != "") {
-            oarg.item.xxapi.slider.val(parseInt(oarg.args[1]));
-        }
-        oarg.item.xxapi.slider.noUiSlider({
-            "start"     : _value,
-            "step"      : oarg.item.xxapi.slider_step || 1,
-            "range"     : {
-                "min" : oarg.item.info._min,
-                "max" : oarg.item.info._max
-            }
-        },true);
-    } else {
-        oarg.item.xxapi.slider = $("<div />",{
-            "css"   : {
-                "width"   : _orientation == "horizontal" ? "100%" : "",
-                "height"  : _orientation == "vertical" ? "100%" : ""
-            }
-        });
-        oarg.item.xxapi.slider.noUiSlider({
+        oarg.item.xxapi.slider_options = {
             "start"     : _value,
             "connect"   : "lower",
             "orientation"   : _orientation,
@@ -622,11 +617,27 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
                 "min"   : oarg.item.info._min || 0,
                 "max"   : oarg.item.info._max || 1
             }
+        };
+        var _text2 = oarg.item.info._txt2 || "";
+        if(_text2.match(/^XXOPTIONS\*/)) {
+            oarg.item.xxapi.slider_options = hs.functions.option_parser(_text2.substring(10),oarg.item.xxapi.slider_options);
+        }
+        oarg.item.xxapi.slider = $("<div />",{
+            "css"   : {
+                "width"   : _orientation == "horizontal" ? "100%" : "",
+                "height"  : _orientation == "vertical" ? "100%" : ""
+            }
         });
+        oarg.item.xxapi.slider.noUiSlider(oarg.item.xxapi.slider_options);
         oarg.item.xxapi.slider.on("change",function() {
             oarg.item.value = oarg.item.xxapi.slider.val();
             hs.functions.do_valset( oarg );
         });
+    }
+    if(oarg.iscallback) {
+        oarg.item.object.html(oarg.item.xxapi.slider);
+    } else {
+        oarg.item.html = oarg.item.xxapi.slider;
     }
     if(oarg.item.object) {
         oarg.item.object.find(".noUi-connect").css("background-color",oarg.item.color);
@@ -637,38 +648,41 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
             oarg.item.object.find(".noUi-background").css("background-color",oarg.item.bg_color);
         },0);
     }
-    oarg.item.customcss = {
-        "background-color"  : "transparent",
-        "pointer-events"    : "auto",
-        "overflow"          : "initial"
-    }
-    oarg.item.html = oarg.item.xxapi.slider;
-    oarg.item.text = "";
-    oarg.item.click = false;
 }
 
 xxAPI.functions.XXKNOB = function ( oarg ) {
     debug(2,"XXKNOB",oarg);
     if(oarg.item.action_id != 9) {
-        debug(1,"XXKNOB needs Action 'Werteingabe'",oarg);
+        debug(1,"XXKNOB " + oarg.item.uid + " needs Action 'Werteingabe'",oarg);
         return;
     }
-    oarg.item.customcss = {
-        "background-color"  : "transparent",
-        "pointer-events"    : "auto"
+    oarg.item.text = "";
+    if(oarg.item.xxapi.hasOwnProperty("knob_input")) {
+        oarg.item.xxapi.knob_input.val(oarg.args[1]).trigger("change");
+    } else {
+        oarg.item.customcss = {
+            "background-color"  : "transparent",
+            "pointer-events"    : "auto"
+        }
+        oarg.item.xxapi.knob_input = $("<input />",{
+            "disabled"      : true,
+            "value"         : oarg.args[1],
+            "css"    : {
+                "user-select"   :"none",
+            }
+        })
+        oarg.item.click = false;
     }
     if($.isEmptyObject(oarg.item.info)) {
+        debug(4,"XXKNOB no item info " + oarg.item.uid,oarg);
         oarg.item.item_callback = function() {
-            debug(4,"no item info");
+            oarg.iscallback = true;
             xxAPI.functions.XXKNOB( oarg );
         }
         return;
     }
-    var _min = Math.min(oarg.item.width,oarg.item.height);
-    if(oarg.item.xxapi.hasOwnProperty("knob_input")) {
-        oarg.item.xxapi.knob_input.val(oarg.args[1]).trigger("change");
-    } else {
-        var _text2 = oarg.item.info._txt2 || "";
+    if(!oarg.item.xxapi.hasOwnProperty("knob_obj")) {
+        var _min = Math.min(oarg.item.width,oarg.item.height);
         oarg.item.xxapi.knob_options = {
             "width"     : _min,
             "height"    : _min,    
@@ -686,21 +700,17 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
                 hs.functions.do_valset( oarg );
             }
         };
+        var _text2 = oarg.item.info._txt2 || "";
         if(_text2.match(/^XXOPTIONS\*/)) {
             oarg.item.xxapi.knob_options = hs.functions.option_parser(_text2.substring(10),oarg.item.xxapi.knob_options);
         }
-        oarg.item.xxapi.knob_input = $("<input />",{
-            "disabled"      : true,
-            "value"         : oarg.args[1],
-            "css"    : {
-                "user-select"   :"none",
-            }
-        })
         oarg.item.xxapi.knob_obj = oarg.item.xxapi.knob_input.knob(oarg.item.xxapi.knob_options);
     }
-    oarg.item.html = oarg.item.xxapi.knob_obj;
-    oarg.item.text = "";
-    oarg.item.click = false;
+    if(oarg.iscallback) {
+        oarg.item.object.html(oarg.item.xxapi.knob_obj);
+    } else {
+        oarg.item.html = oarg.item.xxapi.knob_obj;
+    }
 }
 
 /*
@@ -2188,7 +2198,11 @@ hs.functions.item_handler = function( oarg ) {
     );
     hs.functions.storage("set","CACHE_ITEM_" + _id, hs.gui.items[_id]);
     if (typeof oarg.item.item_callback == 'function') {
-        oarg.item.item_callback.call(hs.gui.items[_id]);
+        debug(4,"callback for " + _id,oarg)
+        var _func = oarg.item.item_callback;
+        setTimeout(function() {
+            _func.call(hs.gui.items[_id]);
+        },1);
         oarg.item.item_callback = null;
     }
 }
