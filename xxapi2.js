@@ -2551,7 +2551,7 @@ hs.functions.load_page = function( oarg ) {
     if (typeof oarg.item != 'undefined' && oarg.item.has_command) {
         _extra_request = "&cmdid=" + oarg.item.id + "&cmdpos=0";
     }
-
+    oarg.page_id = parseInt(oarg.page_id) || oarg.session.start_page;
     if (hs.gui.pages.hasOwnProperty(oarg.page_id)) {
         var _page = hs.gui.pages[oarg.page_id];
         if (!_page.hidepage) {
