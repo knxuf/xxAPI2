@@ -579,7 +579,7 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
         return;
     }
     oarg.item.text = "";
-    var _value = parseInt(oarg.args[1]) || oarg.item.info._val || 0;
+    var _value = parseInt(oarg.args[1]) || 0;
     if(oarg.item.xxapi.hasOwnProperty("slider")) {
         oarg.item.xxapi.slider.val(_value);
     } else {
