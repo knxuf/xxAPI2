@@ -623,7 +623,7 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
                 "max"   : oarg.item.info._max || 1
             }
         });
-        oarg.item.xxapi.slider.on("slide",function() {
+        oarg.item.xxapi.slider.on("change",function() {
             oarg.item.value = oarg.item.xxapi.slider.val();
             hs.functions.do_valset( oarg );
         });
@@ -655,8 +655,7 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
     }
     oarg.item.customcss = {
         "background-color"  : "transparent",
-        "pointer-events"    : "auto",
-        "overflow"          : "initial"
+        "pointer-events"    : "auto"
     }
     if($.isEmptyObject(oarg.item.info)) {
         oarg.item.item_callback = function() {
@@ -683,6 +682,8 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
             "bgColor"   : oarg.item.bg_color,
             "font"      : hs.gui.fonts[oarg.item.font]["font-family"],
             "fontWeight": hs.gui.fonts[oarg.item.font]["font-weight"],
+            "min"       : oarg.item.info._min,
+            "max"       : oarg.item.info._max,
             "format"    : function(text) {
                 return text + " " + (oarg.item.info._einh || "");
             },
