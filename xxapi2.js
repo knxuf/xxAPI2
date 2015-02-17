@@ -3307,7 +3307,7 @@ $(document).on("visibilitychange",  function() {
 });
 
 $(document).on("touchmove", function(e) {
-    e.preventDefault();
+    //e.preventDefault();  // FIXME: disable IOS overscroll but keep pinchzoom for viewport
 });
 
 // Fix iOS alert when using FastClick
