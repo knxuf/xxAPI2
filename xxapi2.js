@@ -668,14 +668,8 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
     if(oarg.item.xxapi.hasOwnProperty("knob_input")) {
         oarg.item.xxapi.knob_input.val(oarg.args[1]).trigger("change");
     } else {
-        oarg.item.xxapi.knob_input = $("<input />",{
-            "disabled"      : true,
-            "value"         : oarg.args[1],
-            "css"    : {
-                "user-select"   :"none",
-            }
-        })
-        oarg.item.xxapi.knob_obj = oarg.item.xxapi.knob_input.knob({
+        var _text2 = oarg.item.info._txt2 || "";
+        oarg.item.xxapi.knob_options = {
             "width"     : _min,
             "height"    : _min,    
             "fgColor"   : oarg.item.color,
@@ -691,7 +685,18 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
                 oarg.item.value = val;
                 hs.functions.do_valset( oarg );
             }
-        });
+        };
+        if(_text2.match(/^XXOPTIONS\*/)) {
+            oarg.item.xxapi.knob_options = hs.functions.option_parser(_text2.substring(10),oarg.item.xxapi.knob_options);
+        }
+        oarg.item.xxapi.knob_input = $("<input />",{
+            "disabled"      : true,
+            "value"         : oarg.args[1],
+            "css"    : {
+                "user-select"   :"none",
+            }
+        })
+        oarg.item.xxapi.knob_obj = oarg.item.xxapi.knob_input.knob(oarg.item.xxapi.knob_options);
     }
     oarg.item.html = oarg.item.xxapi.knob_obj;
     oarg.item.text = "";
@@ -1546,7 +1551,7 @@ hs.functions.option_parser = function ( text , defaults) {
         var _val = _match[2] || _match[3] || _match[4];
         var _numval = _val*1;
         _val = isNaN(_numval) ? _val : _numval;
-        _obj[_match[1].toLowerCase()] = _val;
+        _obj[_match[1]] = _val;
     }
     return _obj;
 }
