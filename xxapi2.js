@@ -3317,7 +3317,10 @@ $(document).on("visibilitychange",  function() {
 });
 
 $(document).on("touchmove", function(e) {
-    //e.preventDefault();  // FIXME: disable IOS overscroll but keep pinchzoom for viewport
+    var _visual_width  = hs.functions.get_orientation() == "landscape" ? screen.height : screen.width;
+    if( _visual_width  >= document.documentElement.clientWidth) {
+        e.preventDefault();
+    }
 });
 
 // Fix iOS alert when using FastClick
