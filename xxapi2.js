@@ -273,14 +273,24 @@ xxAPI.functions.XXHTTP = function ( oarg ) {
 */
 xxAPI.functions.XXIFRAME = function ( oarg ) {
     debug(2,"XXIFRAME:",oarg);
-    var _url = xxAPI.XXLINKURL;
     if (oarg.args[1] != "") {
-        _url = oarg.args[1];
+        oarg.item.xxapi.xxiframe_url = oarg.args[1];
     }
-    oarg.item.html = "<iframe src='" + _url + "' " +
-    "width='" + oarg.item.width + "px' " +
-    "height='" + oarg.item.height + "px' " +
-    "allowtransparency='true'>";
+    if(!oarg.item.xxapi.hasOwnProperty("xxiframe")) {
+        oarg.item.xxapi.xxiframe = $("<iframe />",{
+            "width"     : oarg.item.width + "px",
+            "height"    : oarg.item.height + "px",
+            "allowtransparency" : true
+        });
+        oarg.item.xxapi.xxiframe.on("DOMNodeInsertedIntoDocument",function() {
+            var _url = oarg.item.xxapi.xxiframe_url || xxAPI.XXLINKURL;
+            if(this.src != _url) {
+                this.setAttribute("src",_url);
+            }
+        });
+    }
+    oarg.item.xxapi.xxiframe.attr("src",oarg.item.xxapi.xxiframe_url ||  xxAPI.XXLINKURL);
+    oarg.item.html = oarg.item.xxapi.xxiframe;
     oarg.item.customcss = { "pointer-events":"auto" };
 
 }
