@@ -1574,7 +1574,17 @@ hs.functions.option_parser = function ( text , defaults) {
         var _val = _match[2] || _match[3] || _match[4];
         var _numval = _val*1;
         _val = isNaN(_numval) ? _val : _numval;
-        _obj[_match[1]] = _val;
+        var _levels = _match[1].split(".");
+        var _objcopy = _obj;
+        var _i = 0;
+        while(_i < _levels.length -1) {
+            if(typeof _objcopy[_levels[_i]] != "object") {
+                _objcopy[_levels[_i]] = {};
+            }
+            _objcopy = _objcopy[_levels[_i]];
+            _i++;
+        }
+        _objcopy[_levels[_levels.length -1]] = _val;
     }
     return _obj;
 }
