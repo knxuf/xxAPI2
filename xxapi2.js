@@ -1430,7 +1430,10 @@ hs.functions.fade_page = function( oarg ) {
     } else {
         oarg.session.target_obj.prepend(oarg.page.object);
         if(oarg.session.active_page && oarg.session.active_page.page_id != oarg.page.page_id) {
-            oarg.session.active_page.object.fadeOut(10,function() { 
+            $.each($(oarg.session.target_obj).children(),function() {
+                if(this == oarg.page.object[0]) {
+                    return;
+                }
                 $(this).detach();
             });
             $.each($("#POPUP").children(),function() {
@@ -2621,10 +2624,11 @@ hs.functions.async.gv = function( oarg ) {
     debug(4,"async.gv (" + oarg.session.target + "): ",oarg);
     if (oarg.session.target == "VISU" && oarg.json.HS.VISU && (oarg.json.HS.VISU._pop*1) > 0) {
         debug(3,"visu_alarm",oarg);
-        hs.functions.load_page({
-            "session"   : oarg.session,
-            "page_id"   : oarg.json.HS.VISU._pop*1
-        }) ;
+        setTimeout(function() {
+            oarg.page_id = oarg.json.HS.VISU._pop*1;
+            hs.functions.load_page(oarg) ;
+        },1);
+        return;
     }
     if (oarg.json.HS.ITEMS) {
         new hs.functions.hs_page( oarg );
