@@ -784,7 +784,7 @@ xxAPI.xxtemplates.DIMMER = function ( obj ) {
 
 xxAPI.xxtemplates.XXKNOB = function ( obj ) {
     debug(2,"XXKNOB Template",obj);
-    var _knob_input = $("<input />",{
+    obj.knob_input = $("<input />",{
         "disabled"      : true,
         "value"         : obj.oarg.item.info._val,
         "css"    : {
@@ -811,7 +811,7 @@ xxAPI.xxtemplates.XXKNOB = function ( obj ) {
         }
     };
     _knob_options = $.extend(_knob_options,obj.options.xxknob || {});
-    var _content = $("<div />",{
+    obj.contentdiv = $("<div />",{
         "css"   : {
             "width"     : obj.options.width  || "240px",
             "height"    : obj.options.height || "220px",
@@ -819,12 +819,12 @@ xxAPI.xxtemplates.XXKNOB = function ( obj ) {
             "vertical-align"    : "middle"
         }
     });
-    var _knob_obj = _knob_input.knob(_knob_options);
-    _content.append(_knob_obj);
-    _knob_obj.on("DOMNodeInsertedIntoDocument",function() {
+    obj.knob_obj = obj.knob_input.knob(_knob_options);
+    obj.contentdiv.append(obj.knob_obj);
+    obj.knob_obj.on("DOMNodeInsertedIntoDocument",function() {
         $(this).center(_content,"left");
     });
-    obj.popupbox.append(_content);
+    obj.popupbox.append(obj.contentdiv);
     obj.popupbox.on("touchend mouseup",function() {
         obj.popupbox.fadeOut("fast",function() {
             obj.popupbox.remove();
@@ -1733,12 +1733,6 @@ hs.functions.popup_werteingabe = function ( oarg, callback ) {
         "class"     : "popupbox werteingabe " + _options.class,
         "css"       : hs.gui.systemfonts["WERT"]
     });
-     var obj = {
-        "oarg"      : oarg,
-        "options"   : _options,
-        "popupbox" : _popupbox
-    }
-
     var _title = $("<div />",{
         "class"     : "popuptitle " + _options.class,
         "css"       : hs.gui.systemfonts["TITEL1"]
@@ -1746,6 +1740,12 @@ hs.functions.popup_werteingabe = function ( oarg, callback ) {
         _popupbox.remove();
         hs.functions.popup_overlay(false,false,oarg);
     });
+     var obj = {
+        "oarg"      : oarg,
+        "options"   : _options,
+        "popupbox"  : _popupbox,
+        "title"     : _title
+    }
     var _template_func = xxAPI.xxtemplates[_options.xxtemplate.toUpperCase()];
     if(typeof _template_func === "function") {
         _template_func(obj);
