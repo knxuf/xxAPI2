@@ -43,7 +43,7 @@ $.base64 = {
 }
 
 var xxAPI = {};
-xxAPI.version = "2.028";
+xxAPI.version = "2.029";
 xxAPI.functions = {};
 xxAPI.events = {
     "lastclick" : {
@@ -59,6 +59,9 @@ xxAPI.registered_icons = {
 };
 xxAPI.marked_pages = {};
 xxAPI.geolocation = {};
+xxAPI.xxtemplates = {
+    "default"   : null
+};
 
 // Homeserver Object
 var hs = {};
@@ -640,7 +643,7 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
         });
         oarg.item.xxapi.slider.noUiSlider(oarg.item.xxapi.slider_options);
         oarg.item.xxapi.slider.on("change",function() {
-            oarg.item.value = oarg.item.xxapi.slider.val();
+            oarg.item.value = oarg.item.info._val = oarg.item.xxapi.slider.val();
             hs.functions.do_valset( oarg );
         });
     }
@@ -708,7 +711,7 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
             },
             "release"   : function(val) {
                 if(oarg.item.value != val) {
-                    oarg.item.value = val;
+                    oarg.item.value = oarg.item.info._val = val;
                     hs.functions.do_valset( oarg );
                 }
             }
@@ -724,6 +727,85 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
     } else {
         oarg.item.html = oarg.item.xxapi.knob_obj;
     }
+}
+
+xxAPI.xxtemplates.TEMP = function ( obj ) {
+    obj.options.xxknob = $.extend({
+        "angleArc"      : 250,
+        "angleOffset"   : -125,
+        "step"          : .1,
+        "draw"          : function() {
+            this.o.fgColor = hs.functions.temp2rgb(obj.options.low || 2,obj.options.high || 28, this.cv);
+        }
+    },obj.options.xxknob);
+    xxAPI.xxtemplates.XXKNOB ( obj );
+}
+
+xxAPI.xxtemplates.SPEAKER = function ( obj ) {
+    obj.options.xxknob = $.extend({
+        "angleArc"      : 300,
+        "angleOffset"   : -150,
+        "cursor"    : 30,
+        "stopper"   : true
+    },obj.options.xxknob);
+    xxAPI.xxtemplates.XXKNOB ( obj );
+}
+
+xxAPI.xxtemplates.DIMMER = function ( obj ) {
+    obj.options.xxknob = $.extend({
+    },obj.options.xxknob);
+    xxAPI.xxtemplates.XXKNOB ( obj );
+}
+
+xxAPI.xxtemplates.XXKNOB = function ( obj ) {
+    debug(2,"XXKNOB Template",obj);
+    var _knob_input = $("<input />",{
+        "disabled"      : true,
+        "value"         : obj.oarg.item.info._val,
+        "css"    : {
+            "user-select"   :"none",
+        }
+    })
+    var _knob_options = {
+        "width"     : "200",
+        "height"    : "200",
+        "fgColor"   : "yellow",
+        "bgColor"   : "grey",
+        "font"      : hs.gui.systemfonts["WERT"]["font-family"],
+        "fontWeight": hs.gui.systemfonts["WERT"]["font-weight"],
+        "min"       : obj.oarg.item.info._min,
+        "max"       : obj.oarg.item.info._max,
+        "format"    : function(text) {
+            return text + " " + (obj.oarg.item.info._einh || "");
+        },
+        "release"   : function(val) {
+            if(obj.oarg.item.value != val) {
+                obj.oarg.item.value = obj.oarg.item.info._val = val;
+                hs.functions.do_valset( obj.oarg );
+            }
+        }
+    };
+    _knob_options = $.extend(_knob_options,obj.options.xxknob || {});
+    var _content = $("<div />",{
+        "css"   : {
+            "width"     : obj.options.width  || "240px",
+            "height"    : obj.options.height || "220px",
+            "text-algin"        : "center",
+            "vertical-align"    : "middle"
+        }
+    });
+    var _knob_obj = _knob_input.knob(_knob_options);
+    _content.append(_knob_obj);
+    _knob_obj.on("DOMNodeInsertedIntoDocument",function() {
+        $(this).center(_content,"left");
+    });
+    obj.popupbox.append(_content);
+    obj.popupbox.on("touchend mouseup",function() {
+        obj.popupbox.fadeOut("fast",function() {
+            obj.popupbox.remove();
+            hs.functions.popup_overlay(false,false,obj.oarg);
+        });
+    });
 }
 
 /*
@@ -886,7 +968,7 @@ hs.functions.open_at_mouseclick = function ( object, offset ) {
         var _result = _calculator.calculate();
         var _top  = _result.moveBy.y;
         var _left = _result.moveBy.x;
-        debug(4,"calculated_position " + _top + "/" +_left + "(" + offset.y + "/" + offset.x + ")",_result);
+        debug(4,"calculated_position " + _top + "/" +_left + "(" + offset.y + "/" + offset.x + ")",{"result" : _result, "object" : object, "target" : xxAPI.events.lastclick.event.currentTarget });
         object.css({
             "position"      : "absolute",
             "visibility"    : "visible",
@@ -1580,6 +1662,7 @@ hs.functions.option_parser = function ( text , defaults) {
         var _levels = _match[1].split(".");
         var _objcopy = _obj;
         var _i = 0;
+        // objects with dot in string
         while(_i < _levels.length -1) {
             if(typeof _objcopy[_levels[_i]] != "object") {
                 _objcopy[_levels[_i]] = {};
@@ -1592,15 +1675,16 @@ hs.functions.option_parser = function ( text , defaults) {
     return _obj;
 }
 
-hs.functions.popup_werteingabe = function ( oarg ) {
-    hs.functions.get_item_info( oarg );
-    if($.isEmptyObject(oarg.item.info)) {
+hs.functions.popup_werteingabe = function ( oarg, callback ) {
+    if(!callback) {
         oarg.item.item_callback = function() {
-            hs.functions.popup_werteingabe( oarg );
+            hs.functions.popup_werteingabe( oarg ,true);
         }
+        hs.functions.get_item_info( oarg );
         return;
     }
     var _options = {
+        "xxtemplate": "default",    
         "type"      : "text",
         "pattern"   : null,
         "class"     : "",
@@ -1614,117 +1698,160 @@ hs.functions.popup_werteingabe = function ( oarg ) {
         "top"   : null,
         "left"  : null
     };
+
+
     var _text2 = oarg.item.info._txt2 || "";
     if(_text2.match(/^XXOPTIONS\*/)) {
         _options = hs.functions.option_parser(_text2.substring(10),_options);
     }
-    var _div = $("<div />",{
+    var _popupbox = $("<div />",{
         "class"     : "popupbox werteingabe " + _options.class,
         "css"       : hs.gui.systemfonts["WERT"]
     });
-    var _title = $("<span />",{
+     var obj = {
+        "oarg"      : oarg,
+        "options"   : _options,
+        "popupbox" : _popupbox
+    }
+
+    var _title = $("<div />",{
         "class"     : "popuptitle " + _options.class,
         "css"       : hs.gui.systemfonts["TITEL1"]
     }).text(oarg.item.info._txt1).on("click",function() {
-        _div.remove();
+        _popupbox.remove();
         hs.functions.popup_overlay(false,false,oarg);
     });
-    _div.append(_title);
-    var _prec = oarg.item.info._prec;
-    var _maxsize = Math.max(oarg.item.info._min.toString().length, oarg.item.info._max.toString().length) + ( _prec > 0 ? _prec +1 : 0);
-    var _display_div = $("<div />",{
-        "class"     : "werteingabe popupdisplay " + _options.class,
-    });
+    var _template_func = xxAPI.xxtemplates[_options.xxtemplate.toUpperCase()];
+    if(typeof _template_func === "function") {
+        _template_func(obj);
+    } else {
+        var _prec = oarg.item.info._prec;
+        var _maxsize = Math.max(oarg.item.info._min.toString().length, oarg.item.info._max.toString().length) + ( _prec > 0 ? _prec +1 : 0);
+        var _display_div = $("<div />",{
+            "class"     : "werteingabe popupdisplay " + _options.class,
+        });
 
+        var _input = $("<input />",{
+            "readonly"  : "true",
+            "type"      : _options.type,
+            "pattern"   : _options.pattern || (_prec ==  0 ? "^[-]?\\d+$": "^[-]?\\d+(\\.\\d{0," + _prec + "})?$"),
+            "min"       : oarg.item.info._min,
+            "max"       : oarg.item.info._max,
+            "css"       : {
+                "padding"   : "0",
+                "height"    : "100%",    
+                "color"     : "inherit",
+                "font-size" : "inherit",
+                "font-weight": "inherit",
+                "font-family": "inherit",
+                "text-align": "right",
+            }
+        });
+        _input.attr("size",_maxsize.toString());
+        var _unit_span = $("<span />",{
+            "css"       : {
+                "height"    : "100%",
+            }
+        }).text(oarg.item.info._einh || "");
 
-    var _input = $("<input />",{
-        "readonly"  : "true",
-        "type"      : _options.type,
-        "pattern"   : _options.pattern || (_prec ==  0 ? "^[-]?\\d+$": "^[-]?\\d+(\\.\\d{0," + _prec + "})?$"),
-        "min"       : oarg.item.info._min,
-        "max"       : oarg.item.info._max,
-        "css"       : {
-            "padding"   : "0",
-            "height"    : "100%",    
-            "color"     : "inherit",
-            "font-size" : "inherit",
-            "font-weight": "inherit",
-            "font-family": "inherit",
-            "text-align": "right",
+        _display_div.append(_input);
+        _display_div.append(_unit_span);
+        _popupbox.append(_display_div);
+        hs.functions.set_validinput(_input,_options.initvalue);
+        var _numpad = $("<ul class='werteingabe " + _options.class + "' />");
+        var _buttons = _options.buttons.split(",");
+        var _firstkey = true;
+        $.each(_buttons,function (index,key) {
+            var _button = $("<li />",{
+                "rel"     : key,
+                "class"     : "popupboxbutton werteingabe " + _options.class
+            }).html(key);
+            _button.on("click",function() {
+                var _key = $(this).attr("rel");
+                if(!_key) {
+                    return;
+                }
+                switch(_key) {
+                    case _options.clearbutton:  
+                        hs.functions.set_validinput(_input,function(index,value) { 
+                            return value.length > 1 && !value.match(/-\d$/) ? 
+                                value.substr(0,value.length-1) : _options.clearvalue;
+                        }); 
+                        return;
+                    case _options.clearallbutton:  hs.functions.set_validinput(_input,_options.clearvalue); return;
+                    case _options.cancelbutton:
+                        _popupbox.remove();
+                        hs.functions.popup_overlay(false,false,oarg);
+                        return;
+                    case _options.okbutton:
+                        if(_input.attr("valid") != "true") { 
+                            return; 
+                        }
+                        _popupbox.remove();
+                        hs.functions.popup_overlay(false,false,oarg);
+                        oarg.item.info._val = oarg.item.value = _input.val();
+                        hs.functions.do_valset( oarg );
+                        return;
+                    case "&bull;": _key = "."; break;
+                    case "+/&minus;": _key = "-"; break;
+                    default:
+                        if(_firstkey) {
+                             hs.functions.set_validinput(_input,_options.clearvalue);
+                            _firstkey = false;
+                        }
+                        debug(5,"button '" + _key + "' pressed");
+                };
+                hs.functions.write_input(_input,_key);
+            });
+            hs.functions.default_click_element(_button);
+            _numpad.append(_button);
+        });
+        _numpad.appendTo(_popupbox);
+    }
+    $.each(_popupbox.children(),function() {
+        if($(this).width() > _popupbox.width()) {
+            _popupbox.css("width",$(this).width());
         }
     });
-    _input.attr("size",_maxsize.toString());
-    var _unit_span = $("<span />",{
-        "css"       : {
-            "height"    : "100%",
-        }
-    }).text(oarg.item.info._einh || "");
+    _popupbox.prepend(_title);
+    hs.functions.popup_overlay(true,false,oarg);
 
-    _display_div.append(_input);
-    _display_div.append(_unit_span);
-    _div.append(_display_div);
-    hs.functions.set_validinput(_input,_options.initvalue);
-    var _numpad = $("<ul class='werteingabe " + _options.class + "' />");
-    var _buttons = _options.buttons.split(",");
-    var _firstkey = true;
-    $.each(_buttons,function (index,key) {
-        var _button = $("<li />",{
-            "rel"     : key,
-            "class"     : "popupboxbutton werteingabe " + _options.class
-        }).html(key);
-        _button.on("click",function() {
-            var _key = $(this).attr("rel");
-            if(!_key) {
+    if(hs.gui.device.scale > 1) {
+         _popupbox.css("transform","scale(" + hs.gui.device.scale + "," + hs.gui.device.scale + ")");
+    }
+    $("#POPUP").append(_popupbox);
+    if(!_options.top && !_options.left) {
+        _popupbox.center();
+    } else {
+        var _offset = {
+            "x"       : 0,
+            "y"       : 0, 
+            "mirror"  : false
+        };
+        $.each(["top","left"],function() {
+            var _attr = this;
+            var _text = _options[_attr];
+            if(!_text) {
                 return;
             }
-            switch(_key) {
-                case _options.clearbutton:  
-                    hs.functions.set_validinput(_input,function(index,value) { 
-                        return value.length > 1 && !value.match(/-\d$/) ? 
-                            value.substr(0,value.length-1) : _options.clearvalue;
-                    }); 
-                    return;
-                case _options.clearallbutton:  hs.functions.set_validinput(_input,_options.clearvalue); return;
-                case _options.cancelbutton:
-                    _div.remove();
-                    hs.functions.popup_overlay(false,false,oarg);
-                    return;
-                case _options.okbutton:
-                    if(_input.attr("valid") != "true") { 
-                        return; 
-                    }
-                    _div.remove();
-                    hs.functions.popup_overlay(false,false,oarg);
-                    oarg.item.info._val = oarg.item.value = _input.val();
-                    hs.functions.do_valset( oarg );
-                    return;
-                case "&bull;": _key = "."; break;
-                case "+/&minus;": _key = "-"; break;
-                default:
-                    if(_firstkey) {
-                         hs.functions.set_validinput(_input,_options.clearvalue);
-                        _firstkey = false;
-                    }
-                    debug(5,"button '" + _key + "' pressed");
-            };
-            hs.functions.write_input(_input,_key);
+            _text = _text.replace(/MOUSE([+-]\d+)(px|%)/,function(match,distance,unit) {
+                _offset.mirror = true;
+                _offset[_attr == "top" ? "y" : "x"] = parseInt(distance);
+                return "0";
+            })
         });
-        hs.functions.default_click_element(_button);
-        _numpad.append(_button);
-    });
-    _numpad.appendTo(_div);
-    hs.functions.popup_overlay(true,false,oarg);
-    if(hs.gui.device.scale > 1) {
-         _div.css("transform","scale(" + hs.gui.device.scale + "," + hs.gui.device.scale + ")");
+        if(_offset.mirror) {
+            hs.functions.open_at_mouseclick( _popupbox, _offset);
+        } else {
+            if(_options.top) {
+                _popupbox.css("top",_options.top);
+            }
+            if(_options.left) {
+                _popupbox.css("left",_options.left);
+            }
+        }
     }
-    $("#POPUP").append(_div);
-    _div.center();
-    if(_options.top) {
-        _div.css("top",_options.top);
-    }
-    if(_options.left) {
-        _div.css("left",_options.left);
-    }
+
 };
 
 hs.functions.default_click_element = function ( obj ) {
@@ -2993,7 +3120,7 @@ jQuery.fn.center = function (parent, dir) {
             _elem.center();
         });
     }
-    this.css("position","absolute");
+    this.css("position",this.css("position") == "relative" ? "relative" : "absolute");
     if(dir != "left") {
         this.css("top",parent.height() < this.height() ? 0 : parent.height()/2 - this.height()/2);
     }
@@ -3185,12 +3312,60 @@ hs.functions.format_date = function ( format, date ) {
     });
 }
 
+hs.functions.temp2rgb = function (low, high, temp) {
+    var _colors = {
+        "one"   : [52, 152, 219],
+        "two"   : [137, 224, 223],
+        "three" : [46, 204, 113],
+        "four"  : [241, 196, 15],
+        "five"  : [231, 76, 60]
+    };
+    var _tempdiff = high-low;
+    var _rate = {
+        "cold"  : _tempdiff *0.25,
+        "mid"   : _tempdiff *0.5,
+        "warm"  : _tempdiff *0.75
+    };
+    if (temp <= _rate.cold) {
+        var _cold = _colors.one;
+        var _warm = _colors.two;
+        high = _rate.cold;
+    } else if (temp >= _rate.cold && temp <= _rate.mid) {
+        var _cold = _colors.two;
+        var _warm = _colors.three;
+        low = _rate.cold;
+        high = _rate.mid;
+    } else if (temp >= _rate.mid && temp <= _rate.warm) {
+        var _cold = _colors.three;
+        var _warm = _colors.four;
+        low = _rate.mid;
+        high = _rate.warm;
+    } else if (temp >= _rate.warm) {
+        var _cold = _colors.four;
+        var _warm = _colors.five;
+        low = _rate.warm;
+    }
+    if(temp < low) {
+        temp = low;
+    }
+    if(temp > high) {
+        temp = high;
+    }
+    var _start = temp - low;
+    _tempdiff = high-low;
+    var _red   = ((((_warm[0]-_cold[0])/_tempdiff)*_start)+_cold[0]).toFixed();
+    var _green = ((((_warm[1]-_cold[1])/_tempdiff)*_start)+_cold[1]).toFixed();
+    var _blue  = ((((_warm[2]-_cold[2])/_tempdiff)*_start)+_cold[2]).toFixed();
+    return "rgb(" + _red + "," + _green + "," + _blue + ")";
+}
+
 hs.functions.post_loading = function () {
 }
 
 hs.functions.element_loader = function ( urls, cache, callback ) {
     var _failure = false;
     var _finish = function(url, failure) {
+        url = url.split("?")[0];
         var _index = _queue.indexOf(url);
         if(_index < 0) {
             return;
@@ -3201,12 +3376,16 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
         _queue.splice(_index,1);
         if(_queue.length == 0) {
             debug(3,"element_loader callback is called");
+            clearTimeout(_timer);
             if(typeof callback == "function") {
                 callback(_failure);
             }
         }
         debug(5,"element_loader finished loading " + url + " from (" + _queue.length + ")");
     };
+    var _timer = setTimeout(function() {
+        alert(_queue);
+    },2000);
     var _getid = function(filename) {
         return filename.replace(/http[s]?:\/\/.*?\//,"").replace(/\./g,"_").replace(/\//g,"_");
     }
@@ -3390,7 +3569,7 @@ hs.functions.element_loader([
     "libs/jquery.knob.min.js",
     "libs/xxapi.css",
     "libs/theme.css"
-    ],true,
+    ],false,
     function(fail) {
         if(fail) {
             alert("failed to load all require javascript libraries");

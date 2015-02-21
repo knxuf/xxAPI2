@@ -38,7 +38,6 @@ div.popupdisplay {
     height: 60px;
     width: calc(100% - 24px);
     color: black;
-    position: absolute;
     left: 10px;
     font-size: 22px;
     font-weight: bold;
@@ -74,6 +73,7 @@ input.werteingabe {
 
 ul.werteingabe {
     left: 10px;
+    margin-right: 10px;
 }
 
 li.popupboxbutton {
