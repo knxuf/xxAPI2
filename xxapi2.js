@@ -77,6 +77,13 @@ hs.options = {
     "dateformat"    : "%ddd% %dd%.%MM%.%YYYY% %HH%:%mm%:%ss%",
     "timezone"      : -1,
     "sliderstep_px" : 10,
+    "temp_colors"   : {
+        "one"   : [52, 152, 219],
+        "two"   : [137, 224, 223],
+        "three" : [46, 204, 113],
+        "four"  : [241, 196, 15],
+        "five"  : [231, 76, 60]
+    }
 }
 
 hs.datestrings = {
@@ -720,6 +727,16 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
         if(_text2.match(/^XXOPTIONS\*/)) {
             oarg.item.xxapi.knob_options = hs.functions.option_parser(_text2.substring(10),oarg.item.xxapi.knob_options);
         }
+        if(oarg.item.xxapi.knob_options.temp) {
+            var _temp = $.extend({
+                "low"   : 2,
+                "high"  : 28,
+            },oarg.item.xxapi.knob_options.temp);
+            delete oarg.item.xxapi.knob_options.temp;
+            oarg.item.xxapi.knob_options.draw = function() {
+                this.o.fgColor = hs.functions.temp2rgb(_temp.low ,_temp.high, this.cv);
+            }
+        }
         oarg.item.xxapi.knob_obj = oarg.item.xxapi.knob_input.knob(oarg.item.xxapi.knob_options);
     }
     if(oarg.iscallback) {
@@ -730,12 +747,17 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
 }
 
 xxAPI.xxtemplates.TEMP = function ( obj ) {
+    obj.options.temp = $.extend({
+        "low"   : 2,
+        "high"  : 28
+    },obj.options.temp)
+
     obj.options.xxknob = $.extend({
         "angleArc"      : 250,
         "angleOffset"   : -125,
         "step"          : .1,
         "draw"          : function() {
-            this.o.fgColor = hs.functions.temp2rgb(obj.options.low || 2,obj.options.high || 28, this.cv);
+            this.o.fgColor = hs.functions.temp2rgb(obj.options.temp.low ,obj.options.temp.high, this.cv);
         }
     },obj.options.xxknob);
     xxAPI.xxtemplates.XXKNOB ( obj );
@@ -3313,13 +3335,6 @@ hs.functions.format_date = function ( format, date ) {
 }
 
 hs.functions.temp2rgb = function (low, high, temp) {
-    var _colors = {
-        "one"   : [52, 152, 219],
-        "two"   : [137, 224, 223],
-        "three" : [46, 204, 113],
-        "four"  : [241, 196, 15],
-        "five"  : [231, 76, 60]
-    };
     var _tempdiff = high-low;
     var _rate = {
         "cold"  : _tempdiff *0.25,
@@ -3327,22 +3342,22 @@ hs.functions.temp2rgb = function (low, high, temp) {
         "warm"  : _tempdiff *0.75
     };
     if (temp <= _rate.cold) {
-        var _cold = _colors.one;
-        var _warm = _colors.two;
+        var _cold = hs.options.temp_colors.one;
+        var _warm = hs.options.temp_colors.two;
         high = _rate.cold;
     } else if (temp >= _rate.cold && temp <= _rate.mid) {
-        var _cold = _colors.two;
-        var _warm = _colors.three;
+        var _cold = hs.options.temp_colors.two;
+        var _warm = hs.options.temp_colors.three;
         low = _rate.cold;
         high = _rate.mid;
     } else if (temp >= _rate.mid && temp <= _rate.warm) {
-        var _cold = _colors.three;
-        var _warm = _colors.four;
+        var _cold = hs.options.temp_colors.three;
+        var _warm = hs.options.temp_colors.four;
         low = _rate.mid;
         high = _rate.warm;
     } else if (temp >= _rate.warm) {
-        var _cold = _colors.four;
-        var _warm = _colors.five;
+        var _cold = hs.options.temp_colors.four;
+        var _warm = hs.options.temp_colors.five;
         low = _rate.warm;
     }
     if(temp < low) {
