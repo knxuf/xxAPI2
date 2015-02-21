@@ -747,6 +747,7 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
 }
 
 xxAPI.xxtemplates.TEMP = function ( obj ) {
+    obj.popupbox.addClass("temperaturepopup");
     obj.options.temp = $.extend({
         "low"   : 2,
         "high"  : 28
@@ -764,6 +765,7 @@ xxAPI.xxtemplates.TEMP = function ( obj ) {
 }
 
 xxAPI.xxtemplates.SPEAKER = function ( obj ) {
+    obj.popupbox.addClass("speakerpopup");
     obj.options.xxknob = $.extend({
         "angleArc"      : 300,
         "angleOffset"   : -150,
@@ -774,6 +776,7 @@ xxAPI.xxtemplates.SPEAKER = function ( obj ) {
 }
 
 xxAPI.xxtemplates.DIMMER = function ( obj ) {
+    obj.popupbox.addClass("dimmerpopup");
     obj.options.xxknob = $.extend({
     },obj.options.xxknob);
     xxAPI.xxtemplates.XXKNOB ( obj );
