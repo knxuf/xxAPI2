@@ -1000,7 +1000,12 @@ xxAPI.functions.XXGEOLOCATION = function ( oarg ) {
     * Template Section
 */
 xxAPI.xxtemplates.DEFAULT = function ( obj ) {
-    debug(2,"DEFAULT Template",obj);
+    debug(1,"DEFAULT xxtemplate",obj);
+    obj.options = $.extend(obj.defaults,obj.options);
+    xxAPI.xxtemplates.werteingabe ( obj );
+}
+
+xxAPI.xxtemplates.werteingabe = function ( obj ) {
     var _prec = obj.oarg.item.info._prec;
     var _maxsize = Math.max(obj.oarg.item.info._min.toString().length, obj.oarg.item.info._max.toString().length) + ( _prec > 0 ? _prec +1 : 0);
     var _display_div = $("<div />",{
@@ -1083,6 +1088,18 @@ xxAPI.xxtemplates.DEFAULT = function ( obj ) {
         _numpad.append(_button);
     });
     _numpad.appendTo(obj.popupbox);
+}
+
+xxAPI.xxtemplates.PINCODE = function ( obj ) {
+    debug(1,"PINCODE",obj);
+    obj.options = $.extend(obj.defaults,{
+        "type"          : "password",
+        "initvalue"     : "",
+        "buttons"       : "1,2,3,4,5,6,7,8,9,C,0,&#10003;",
+        "class"         : "passworteingabe",
+        "pattern"       : "^\\d{0,4}$"
+    },obj.options);
+    xxAPI.xxtemplates.werteingabe ( obj );
 }
 
 xxAPI.xxtemplates.TEMP = function ( obj ) {
@@ -1766,14 +1783,32 @@ hs.functions.set_validinput = function ( input, value, deny_invalid_pattern) {
     input.val(value);
 }
 
+hs.functions.stringdot2object = function ( obj, text ) {
+    debug(1,"string to obj " + text,obj);
+    return text.split(".").reduce(function(_obj,_index) {
+      return typeof _obj == "object" ? _obj[_index] : undefined;
+    },obj);
+}
+
 hs.functions.option_parser = function ( text , defaults) {
-    var _obj = defaults || {};
+    var _obj = {};
     var _regex = /(.*?)(?::|=)(?:"(.*?)"|'(.*?)'|([^;]*?))(?:;|$)/g;
     var _match;
     while(_match = _regex.exec(text)) {
         var _val = _match[2] || _match[3] || _match[4];
-        var _numval = _val*1;
-        _val = isNaN(_numval) ? _val : _numval;
+        var _default = hs.functions.stringdot2object( defaults, _match[1] );
+        switch(typeof _defaults) {
+            case "number":
+                _val = parseFloat(_val);
+                break;
+            case "boolean":
+                _val = (_val == true);
+                break;
+            default:
+                var _numval = _val*1;
+                _val = isNaN(_numval) ? _val : _numval;
+                break;
+        }
         var _levels = _match[1].split(".");
         var _objcopy = _obj;
         var _i = 0;
@@ -1798,7 +1833,8 @@ hs.functions.popup_werteingabe = function ( oarg, callback ) {
         hs.functions.get_item_info( oarg );
         return;
     }
-    var _options = {
+    var _options = {};
+    var _defaults = {
         "xxtemplate": "default",    
         "type"      : "text",
         "pattern"   : null,
@@ -1817,14 +1853,14 @@ hs.functions.popup_werteingabe = function ( oarg, callback ) {
 
     var _text2 = oarg.item.info._txt2 || "";
     if(_text2.match(/^XXOPTIONS\*/)) {
-        _options = hs.functions.option_parser(_text2.substring(10),_options);
+        _options = hs.functions.option_parser(_text2.substring(10),_defaults);
     }
     var _popupbox = $("<div />",{
-        "class"     : "popupbox werteingabe " + _options.class,
+        "class"     : "popupbox werteingabe " + (_options.class || _defaults.class ),
         "css"       : hs.gui.systemfonts["WERT"]
     });
     var _title = $("<div />",{
-        "class"     : "popuptitle " + _options.class,
+        "class"     : "popuptitle " + (_options.class || _defaults.class),
         "css"       : hs.gui.systemfonts["TITEL1"]
     }).text(oarg.item.info._txt1).on("click",function() {
         _popupbox.remove();
@@ -1833,10 +1869,11 @@ hs.functions.popup_werteingabe = function ( oarg, callback ) {
      var obj = {
         "oarg"      : oarg,
         "options"   : _options,
+        "defaults"  : _defaults,
         "popupbox"  : _popupbox,
         "title"     : _title
     }
-    var _template_func = xxAPI.xxtemplates[_options.xxtemplate.toUpperCase()] || xxAPI.xxemplates.DEFAULT;
+    var _template_func = xxAPI.xxtemplates[(_options.xxtemplate || "default").toUpperCase()] || xxAPI.xxemplates.DEFAULT;
     if(typeof _template_func === "function") {
         _template_func(obj);
     }
