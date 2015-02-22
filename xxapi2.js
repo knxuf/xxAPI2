@@ -1117,7 +1117,7 @@ xxAPI.xxtemplates.TEMP = function ( obj ) {
             this.o.fgColor = hs.functions.temp2rgb(obj.options.temp.low ,obj.options.temp.high, this.cv);
         }
     },obj.options.xxknob);
-    xxAPI.xxtemplates.XXKNOB ( obj );
+    xxAPI.xxtemplates.xxknob ( obj );
 }
 
 xxAPI.xxtemplates.SPEAKER = function ( obj ) {
@@ -1128,17 +1128,17 @@ xxAPI.xxtemplates.SPEAKER = function ( obj ) {
         "cursor"    : 30,
         "stopper"   : true
     },obj.options.xxknob);
-    xxAPI.xxtemplates.XXKNOB ( obj );
+    xxAPI.xxtemplates.xxknob ( obj );
 }
 
 xxAPI.xxtemplates.DIMMER = function ( obj ) {
     obj.popupbox.addClass("dimmerpopup");
     obj.options.xxknob = $.extend({
     },obj.options.xxknob);
-    xxAPI.xxtemplates.XXKNOB ( obj );
+    xxAPI.xxtemplates.xxknob ( obj );
 }
 
-xxAPI.xxtemplates.XXKNOB = function ( obj ) {
+xxAPI.xxtemplates.xxknob = function ( obj ) {
     debug(2,"XXKNOB Template",obj);
     obj.knob_input = $("<input />",{
         "disabled"      : true,
