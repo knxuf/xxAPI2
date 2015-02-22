@@ -999,6 +999,92 @@ xxAPI.functions.XXGEOLOCATION = function ( oarg ) {
 /*
     * Template Section
 */
+xxAPI.xxtemplates.DEFAULT = function ( obj ) {
+    debug(2,"DEFAULT Template",obj);
+    var _prec = obj.oarg.item.info._prec;
+    var _maxsize = Math.max(obj.oarg.item.info._min.toString().length, obj.oarg.item.info._max.toString().length) + ( _prec > 0 ? _prec +1 : 0);
+    var _display_div = $("<div />",{
+        "class"     : "werteingabe popupdisplay " + obj.options.class,
+    });
+
+    var _input = $("<input />",{
+        "readonly"  : "true",
+        "type"      : obj.options.type,
+        "pattern"   : obj.options.pattern || (_prec ==  0 ? "^[-]?\\d+$": "^[-]?\\d+(\\.\\d{0," + _prec + "})?$"),
+        "min"       : obj.oarg.item.info._min,
+        "max"       : obj.oarg.item.info._max,
+        "css"       : {
+            "padding"   : "0",
+            "height"    : "100%",    
+            "color"     : "inherit",
+            "font-size" : "inherit",
+            "font-weight": "inherit",
+            "font-family": "inherit",
+            "text-align": "right",
+        }
+    });
+    _input.attr("size",_maxsize.toString());
+    var _unit_span = $("<span />",{
+        "css"       : {
+            "height"    : "100%",
+        }
+    }).text(obj.oarg.item.info._einh || "");
+
+    _display_div.append(_input);
+    _display_div.append(_unit_span);
+    obj.popupbox.append(_display_div);
+    hs.functions.set_validinput(_input,obj.options.initvalue);
+    var _numpad = $("<ul class='werteingabe " + obj.options.class + "' />");
+    var _buttons = obj.options.buttons.split(",");
+    var _firstkey = true;
+    $.each(_buttons,function (index,key) {
+        var _button = $("<li />",{
+            "rel"     : key,
+            "class"     : "popupboxbutton werteingabe " + obj.options.class
+        }).html(key);
+        _button.on("click",function() {
+            var _key = $(this).attr("rel");
+            if(!_key) {
+                return;
+            }
+            switch(_key) {
+                case obj.options.clearbutton:  
+                    hs.functions.set_validinput(_input,function(index,value) { 
+                        return value.length > 1 && !value.match(/-\d$/) ? 
+                            value.substr(0,value.length-1) : obj.options.clearvalue;
+                    }); 
+                    return;
+                case obj.options.clearallbutton:  hs.functions.set_validinput(_input,obj.options.clearvalue); return;
+                case obj.options.cancelbutton:
+                    obj.popupbox.remove();
+                    hs.functions.popup_overlay(false,false,obj.oarg);
+                    return;
+                case obj.options.okbutton:
+                    if(_input.attr("valid") != "true") { 
+                        return; 
+                    }
+                    obj.popupbox.remove();
+                    hs.functions.popup_overlay(false,false,obj.oarg);
+                    obj.oarg.item.info._val = obj.oarg.item.value = _input.val();
+                    hs.functions.do_valset( obj.oarg );
+                    return;
+                case "&bull;": _key = "."; break;
+                case "+/&minus;": _key = "-"; break;
+                default:
+                    if(_firstkey) {
+                         hs.functions.set_validinput(_input,obj.options.clearvalue);
+                        _firstkey = false;
+                    }
+                    debug(5,"button '" + _key + "' pressed");
+            };
+            hs.functions.write_input(_input,_key);
+        });
+        hs.functions.default_click_element(_button);
+        _numpad.append(_button);
+    });
+    _numpad.appendTo(obj.popupbox);
+}
+
 xxAPI.xxtemplates.TEMP = function ( obj ) {
     obj.popupbox.addClass("temperaturepopup");
     obj.options.temp = $.extend({
@@ -1750,92 +1836,9 @@ hs.functions.popup_werteingabe = function ( oarg, callback ) {
         "popupbox"  : _popupbox,
         "title"     : _title
     }
-    var _template_func = xxAPI.xxtemplates[_options.xxtemplate.toUpperCase()];
+    var _template_func = xxAPI.xxtemplates[_options.xxtemplate.toUpperCase()] || xxAPI.xxemplates.DEFAULT;
     if(typeof _template_func === "function") {
         _template_func(obj);
-    } else {
-        var _prec = oarg.item.info._prec;
-        var _maxsize = Math.max(oarg.item.info._min.toString().length, oarg.item.info._max.toString().length) + ( _prec > 0 ? _prec +1 : 0);
-        var _display_div = $("<div />",{
-            "class"     : "werteingabe popupdisplay " + _options.class,
-        });
-
-        var _input = $("<input />",{
-            "readonly"  : "true",
-            "type"      : _options.type,
-            "pattern"   : _options.pattern || (_prec ==  0 ? "^[-]?\\d+$": "^[-]?\\d+(\\.\\d{0," + _prec + "})?$"),
-            "min"       : oarg.item.info._min,
-            "max"       : oarg.item.info._max,
-            "css"       : {
-                "padding"   : "0",
-                "height"    : "100%",    
-                "color"     : "inherit",
-                "font-size" : "inherit",
-                "font-weight": "inherit",
-                "font-family": "inherit",
-                "text-align": "right",
-            }
-        });
-        _input.attr("size",_maxsize.toString());
-        var _unit_span = $("<span />",{
-            "css"       : {
-                "height"    : "100%",
-            }
-        }).text(oarg.item.info._einh || "");
-
-        _display_div.append(_input);
-        _display_div.append(_unit_span);
-        _popupbox.append(_display_div);
-        hs.functions.set_validinput(_input,_options.initvalue);
-        var _numpad = $("<ul class='werteingabe " + _options.class + "' />");
-        var _buttons = _options.buttons.split(",");
-        var _firstkey = true;
-        $.each(_buttons,function (index,key) {
-            var _button = $("<li />",{
-                "rel"     : key,
-                "class"     : "popupboxbutton werteingabe " + _options.class
-            }).html(key);
-            _button.on("click",function() {
-                var _key = $(this).attr("rel");
-                if(!_key) {
-                    return;
-                }
-                switch(_key) {
-                    case _options.clearbutton:  
-                        hs.functions.set_validinput(_input,function(index,value) { 
-                            return value.length > 1 && !value.match(/-\d$/) ? 
-                                value.substr(0,value.length-1) : _options.clearvalue;
-                        }); 
-                        return;
-                    case _options.clearallbutton:  hs.functions.set_validinput(_input,_options.clearvalue); return;
-                    case _options.cancelbutton:
-                        _popupbox.remove();
-                        hs.functions.popup_overlay(false,false,oarg);
-                        return;
-                    case _options.okbutton:
-                        if(_input.attr("valid") != "true") { 
-                            return; 
-                        }
-                        _popupbox.remove();
-                        hs.functions.popup_overlay(false,false,oarg);
-                        oarg.item.info._val = oarg.item.value = _input.val();
-                        hs.functions.do_valset( oarg );
-                        return;
-                    case "&bull;": _key = "."; break;
-                    case "+/&minus;": _key = "-"; break;
-                    default:
-                        if(_firstkey) {
-                             hs.functions.set_validinput(_input,_options.clearvalue);
-                            _firstkey = false;
-                        }
-                        debug(5,"button '" + _key + "' pressed");
-                };
-                hs.functions.write_input(_input,_key);
-            });
-            hs.functions.default_click_element(_button);
-            _numpad.append(_button);
-        });
-        _numpad.appendTo(_popupbox);
     }
     $.each(_popupbox.children(),function() {
         if($(this).width() > _popupbox.width()) {
