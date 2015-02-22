@@ -813,16 +813,17 @@ xxAPI.xxtemplates.XXKNOB = function ( obj ) {
     _knob_options = $.extend(_knob_options,obj.options.xxknob || {});
     obj.contentdiv = $("<div />",{
         "css"   : {
-            "width"     : obj.options.width  || "240px",
-            "height"    : obj.options.height || "220px",
+            "width"     : obj.options.width  || "220px",
+            "height"    : obj.options.height || "210px",
             "text-algin"        : "center",
             "vertical-align"    : "middle"
         }
     });
     obj.knob_obj = obj.knob_input.knob(_knob_options);
+    obj.knob_obj.css("position","relative");
     obj.contentdiv.append(obj.knob_obj);
     obj.knob_obj.on("DOMNodeInsertedIntoDocument",function() {
-        $(this).center(_content,"left");
+        $(this).center(obj.contentdiv,"left");
     });
     obj.popupbox.append(obj.contentdiv);
     obj.popupbox.on("touchend mouseup",function() {
