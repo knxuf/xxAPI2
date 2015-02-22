@@ -1000,7 +1000,7 @@ xxAPI.functions.XXGEOLOCATION = function ( oarg ) {
     * Template Section
 */
 xxAPI.xxtemplates.DEFAULT = function ( obj ) {
-    debug(1,"DEFAULT xxtemplate",obj);
+    debug(2,"DEFAULT xxtemplate",obj);
     obj.options = $.extend(obj.defaults,obj.options);
     xxAPI.xxtemplates.werteingabe ( obj );
 }
@@ -1091,7 +1091,7 @@ xxAPI.xxtemplates.werteingabe = function ( obj ) {
 }
 
 xxAPI.xxtemplates.PINCODE = function ( obj ) {
-    debug(1,"PINCODE",obj);
+    debug(2,"PINCODE",obj);
     obj.options = $.extend(obj.defaults,{
         "type"          : "password",
         "initvalue"     : "",
@@ -1784,7 +1784,7 @@ hs.functions.set_validinput = function ( input, value, deny_invalid_pattern) {
 }
 
 hs.functions.stringdot2object = function ( obj, text ) {
-    debug(1,"string to obj " + text,obj);
+    debug(4,"string to obj " + text,obj);
     return text.split(".").reduce(function(_obj,_index) {
       return typeof _obj == "object" ? _obj[_index] : undefined;
     },obj);
