@@ -640,7 +640,7 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
         };
         var _text2 = oarg.item.info._txt2 || "";
         if(_text2.match(/^XXOPTIONS\*/)) {
-            oarg.item.xxapi.slider_options = hs.functions.option_parser(_text2.substring(10),oarg.item.xxapi.slider_options);
+            oarg.item.xxapi.slider_options = $.extend(oarg.item.xxapi.slider_options, hs.functions.option_parser(_text2.substring(10),oarg.item.xxapi.slider_options));
         }
         oarg.item.xxapi.slider = $("<div />",{
             "css"   : {
@@ -725,7 +725,7 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
         };
         var _text2 = oarg.item.info._txt2 || "";
         if(_text2.match(/^XXOPTIONS\*/)) {
-            oarg.item.xxapi.knob_options = hs.functions.option_parser(_text2.substring(10),oarg.item.xxapi.knob_options);
+            oarg.item.xxapi.knob_options = $.extend(oarg.item.xxapi.knob_options,hs.functions.option_parser(_text2.substring(10),oarg.item.xxapi.knob_options));
         }
         if(oarg.item.xxapi.knob_options.temp) {
             var _temp = $.extend({
@@ -1954,7 +1954,7 @@ hs.functions.popup_image = function ( oarg ) {
     };
     var _text2 = oarg.item.info._txt2 || "";
     if(_text2.match(/^XXOPTIONS\*/)) {
-        _options = hs.functions.option_parser(_text2.substring(10),_options);
+        _options = $.extend(_options,hs.functions.option_parser(_text2.substring(10),_options));
     }
     switch(oarg.item.action_id) {
         case 7:
@@ -2061,6 +2061,10 @@ hs.functions.popup_image = function ( oarg ) {
     }
 }
 
+hs.functions.popup_timer = function ( oarg ) {
+    debug(3,"popup_timer",oarg);
+}
+
 hs.functions.popup_lister = function ( oarg ) {
     debug(3,"popup_lister",oarg);
     if($.isEmptyObject(oarg.item.info)) {
@@ -2103,7 +2107,7 @@ hs.functions.popup_lister = function ( oarg ) {
 
     var _text2 = oarg.item.info._txt2 || "";
     if(_text2.match(/^XXOPTIONS\*/)) {
-        _options = hs.functions.option_parser(_text2.substring(10),_options);
+        _options = $.extend(_options,hs.functions.option_parser(_text2.substring(10),_options));
     }
 
     var _list = $("<ul />");
@@ -2900,11 +2904,12 @@ hs.functions.check_click = function( oarg ) {
             hs.functions.popup_image( oarg );
             break;
         case 8:
-            // Wochenschaltuhr
+        case 18:
+            // Wochenschaltuhr / UZSU
             /*
                 /hsgui?cmd=timset&id=31&days=000000000&frm=1200&to=2100&act=0&hnd=4&code=A2669029CE
             */
-            alert("Wochenschaltuhr noch nicht implementiert");
+            hs.functions.popup_timer ( oarg );
             break;
         case 9:
             // Werteingabe
