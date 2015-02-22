@@ -746,94 +746,6 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
     }
 }
 
-xxAPI.xxtemplates.TEMP = function ( obj ) {
-    obj.popupbox.addClass("temperaturepopup");
-    obj.options.temp = $.extend({
-        "low"   : 2,
-        "high"  : 28
-    },obj.options.temp)
-
-    obj.options.xxknob = $.extend({
-        "angleArc"      : 250,
-        "angleOffset"   : -125,
-        "step"          : .1,
-        "draw"          : function() {
-            this.o.fgColor = hs.functions.temp2rgb(obj.options.temp.low ,obj.options.temp.high, this.cv);
-        }
-    },obj.options.xxknob);
-    xxAPI.xxtemplates.XXKNOB ( obj );
-}
-
-xxAPI.xxtemplates.SPEAKER = function ( obj ) {
-    obj.popupbox.addClass("speakerpopup");
-    obj.options.xxknob = $.extend({
-        "angleArc"      : 300,
-        "angleOffset"   : -150,
-        "cursor"    : 30,
-        "stopper"   : true
-    },obj.options.xxknob);
-    xxAPI.xxtemplates.XXKNOB ( obj );
-}
-
-xxAPI.xxtemplates.DIMMER = function ( obj ) {
-    obj.popupbox.addClass("dimmerpopup");
-    obj.options.xxknob = $.extend({
-    },obj.options.xxknob);
-    xxAPI.xxtemplates.XXKNOB ( obj );
-}
-
-xxAPI.xxtemplates.XXKNOB = function ( obj ) {
-    debug(2,"XXKNOB Template",obj);
-    obj.knob_input = $("<input />",{
-        "disabled"      : true,
-        "value"         : obj.oarg.item.info._val,
-        "css"    : {
-            "user-select"   :"none",
-        }
-    })
-    var _knob_options = {
-        "width"     : "200",
-        "height"    : "200",
-        "fgColor"   : "yellow",
-        "bgColor"   : "grey",
-        "font"      : hs.gui.systemfonts["WERT"]["font-family"],
-        "fontWeight": hs.gui.systemfonts["WERT"]["font-weight"],
-        "min"       : obj.oarg.item.info._min,
-        "max"       : obj.oarg.item.info._max,
-        "format"    : function(text) {
-            return text + " " + (obj.oarg.item.info._einh || "");
-        },
-        "release"   : function(val) {
-            if(obj.oarg.item.value != val) {
-                obj.oarg.item.value = obj.oarg.item.info._val = val;
-                hs.functions.do_valset( obj.oarg );
-            }
-        }
-    };
-    _knob_options = $.extend(_knob_options,obj.options.xxknob || {});
-    obj.contentdiv = $("<div />",{
-        "css"   : {
-            "width"     : obj.options.width  || "220px",
-            "height"    : obj.options.height || "210px",
-            "text-algin"        : "center",
-            "vertical-align"    : "middle"
-        }
-    });
-    obj.knob_obj = obj.knob_input.knob(_knob_options);
-    obj.knob_obj.css("position","relative");
-    obj.contentdiv.append(obj.knob_obj);
-    obj.knob_obj.on("DOMNodeInsertedIntoDocument",function() {
-        $(this).center(obj.contentdiv,"left");
-    });
-    obj.popupbox.append(obj.contentdiv);
-    obj.popupbox.on("touchend mouseup",function() {
-        obj.popupbox.fadeOut("fast",function() {
-            obj.popupbox.remove();
-            hs.functions.popup_overlay(false,false,obj.oarg);
-        });
-    });
-}
-
 /*
     * XXLONGPRESS is used to send different values based on
     * duration the item is pressed. It is used in combination
@@ -1082,6 +994,97 @@ xxAPI.functions.XXGEOLOCATION = function ( oarg ) {
     }
     xxAPI.geolocation[oarg.args[1]] = oarg.item;
     oarg.item.text = "";
+}
+
+/*
+    * Template Section
+*/
+xxAPI.xxtemplates.TEMP = function ( obj ) {
+    obj.popupbox.addClass("temperaturepopup");
+    obj.options.temp = $.extend({
+        "low"   : 2,
+        "high"  : 28
+    },obj.options.temp)
+
+    obj.options.xxknob = $.extend({
+        "angleArc"      : 250,
+        "angleOffset"   : -125,
+        "step"          : .1,
+        "draw"          : function() {
+            this.o.fgColor = hs.functions.temp2rgb(obj.options.temp.low ,obj.options.temp.high, this.cv);
+        }
+    },obj.options.xxknob);
+    xxAPI.xxtemplates.XXKNOB ( obj );
+}
+
+xxAPI.xxtemplates.SPEAKER = function ( obj ) {
+    obj.popupbox.addClass("speakerpopup");
+    obj.options.xxknob = $.extend({
+        "angleArc"      : 300,
+        "angleOffset"   : -150,
+        "cursor"    : 30,
+        "stopper"   : true
+    },obj.options.xxknob);
+    xxAPI.xxtemplates.XXKNOB ( obj );
+}
+
+xxAPI.xxtemplates.DIMMER = function ( obj ) {
+    obj.popupbox.addClass("dimmerpopup");
+    obj.options.xxknob = $.extend({
+    },obj.options.xxknob);
+    xxAPI.xxtemplates.XXKNOB ( obj );
+}
+
+xxAPI.xxtemplates.XXKNOB = function ( obj ) {
+    debug(2,"XXKNOB Template",obj);
+    obj.knob_input = $("<input />",{
+        "disabled"      : true,
+        "value"         : obj.oarg.item.info._val,
+        "css"    : {
+            "user-select"   :"none",
+        }
+    })
+    var _knob_options = {
+        "width"     : "200",
+        "height"    : "200",
+        "fgColor"   : "yellow",
+        "bgColor"   : "grey",
+        "font"      : hs.gui.systemfonts["WERT"]["font-family"],
+        "fontWeight": hs.gui.systemfonts["WERT"]["font-weight"],
+        "min"       : obj.oarg.item.info._min,
+        "max"       : obj.oarg.item.info._max,
+        "format"    : function(text) {
+            return text + " " + (obj.oarg.item.info._einh || "");
+        },
+        "release"   : function(val) {
+            if(obj.oarg.item.value != val) {
+                obj.oarg.item.value = obj.oarg.item.info._val = val;
+                hs.functions.do_valset( obj.oarg );
+            }
+        }
+    };
+    _knob_options = $.extend(_knob_options,obj.options.xxknob || {});
+    obj.contentdiv = $("<div />",{
+        "css"   : {
+            "width"     : obj.options.width  || "220px",
+            "height"    : obj.options.height || "210px",
+            "text-algin"        : "center",
+            "vertical-align"    : "middle"
+        }
+    });
+    obj.knob_obj = obj.knob_input.knob(_knob_options);
+    obj.knob_obj.css("position","relative");
+    obj.contentdiv.append(obj.knob_obj);
+    obj.knob_obj.on("DOMNodeInsertedIntoDocument",function() {
+        $(this).center(obj.contentdiv,"left");
+    });
+    obj.popupbox.append(obj.contentdiv);
+    obj.popupbox.on("touchend mouseup",function() {
+        obj.popupbox.fadeOut("fast",function() {
+            obj.popupbox.remove();
+            hs.functions.popup_overlay(false,false,obj.oarg);
+        });
+    });
 }
 
 xxAPI.functions.geturl = function ( url ) {
