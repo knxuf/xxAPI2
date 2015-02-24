@@ -1797,16 +1797,31 @@ hs.functions.option_parser = function ( text , defaults) {
     while(_match = _regex.exec(text)) {
         var _val = _match[2] || _match[3] || _match[4];
         var _default = hs.functions.stringdot2object( defaults, _match[1] );
-        switch(typeof _defaults) {
-            case "number":
+        switch(Object.prototype.toString.call(_default)) {
+            case "[object Number]":
                 _val = parseFloat(_val);
+                if(isNaN(_val)) {
+                    continue;
+                }
                 break;
-            case "boolean":
+            case "[object Boolean]":
                 _val = (_val == true);
+                break;
+            case "[object Array]":
+                try {
+                    _val = JSON.parse(_val);
+                } catch (e) {
+                    debug(1,"ERROR: option_parser",e);
+                    continue;
+                }
                 break;
             default:
                 var _numval = _val*1;
-                _val = isNaN(_numval) ? _val : _numval;
+                if(_val == "true" || _val == "false") {
+                    _val = (_val == "true");
+                } else {
+                    _val = isNaN(_numval) ? _val : _numval;
+                }
                 break;
         }
         var _levels = _match[1].split(".");
