@@ -1167,10 +1167,12 @@ xxAPI.xxtemplates.xxknob = function ( obj ) {
         }
     };
     _knob_options = $.extend(_knob_options,obj.options.xxknob || {});
+    obj.popupbox.css("width",obj.options.width  || "220px");
     obj.contentdiv = $("<div />",{
         "css"   : {
-            "width"     : obj.options.width  || "220px",
-            "height"    : obj.options.height || "210px",
+            "position"  : "relative",
+            "width"     : "100%",
+            "height"    : "100%",
             "text-algin"        : "center",
             "vertical-align"    : "middle"
         }
