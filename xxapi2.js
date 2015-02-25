@@ -3468,8 +3468,8 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
         debug(5,"element_loader finished loading " + url + " from (" + _queue.length + ")");
     };
     var _timer = setTimeout(function() {
-        alert(_queue);
-    },2000);
+        debug(1,"Error element_loader: failed loading",_queue);
+    },3000);
     var _getid = function(filename) {
         return filename.replace(/http[s]?:\/\/.*?\//,"").replace(/\./g,"_").replace(/\//g,"_");
     }
