@@ -714,7 +714,7 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
             "min"       : oarg.item.info._min,
             "max"       : oarg.item.info._max,
             "format"    : function(text) {
-                return text + " " + (oarg.item.info._einh || "");
+                return hs.functions.math_round(text,oarg.item.info._prec) + " " + (oarg.item.info._einh || "");
             },
             "release"   : function(val) {
                 if(oarg.item.value != val) {
@@ -1157,7 +1157,7 @@ xxAPI.xxtemplates.xxknob = function ( obj ) {
         "min"       : obj.oarg.item.info._min,
         "max"       : obj.oarg.item.info._max,
         "format"    : function(text) {
-            return text + " " + (obj.oarg.item.info._einh || "");
+            return hs.functions.math_round(text,obj.oarg.item.info._prec) + " " + (obj.oarg.item.info._einh || "");
         },
         "release"   : function(val) {
             if(obj.oarg.item.value != val) {
