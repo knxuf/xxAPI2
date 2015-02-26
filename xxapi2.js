@@ -1174,18 +1174,15 @@ xxAPI.xxtemplates.xxknob = function ( obj ) {
         "css"   : {
             "position"  : "relative",
             "width"     : "100%",
-            "height"    : "100%",
+            "height"    : _knob_options.height,
             "text-algin"        : "center",
             "vertical-align"    : "middle"
         }
     });
     obj.knob_obj = obj.knob_input.knob(_knob_options);
-    obj.knob_obj.css("position","absolute");
     obj.contentdiv.append(obj.knob_obj);
     obj.knob_obj.in_dom(function() {
         $(this).center(obj.contentdiv,"left");
-        obj.knob_obj.css("position","relative");
-
     });
     obj.popupbox.append(obj.contentdiv);
     obj.popupbox.on("touchend mouseup",function() {
