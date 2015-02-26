@@ -292,12 +292,14 @@ xxAPI.functions.XXIFRAME = function ( oarg ) {
             "height"    : oarg.item.height + "px",
             "allowtransparency" : true
         });
-        oarg.item.xxapi.xxiframe.on("DOMNodeInsertedIntoDocument",function() {
-            var _url = oarg.item.xxapi.xxiframe_url || xxAPI.XXLINKURL;
-            if(this.src != _url) {
-                this.setAttribute("src",_url);
-            }
-        });
+        if(oarg.args[1] == "") {
+            oarg.item.xxapi.xxiframe.in_dom(function() {
+                var _url = oarg.item.xxapi.xxiframe_url || xxAPI.XXLINKURL;
+                if(this.src != _url) {
+                    this.setAttribute("src",_url);
+                }
+            },{"once" : false});
+        }
     }
     oarg.item.xxapi.xxiframe.attr("src",oarg.item.xxapi.xxiframe_url ||  xxAPI.XXLINKURL);
     oarg.item.html = oarg.item.xxapi.xxiframe;
@@ -1178,10 +1180,12 @@ xxAPI.xxtemplates.xxknob = function ( obj ) {
         }
     });
     obj.knob_obj = obj.knob_input.knob(_knob_options);
-    obj.knob_obj.css("position","relative");
+    obj.knob_obj.css("position","absolute");
     obj.contentdiv.append(obj.knob_obj);
-    obj.knob_obj.on("DOMNodeInsertedIntoDocument",function() {
+    obj.knob_obj.in_dom(function() {
         $(this).center(obj.contentdiv,"left");
+        obj.knob_obj.css("position","relative");
+
     });
     obj.popupbox.append(obj.contentdiv);
     obj.popupbox.on("touchend mouseup",function() {
@@ -1199,6 +1203,7 @@ xxAPI.functions.geturl = function ( url ) {
     var _list = url.slice(7);
     return "/hslist?lst=" + _list + "&user=" + hs.auth.username + "&pw=" + hs.auth.password;
 }
+
 function debug(level,msg,obj) {
     if (level > hs.debuglevel) {
         return;
@@ -2236,9 +2241,9 @@ hs.functions.camarchive_handler = function( oarg ) {
         "failure_limit" : 10,
         "effect"        : "fadeIn"
     });
-    oarg.result.scroller.on("DOMSubtreeModified",function() {
-        _scroller.refresh();
-    });
+    //oarg.result.scroller.on("DOMSubtreeModified",function() { //FIXME
+    //    _scroller.refresh();
+    //});
 }
 
 hs.functions.default_list_handler = function( oarg ) {
@@ -3207,9 +3212,9 @@ jQuery.fn.center = function (parent, dir) {
     var _elem = this instanceof jQuery ? this : $(this);
     debug(5,"center " + parent.width()+"/" +parent.height()+ "/" + this.width() + "/" +this.height());
     if(parent.width() == null || parent.height() == null) {
-        _elem.one("DOMNodeInsertedIntoDocument",function() {
+        _elem.in_dom(function() {
             _elem.center();
-        });
+        },{once:true});
     }
     this.css("position",this.css("position") == "relative" ? "relative" : "absolute");
     if(dir != "left") {
@@ -3252,6 +3257,40 @@ jQuery.fn.fitsize = function () {
     _clone.detach();
     _elem.css("font-size",_fontsize);
 }
+
+jQuery.fn.in_dom = function(callback, options) {
+    var _elements = this;
+    var _options = $.extend({
+        "root"  : document.body,
+        "once"  : true
+    },options);
+    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+    var _observer = new MutationObserver(function(mutations) {
+        $.each(mutations,function(index,mutation) {
+            if(!mutation.addedNodes) {
+                return;
+            }
+            $.each(mutation.addedNodes,function(index,node) {
+                $.each(_elements,function(index,element) {
+                    if(element === node || $.contains(node,element)) {
+                        callback.apply(element);
+                        debug(1,"element",element);
+                        if(_options.once) {
+                            _elements.splice($.inArray(element,_elements),1);
+                        }
+                    }
+                });
+            });
+        });
+        if(!_elements.length > 0) {
+            _observer.disconnect();
+        }
+    });
+    _observer.observe(_options.root,{
+        childList: true,
+        subtree :true
+    });
+};
 
 hs.functions.set_viewport = function() {
     debug(5,"Set Viewport",hs.gui.attr);
