@@ -72,6 +72,10 @@ li.camarchiveitem {
     background-color: blue;
 }
 
+.popupbox {
+    overflow: hidden;
+}
+
 div.popupdisplay {
     height: 50px;
     white-space: nowrap;
