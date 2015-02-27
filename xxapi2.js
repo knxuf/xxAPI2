@@ -1667,7 +1667,7 @@ hs.functions.fade_page = function( oarg ) {
             hs.functions.popup_overlay(false,false,oarg);
         }
     }
-    if(!oarg.page.is_modul || oarg.page.is_popup) {
+    if(!oarg.page.is_modul && !oarg.page.is_popup) {
         document.title = "xxAPI² - " + oarg.page.title;
     }
     hs.functions.add_history( oarg );
