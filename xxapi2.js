@@ -692,6 +692,7 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
             "value"         : oarg.args[1],
             "css"    : {
                 "user-select"   :"none",
+                "opacity"       : 1
             }
         })
         oarg.item.click = false;
@@ -1122,6 +1123,7 @@ xxAPI.xxtemplates.TEMP = function ( obj ) {
         }
     },obj.options.xxknob);
     xxAPI.xxtemplates.xxknob ( obj );
+    obj.contentdiv.css("padding-bottom","0");
 }
 
 xxAPI.xxtemplates.SPEAKER = function ( obj ) {
@@ -1149,11 +1151,12 @@ xxAPI.xxtemplates.xxknob = function ( obj ) {
         "value"         : obj.oarg.item.info._val,
         "css"    : {
             "user-select"   :"none",
+            "opacity":  1
         }
     })
     var _knob_options = {
-        "width"     : "200",
-        "height"    : "200",
+        "width"     : 200,
+        "height"    : 200,
         "fgColor"   : "yellow",
         "bgColor"   : "grey",
         "font"      : hs.gui.systemfonts["WERT"]["font-family"],
@@ -1171,14 +1174,16 @@ xxAPI.xxtemplates.xxknob = function ( obj ) {
         }
     };
     _knob_options = $.extend(_knob_options,obj.options.xxknob || {});
+    obj.knob_input.css("color",_knob_options.fgColor);
     obj.popupbox.css("width",obj.options.width  || "220px");
     obj.contentdiv = $("<div />",{
         "css"   : {
             "position"  : "relative",
             "width"     : "100%",
-            "height"    : _knob_options.height,
+            "height"    : _knob_options.height ,
+            "padding"           : "20px 0px",
             "text-algin"        : "center",
-            "vertical-align"    : "middle"
+            "vertical-align"    : "bottom",
         }
     });
     obj.knob_obj = obj.knob_input.knob(_knob_options);
@@ -3274,7 +3279,6 @@ jQuery.fn.in_dom = function(callback, options) {
                 $.each(_elements,function(index,element) {
                     if(element === node || $.contains(node,element)) {
                         callback.apply(element);
-                        debug(1,"element",element);
                         if(_options.once) {
                             _elements.splice($.inArray(element,_elements),1);
                         }
