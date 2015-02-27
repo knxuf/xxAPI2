@@ -1664,6 +1664,9 @@ hs.functions.fade_page = function( oarg ) {
             $.each($("#POPUP").children(),function() {
                 $(this).detach();
             });
+            oarg.session.history = $.grep(oarg.session.history,function(obj) {
+                return obj.is_popup == false;
+            });
             hs.functions.popup_overlay(false,false,oarg);
         }
     }
@@ -1703,13 +1706,26 @@ hs.functions.popup_overlay = function( status, blur, oarg ) {
 }
 
 hs.functions.add_history = function( oarg ) {
-    var _popindex = oarg.session.history.indexOf(oarg.page_id);
-    debug(5,"add_history " + _popindex,oarg);
-    if(oarg.page.is_popup &&  _popindex > -1) {
-        oarg.session.history.splice(_popindex,1);
+    debug(5,"add_history " + oarg.page.uid,oarg);
+    if(oarg.page.is_popup) {
+        var _popindex;
+        $.each(oarg.session.history,function(index,obj) {
+            if(obj.page_id == oarg.page_id) {
+                _popindex = index;
+                return false;
+            };
+        });
+        if(_popindex) {
+            oarg.session.history.splice(_popindex,1);
+        }
     }
-    if(oarg.session.history[oarg.session.history.length -1] != oarg.page_id) {
-        oarg.session.history.push(oarg.page_id);
+    var _last = oarg.session.history[oarg.session.history.length -1];
+    if(!_last || _last.page_id != oarg.page_id) {
+        oarg.session.history.push({
+            "page_id"       : oarg.page_id,
+            "is_popup"      : oarg.page.is_popup,
+            "is_modul"      : oarg.page.is_modul
+        });
     }
 }
 
@@ -2983,7 +2999,7 @@ hs.functions.check_click = function( oarg ) {
                     oarg.item.page.object.detach()
                 }
                 if (_lastpage !== undefined) {
-                    oarg.page_id = _lastpage;
+                    oarg.page_id = _lastpage.page_id;
                     hs.functions.load_page( oarg );
                 }
             }
