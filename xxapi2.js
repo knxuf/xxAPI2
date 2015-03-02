@@ -1112,14 +1112,19 @@ xxAPI.xxtemplates.TEMP = function ( obj ) {
     obj.options.temp = $.extend({
         "low"   : 2,
         "high"  : 28
-    },obj.options.temp)
+    },obj.options.temp);
 
     obj.options.xxknob = $.extend({
         "angleArc"      : 250,
         "angleOffset"   : -125,
         "step"          : .1,
         "draw"          : function() {
-            this.o.fgColor = hs.functions.temp2rgb(obj.options.temp.low ,obj.options.temp.high, this.cv);
+            if(this.o.displayPrevious) {
+                this.fgColor = hs.functions.temp2rgb(obj.options.temp.low ,obj.options.temp.high, this.cv).replace(")",",0.6)").replace("rgb","rgba");
+                this.pColor = hs.functions.temp2rgb(obj.options.temp.low ,obj.options.temp.high, this.cv).replace(")",",0.4)").replace("rgb","rgba");
+            } else {
+                this.o.fgColor = hs.functions.temp2rgb(obj.options.temp.low ,obj.options.temp.high, this.cv);
+            }
         }
     },obj.options.xxknob);
     xxAPI.xxtemplates.xxknob ( obj );
