@@ -1152,6 +1152,7 @@ xxAPI.xxtemplates.DIMMER = function ( obj ) {
 
 xxAPI.xxtemplates.xxknob = function ( obj ) {
     debug(2,"XXKNOB Template",obj);
+    obj.popupbox.removeClass("werteingabe");
     obj.knob_input = $("<input />",{
         "disabled"      : true,
         "value"         : obj.oarg.item.info._val,
