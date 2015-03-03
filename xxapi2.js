@@ -1120,8 +1120,8 @@ xxAPI.xxtemplates.TEMP = function ( obj ) {
         "step"          : .1,
         "draw"          : function() {
             if(this.o.displayPrevious) {
-                this.fgColor = hs.functions.temp2rgb(obj.options.temp.low ,obj.options.temp.high, this.cv).replace(")",",0.6)").replace("rgb","rgba");
-                this.pColor = hs.functions.temp2rgb(obj.options.temp.low ,obj.options.temp.high, this.cv).replace(")",",0.4)").replace("rgb","rgba");
+                this.o.fgColor = this.fgColor = hs.functions.temp2rgb(obj.options.temp.low ,obj.options.temp.high, this.cv).replace(")",",0.6)").replace("rgb","rgba");
+                this.pColor = hs.functions.temp2rgb(obj.options.temp.low ,obj.options.temp.high, this.v).replace(")",",0.4)").replace("rgb","rgba");
             } else {
                 this.o.fgColor = hs.functions.temp2rgb(obj.options.temp.low ,obj.options.temp.high, this.cv);
             }
@@ -1159,6 +1159,7 @@ xxAPI.xxtemplates.xxknob = function ( obj ) {
             "opacity":  1
         }
     })
+    var _rgb;
     var _knob_options = {
         "width"     : 200,
         "height"    : 200,
@@ -1175,6 +1176,12 @@ xxAPI.xxtemplates.xxknob = function ( obj ) {
             if(obj.oarg.item.value != val) {
                 obj.oarg.item.value = obj.oarg.item.info._val = val;
                 hs.functions.do_valset( obj.oarg );
+            }
+        },
+        "draw"      : function() {
+            if(this.o.displayPrevious && _rgb) {
+                this.fgColor = _rgb.replace(")",",0.6)").replace("rgb","rgba");
+                this.pColor  = _rgb.replace(")",",0.4)").replace("rgb","rgba");
             }
         }
     };
@@ -1195,6 +1202,7 @@ xxAPI.xxtemplates.xxknob = function ( obj ) {
     obj.contentdiv.append(obj.knob_obj);
     obj.knob_obj.in_dom(function() {
         $(this).center(obj.contentdiv,"left");
+        _rgb = window.getComputedStyle(obj.knob_input.get(0)).color;
     });
     obj.popupbox.append(obj.contentdiv);
     obj.popupbox.on("touchend mouseup",function() {
