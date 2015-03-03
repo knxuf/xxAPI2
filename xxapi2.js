@@ -1100,6 +1100,7 @@ xxAPI.xxtemplates.PINCODE = function ( obj ) {
     obj.options = $.extend(obj.defaults,{
         "type"          : "password",
         "initvalue"     : "",
+        "clearvalue"    : "",
         "buttons"       : "1,2,3,4,5,6,7,8,9,C,0,&#10003;",
         "class"         : "passworteingabe",
         "pattern"       : "^\\d{0,4}$"
