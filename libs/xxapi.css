@@ -33,7 +33,7 @@ body {
 
 .scrollwrapper {
     position: relative;
-    height: 480px;
+    max-height: 480px;
     width: 100%;
     overflow: hidden;
     border: 1px solid white;
@@ -43,7 +43,6 @@ body {
 .scroller {
     position: relative;
     overflow: hidden;
-    z-index: 1;
 }
 
 .camarchive-full {
