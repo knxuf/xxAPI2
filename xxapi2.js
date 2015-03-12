@@ -644,6 +644,13 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
         if(_text2.match(/^XXOPTIONS\*/)) {
             oarg.item.xxapi.slider_options = $.extend(oarg.item.xxapi.slider_options, hs.functions.option_parser(_text2.substring(10),oarg.item.xxapi.slider_options));
         }
+        if(oarg.item.xxapi.slider_options.temp) {
+            oarg.item.xxapi.temp = $.extend({
+                "low"   : 2,
+                "high"  : 28,
+            },oarg.item.xxapi.slider_options.temp);
+            delete oarg.item.xxapi.slider_options.temp;
+        }
         oarg.item.xxapi.slider = $("<div />",{
             "css"   : {
                 "width"   : _orientation == "horizontal" ? "100%" : "",
@@ -670,6 +677,9 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
         oarg.item.object.html(oarg.item.xxapi.slider);
     } else {
         oarg.item.html = oarg.item.xxapi.slider;
+    }
+    if(oarg.item.xxapi.temp) {
+        oarg.item.color = hs.functions.temp2rgb(oarg.item.xxapi.temp.low ,oarg.item.xxapi.temp.high, _value);
     }
     if(oarg.item.object) {
         oarg.item.object.find(".noUi-connect").css("background-color",oarg.item.color);
