@@ -654,6 +654,13 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
         if(oarg.item.xxapi.slider_options.disabled) {
             oarg.item.xxapi.slider.attr("disabled","disabled");
         }
+        if(oarg.item.xxapi.slider_options.hasOwnProperty("handle")) {
+            if(!oarg.item.xxapi.slider_options.handle) {
+                oarg.item.xxapi.slider.find(".noUi-handle").css("display","none");
+            } else {
+                oarg.item.xxapi.slider.find(".noUi-handle").addClass(oarg.item.xxapi.slider_options.handle);
+            }
+        }
         oarg.item.xxapi.slider.on("change",function() {
             oarg.item.value = oarg.item.info._val = oarg.item.xxapi.slider.val();
             hs.functions.do_valset( oarg );
