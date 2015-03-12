@@ -651,6 +651,9 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
             }
         });
         oarg.item.xxapi.slider.noUiSlider(oarg.item.xxapi.slider_options);
+        if(oarg.item.xxapi.slider_options.disabled) {
+            oarg.item.xxapi.slider.attr("disabled","disabled");
+        }
         oarg.item.xxapi.slider.on("change",function() {
             oarg.item.value = oarg.item.info._val = oarg.item.xxapi.slider.val();
             hs.functions.do_valset( oarg );
