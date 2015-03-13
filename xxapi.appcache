@@ -1,22 +1,29 @@
 CACHE MANIFEST
-## change 2015-02-05-21:09
-## xxAPI2 Version 2.026
+## change 2015-03-13-20:49
+## xxAPI2 Version 2.029
 
+xxapi2.js
 libs/jquery.min.js
 libs/fastclick.js
+libs/xml2json.min.js
 libs/jquery.md5.js
 libs/jquery.simplemodal.js
-libs/xml2json.min.js
 libs/position-calculator.min.js
 libs/iscroll.js
-#libs/xxapi.css
-#xxapi2.js
-
+libs/jquery.lazyload.min.js
+libs/jquery.nouislider.min.css
+libs/jquery.nouislider.pips.min.css
+libs/jquery.nouislider.all.min.js
+libs/jquery.knob.min.js
+libs/xxapi.css
+libs/theme.css
 
 NETWORK:
 *
 
 CACHE:
-
+#custom cache section / use for own images
+#custom.css
+#custom.js
 
 FALLBACK:
