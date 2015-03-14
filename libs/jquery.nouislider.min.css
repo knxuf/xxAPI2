@@ -43,7 +43,7 @@
     transform:translate3d(0,0,0);
 }
 .noUi-horizontal {
-    height: calc(100% - 10px);
+    height: 100%;
 }
 .noUi-horizontal .noUi-handle {
     width:34px;
@@ -52,7 +52,7 @@
     top:-6px;
 }
 .noUi-vertical {
-    width: calc(100% - 10px);
+    width: 100%;
 }
 .noUi-vertical .noUi-handle {
     width: calc(100% + 12px);
