@@ -601,7 +601,7 @@ xxAPI.functions.XXGAUGE = function ( oarg ) {
         "max"   : 100,
         "prec"  : 0
     };
-    var _txtoptions = "disabled=true;handle=false;";
+    var _txtoptions = "disabled=true;handle=false;extended=false;";
     if(oarg.item.action_id != 9) {
         if(oarg.args.length > 2) {
             _options = $.extend(oarg.item.xxapi.slider_options, hs.functions.option_parser(oarg.args[2],_options));
@@ -619,6 +619,7 @@ xxAPI.functions.XXGAUGE = function ( oarg ) {
     }
     oarg.item.info._txt2 += _txtoptions;
     xxAPI.functions.XXSLIDER( oarg );
+    
 }
 
 xxAPI.functions.XXSLIDER = function ( oarg ) {
@@ -659,6 +660,7 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
         oarg.item.xxapi.slider_options = {
             "start"     : _value,
             "connect"   : "lower",
+            "extended"  : true,
             "orientation"   : _orientation,
             "direction"     : _orientation == "horizontal" ? "ltr" : "rtl",
             "step"          : oarg.item.xxapi.slider_step || 1,
@@ -679,6 +681,7 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
             delete oarg.item.xxapi.slider_options.temp;
         }
         oarg.item.xxapi.slider = $("<div />",{
+            "class" : oarg.item.xxapi.slider_options.extended ? "noUi-extended" : "",
             "css"   : {
                 "width"   : _orientation == "horizontal" ? "100%" : "",
                 "height"  : _orientation == "vertical" ? "100%" : ""
