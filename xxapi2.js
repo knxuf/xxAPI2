@@ -3763,6 +3763,7 @@ hs.functions.start_client = function() {
 }
 
 hs.debuglevel = hs.functions.storage("get","debuglevel") || 0;
+var _has_appcache = $("html[manifest$=appcache]").length > 0;
 hs.functions.element_loader([
     "libs/fastclick.js",
     "libs/xml2json.min.js",
@@ -3777,7 +3778,7 @@ hs.functions.element_loader([
     "libs/jquery.knob.min.js",
     "libs/xxapi.css",
     "libs/theme.css"
-    ],false,
+    ],_has_appcache,
     function(fail) {
         if(fail) {
             alert("failed to load all require javascript libraries");
@@ -3786,7 +3787,7 @@ hs.functions.element_loader([
         hs.functions.element_loader([
             "custom.css",
             "custom.js"
-            ],false);
+            ],_has_appcache);
         $(document).ready(function() {
             hs.functions.start_client();
         });
