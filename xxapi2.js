@@ -184,9 +184,9 @@ hs.functions.set_debuglevel = function ( level ) {
      XXSCRIPT*[old xxAPI in base64]
 */
 xxAPI.functions.XXSCRIPT = function( oarg ) {
+    debug(2,"XXSCRIPT");
+    oarg.item.page.hidden = true;
     if (oarg.item.open_page > 0) {
-        debug(2,"XXSCRIPT");
-        oarg.item.page.hidden = true;
         window.setTimeout(function() {
             oarg.page_id = oarg.item.open_page;
             hs.functions.load_page( oarg );
@@ -681,7 +681,7 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
             delete oarg.item.xxapi.slider_options.temp;
         }
         oarg.item.xxapi.slider = $("<div />",{
-            "class" : oarg.item.xxapi.slider_options.extended ? "noUi-extended" : "",
+            "class" : oarg.item.xxapi.slider_options.get("class","") + " " + oarg.item.xxapi.slider_options.extended ? "noUi-extended" : "",
             "css"   : {
                 "width"   : _orientation == "horizontal" ? "100%" : "",
                 "height"  : _orientation == "vertical" ? "100%" : ""
@@ -1664,7 +1664,7 @@ hs.functions.hs_page = function( oarg ) {
         
         hs.functions.loop_items( oarg );
 
-        if (oarg.cmd == "gv") {
+        if (oarg.cmd == "gv" && !oarg.page.hidden) {
             hs.functions.fade_page( oarg );
         }
         return oarg.page;
