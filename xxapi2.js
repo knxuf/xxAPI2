@@ -659,6 +659,7 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
         debug(4,"XXSLIDER: set step to " + oarg.item.xxapi.slider_step,oarg);
         oarg.item.xxapi.slider_options = {
             "start"     : _value,
+            "class"     : "",
             "connect"   : "lower",
             "extended"  : true,
             "orientation"   : _orientation,
@@ -681,7 +682,7 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
             delete oarg.item.xxapi.slider_options.temp;
         }
         oarg.item.xxapi.slider = $("<div />",{
-            "class" : oarg.item.xxapi.slider_options.get("class","") + " " + oarg.item.xxapi.slider_options.extended ? "noUi-extended" : "",
+            "class" : oarg.item.xxapi.slider_options.class + " " + oarg.item.xxapi.slider_options.extended ? "noUi-extended" : "",
             "css"   : {
                 "width"   : _orientation == "horizontal" ? "100%" : "",
                 "height"  : _orientation == "vertical" ? "100%" : ""
