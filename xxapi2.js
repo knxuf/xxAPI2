@@ -3682,6 +3682,23 @@ hs.functions.storage = function ( command, name, value ) {
     };
 }
 
+hs.functions.fix_base = function() {
+    var _base = document.getElementById('htmlbase');
+    if (!_base) {
+        return
+    }
+    var _base_url = _base.href;
+    if (_base_url != location.href) {
+        var _elements = document.getElementsByTagName("link");
+        for ( var i = 0; i < _elements.length; i ++ ) {
+            // FIX href
+            _elements[i].setAttribute('href', _elements[i].href);
+        }
+        _elements = document.getElementsByName("msapplication-TileImage");
+        _elements[0].setAttribute('content', _base_url + _elements[0].content);
+    }
+}
+
 hs.functions.fix_old_start = function() {
     if($("#VISUCONTAINER").length == 0) {
         var _container = $("<div />",{
@@ -3784,6 +3801,7 @@ hs.functions.element_loader([
         if(fail) {
             alert("failed to load all require javascript libraries");
         }
+        hs.functions.fix_base()
         $("base").attr("href","");
         hs.functions.element_loader([
             "custom.css",
