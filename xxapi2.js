@@ -1438,7 +1438,7 @@ hs.functions.hs_item = function( oarg ) {
                 });
             });
 
-            if (oarg.item.click) {
+            if (oarg.item.click && oarg.item.action_id != 20) {
                 oarg.item.object.on("click",function (event) {
                     oarg.item.event = event;
                     hs.functions.check_click( oarg );
@@ -1447,6 +1447,10 @@ hs.functions.hs_item = function( oarg ) {
             } else {
                 if(Object.keys(oarg.item.eventcode).length != 0) {
                     oarg.item.object.addClass("visuclickelement");
+                }
+                if(oarg.item.action_id == 20) {
+                    oarg.item.click = false;
+                    oarg.item.object.css("pointer-events","auto");
                 }
             }
             if (oarg.item.type == "BOX") {
