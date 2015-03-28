@@ -740,7 +740,7 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
         }
         oarg.item.xxapi.knob_input = $("<input />",{
             "disabled"      : true,
-            "value"         : oarg.args[1],
+            "value"         : oarg.item.value,
             "css"    : {
                 "user-select"   :"none",
                 "opacity"       : 1
@@ -756,6 +756,7 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
         }
         return;
     }
+    
     if(!oarg.item.xxapi.hasOwnProperty("knob_obj")) {
         var _min = Math.min(oarg.item.width,oarg.item.height);
         oarg.item.xxapi.knob_options = {
@@ -775,6 +776,9 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
                     oarg.item.value = oarg.item.info._val = val;
                     hs.functions.do_valset( oarg );
                 }
+            },
+            "draw"      : function() {
+                this.i.css("font-size",hs.gui.fonts[oarg.item.font]["font-size"]);  
             }
         };
         var _text2 = oarg.item.info._txt2 || "";
@@ -788,7 +792,14 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
             },oarg.item.xxapi.knob_options.temp);
             delete oarg.item.xxapi.knob_options.temp;
             oarg.item.xxapi.knob_options.draw = function() {
-                this.o.fgColor = hs.functions.temp2rgb(_temp.low ,_temp.high, this.cv);
+                this.i.css("font-size",hs.gui.fonts[oarg.item.font]["font-size"]);
+                this.i.css("color",hs.functions.temp2rgb(_temp.low ,_temp.high, this.cv));
+                if(this.o.displayPrevious) {
+                    this.o.fgColor = this.fgColor = hs.functions.temp2rgb(_temp.low ,_temp.high, this.cv).replace(")",",0.6)").replace("rgb","rgba");
+                    this.pColor = hs.functions.temp2rgb(_temp.low ,_temp.high, this.v).replace(")",",0.4)").replace("rgb","rgba");
+                } else {
+                    this.o.fgColor = hs.functions.temp2rgb(_temp.low ,_temp.high, this.cv);
+                }
             }
         }
         oarg.item.xxapi.knob_obj = oarg.item.xxapi.knob_input.knob(oarg.item.xxapi.knob_options);
