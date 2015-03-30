@@ -599,7 +599,8 @@ xxAPI.functions.XXGAUGE = function ( oarg ) {
     var _options = {
         "min"   : 0,
         "max"   : 100,
-        "prec"  : 0
+        "prec"  : 0,
+        "extended"  : false
     };
     var _txtoptions = "disabled=true;handle=false;extended=false;";
     if(oarg.item.action_id != 9) {
@@ -682,7 +683,7 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
             delete oarg.item.xxapi.slider_options.temp;
         }
         oarg.item.xxapi.slider = $("<div />",{
-            "class" : oarg.item.xxapi.slider_options.class + " " + oarg.item.xxapi.slider_options.extended ? "noUi-extended" : "",
+            "class" : oarg.item.xxapi.slider_options.class + " " + (oarg.item.xxapi.slider_options.extended ? "noUi-extended" : ""),
             "css"   : {
                 "width"   : _orientation == "horizontal" ? "100%" : "",
                 "height"  : _orientation == "vertical" ? "100%" : ""
