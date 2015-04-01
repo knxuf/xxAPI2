@@ -288,8 +288,9 @@ xxAPI.functions.XXIFRAME = function ( oarg ) {
     }
     if(!oarg.item.xxapi.hasOwnProperty("xxiframe")) {
         oarg.item.xxapi.xxiframe = $("<iframe />",{
-            "width"     : oarg.item.width + "px",
-            "height"    : oarg.item.height + "px",
+            "width"     : "100%",
+            "height"    : "100%",
+            "border"    : "none",
             "allowtransparency" : true
         });
         if(oarg.args[1] == "") {
@@ -300,11 +301,18 @@ xxAPI.functions.XXIFRAME = function ( oarg ) {
                 }
             },{"once" : false});
         }
+        
     }
     oarg.item.xxapi.xxiframe.attr("src",oarg.item.xxapi.xxiframe_url ||  xxAPI.XXLINKURL);
     oarg.item.html = oarg.item.xxapi.xxiframe;
-    oarg.item.customcss = { "pointer-events":"auto" };
-
+    oarg.item.customcss = { 
+        "pointer-events" : "auto",
+        "-webkit-overflow-scrolling" : "touch",
+    };
+    if("ontouchstart" in document.documentElement) {
+        oarg.item.customcss["overflow-y"] = "auto";
+    }
+    oarg.item.bg_color = "transparent";
 }
 
 /*
