@@ -1,6 +1,6 @@
 CACHE MANIFEST
-## change 2015-03-13-20:49
-## xxAPI2 Version 2.029
+## change 2016-01-21-22:01
+## xxAPI2 Version 2.030
 
 xxapi2.js
 libs/jquery.min.js
@@ -27,3 +27,5 @@ CACHE:
 #custom.js
 
 FALLBACK:
+/apple-touch-icon*.png img/xxAPI_120px.png
+

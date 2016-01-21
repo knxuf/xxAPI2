@@ -43,7 +43,7 @@ $.base64 = {
 }
 
 var xxAPI = {};
-xxAPI.version = "2.029";
+xxAPI.version = "2.030";
 xxAPI.functions = {};
 xxAPI.events = {
     "lastclick" : {
@@ -3805,34 +3805,35 @@ hs.functions.start_client = function() {
 }
 
 hs.debuglevel = hs.functions.storage("get","debuglevel") || 0;
-var _has_appcache = $("html[manifest$=appcache]").length > 0;
-hs.functions.element_loader([
-    "libs/fastclick.js",
-    "libs/xml2json.min.js",
-    "libs/jquery.md5.js",
-    "libs/jquery.simplemodal.js",
-    "libs/position-calculator.min.js",
-    "libs/iscroll.js",
-    "libs/jquery.lazyload.min.js",
-    "libs/jquery.nouislider.min.css",
-    "libs/jquery.nouislider.pips.min.css",
-    "libs/jquery.nouislider.all.min.js",
-    "libs/jquery.knob.min.js",
-    "libs/xxapi.css",
-    "libs/theme.css"
-    ],_has_appcache,
-    function(fail) {
-        if(fail) {
-            alert("failed to load all require javascript libraries");
+$(document).ready(function() {
+    var _has_appcache = $("html[manifest$=appcache]").length > 0;
+    hs.functions.element_loader([
+        "libs/fastclick.js",
+        "libs/xml2json.min.js",
+        "libs/jquery.md5.js",
+        "libs/jquery.simplemodal.js",
+        "libs/position-calculator.min.js",
+        "libs/iscroll.js",
+        "libs/jquery.lazyload.min.js",
+        "libs/jquery.nouislider.min.css",
+        "libs/jquery.nouislider.pips.min.css",
+        "libs/jquery.nouislider.all.min.js",
+        "libs/jquery.knob.min.js",
+        "libs/xxapi.css",
+        "libs/theme.css"
+        ],_has_appcache,
+        function(fail) {
+            if(fail) {
+                alert("failed to load all require javascript libraries");
+            }
+            hs.functions.fix_base()
+            $("base").attr("href","");
+            hs.functions.element_loader([
+                "custom.css",
+                "custom.js"
+                ],_has_appcache,
+                hs.functions.start_client()
+            );
         }
-        hs.functions.fix_base()
-        $("base").attr("href","");
-        hs.functions.element_loader([
-            "custom.css",
-            "custom.js"
-            ],_has_appcache);
-        $(document).ready(function() {
-            hs.functions.start_client();
-        });
-    }
-);
+    );
+});
