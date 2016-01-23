@@ -45,6 +45,7 @@ $.base64 = {
 var xxAPI = {};
 xxAPI.version = "2.030";
 xxAPI.functions = {};
+performance = window.performance || $ // make performance.now() work in any case
 xxAPI.events = {
     "lastclick" : {
         "top"   : 0,
@@ -65,6 +66,7 @@ xxAPI.xxtemplates = {
 
 // Homeserver Object
 var hs = {};
+hs.debug_cache = [];
 hs.functions = {};
 hs.functions.async = {};
 hs.session = {};  // keyname ist target
@@ -1312,7 +1314,10 @@ function debug(level,msg,obj) {
         } else {
             _logger.call(window.console,msg+": %o",obj);
         }
-    }
+    } 
+        if (msg.indexOf("[start]") == 0) {
+            hs.debug_cache.push(performance.now().toFixed(1) + "ms " + msg.substr(7))
+        }
 }
 
 hs.functions.xxapi_check = function( oarg ) {
@@ -2735,7 +2740,7 @@ hs.functions.fix_xml = function ( xml ) {
 }
 
 hs.functions.login_init = function( oarg ) {
-    debug(5,"login_init:",oarg);
+    debug(5,"[start] login_init:",oarg);
     oarg.session.connection_status = "init";
     oarg.session.ajax_queue.stop(true);
     var _cmd = "init";
@@ -2751,7 +2756,7 @@ hs.functions.login_init = function( oarg ) {
 };
 
 hs.functions.async.login = function( oarg ) {
-    debug(5,"async.login:",oarg);
+    debug(5,"[start] async.login:",oarg);
     oarg.session.connection_status = "authenticate";
     oarg.session.auth.handle = oarg.json.HS.HND;
     oarg.session.auth.tan = oarg.json.HS.TAN;
@@ -2766,7 +2771,7 @@ hs.functions.async.login = function( oarg ) {
 };
 
 hs.functions.async.logged_in = function(  oarg ) {
-    debug(5,"async.logged_in (" + oarg.session.target + "):",oarg.json);
+    debug(5,"[start] async.logged_in (" + oarg.session.target + "):",oarg.json);
     // check main
     hs.connection.failure = 0;
     oarg.session.connection_status = "connected";
@@ -3000,18 +3005,18 @@ hs.functions.check_click = function( oarg ) {
              4 =
              5 =
              6 =
-             7 = Kamera
-             8 = Wochenschaltuhr /hsgui?cmd=getpag&id=31&hnd=4&code=C52747C9D8
-             9 = Werteingabe  /hsgui?cmd=getpag&id=23&hnd=3&code=CB87CC79BA
-            10 = Urlaubskalender
-            11 = Feiertagskalender
-            12 = Datum/Uhrzeit setzen /hsgui?cmd=getpag&id=17&hnd=3&code=CB87CC79BA
+             7 = Kamera (CAM)
+             8 = Wochenschaltuhr /hsgui?cmd=getpag&id=31&hnd=4&code=C52747C9D8 (TIM)
+             9 = Werteingabe  /hsgui?cmd=getpag&id=23&hnd=3&code=CB87CC79BA (VAL)
+            10 = Urlaubskalender (VAC)
+            11 = Feiertagskalender (HOL)
+            12 = Datum/Uhrzeit setzen /hsgui?cmd=getpag&id=17&hnd=3&code=CB87CC79BA (DATE)
             13 = 
-            14 = Meldungsarchiv /hsgui?cmd=getmsg&id=29&dir=0&cnt=5&hnd=4&code=2EB8E86D8F
-            15 = Buddy   /hsgui?cmd=getbud&id=25&dir=0&cnt=5&hnd=3&code=CC16E8CD49
-            16 = Diagramm /hsgui?cmd=getpag&id=32&hnd=4&code=C65F9B4058
-            17 = Kamera-Archiv  /hsgui?cmd=getcama&id=30&dir=0&cnt=6&hnd=4&code=FF8BF7D074
-            18 = Universal Zeitschaltuhr /hsgui?cmd=getuhr&id=18&dir=0&cnt=5&hnd=4&code=18831A2D12
+            14 = Meldungsarchiv /hsgui?cmd=getmsg&id=29&dir=0&cnt=5&hnd=4&code=2EB8E86D8F (MSG)
+            15 = Buddy   /hsgui?cmd=getbud&id=25&dir=0&cnt=5&hnd=3&code=CC16E8CD49 (BUD)
+            16 = Diagramm /hsgui?cmd=getpag&id=32&hnd=4&code=C65F9B4058 (GRAF)
+            17 = Kamera-Archiv  /hsgui?cmd=getcama&id=30&dir=0&cnt=6&hnd=4&code=FF8BF7D074 (CAMA)
+            18 = Universal Zeitschaltuhr /hsgui?cmd=getuhr&id=18&dir=0&cnt=5&hnd=4&code=18831A2D12 (UHR)
             19 = 
             20 = Seite aktualisieren
             21 = Navigation: Startseite
@@ -3315,6 +3320,11 @@ hs.functions.get_query_parameter = function(item) {
     return svalue ? svalue[1] : svalue;
 }
 
+hs.functions.get_hash_parameter = function(item) {    
+    var svalue = location.hash.match(new RegExp("[#\&]" + item + "=([^\&]*)(\&?|$)","i"));
+    return svalue ? svalue[1] : svalue;
+}
+
 jQuery.fn.reverse = [].reverse;
 
 jQuery.fn.center = function (parent, dir) {
@@ -3614,10 +3624,10 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                 callback(_failure);
             }
         }
-        debug(5,"element_loader finished loading " + url + " from (" + _queue.length + ")");
+        debug(5,"[start] element_loader finished loading " + url + " from (" + _queue.length + ")");
     };
     var _timer = setTimeout(function() {
-        debug(1,"Error element_loader: failed loading",_queue);
+        debug(1,"[start] Error element_loader: failed loading",_queue);
     },3000);
     var _getid = function(filename) {
         return filename.replace(/http[s]?:\/\/.*?\//,"").replace(/\./g,"_").replace(/\//g,"_");
@@ -3631,7 +3641,7 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
     $.ajaxSetup({ cache: _cache });
     for (_i=0; _i < urls.length; _i++) {
         _filename = _base + urls[_i];
-        debug(3,"element_loader loading " + _filename);
+        debug(3,"[start] element_loader loading " + _filename);
         _id = _getid(_filename);
         _queue.push(_id);
         _type = _filename.toLowerCase().split(".");
@@ -3792,21 +3802,37 @@ hs.functions.start_client = function() {
         hs.functions.storage("remove","password");
         window.location.replace(location.protocol + '//' + location.host + location.pathname);
     }
-    hs.auth.username = hs.functions.storage("get","username");
-    hs.auth.password = hs.functions.storage("get","password");
-    hs.auth.gui_design = hs.functions.storage("get","gui_design");
-    hs.auth.gui_refresh = hs.functions.get_query_parameter('refresh') || hs.auth.gui_refresh ;
+    hs.auth.username = hs.functions.storage("get","username") || hs.functions.get_hash_parameter("user");
+    hs.auth.password = hs.functions.storage("get","password") || hs.functions.get_hash_parameter("pass");
+    hs.auth.gui_design = hs.functions.storage("get","gui_design") || hs.functions.get_hash_parameter("design") ;
+    hs.auth.gui_refresh = hs.functions.get_hash_parameter('refresh') || hs.auth.gui_refresh ;
 
     if (hs.auth.username == null || hs.auth.password == null || hs.auth.gui_design == null) {
         hs.functions.login_dialog()
     } else {
+        debug(5,"[start] Main Session")
         new hs.functions.hs_session("VISU");
+        if (hs.showstartuplog > 0 && hs.debug_cache.length > 0) {
+            setTimeout(function(){
+                alert(hs.debug_cache.join("\n"));
+            }
+            ,hs.showstartuplog * 1000);
+        }
     }
 }
 
-hs.debuglevel = hs.functions.storage("get","debuglevel") || 0;
+
+hs.debuglevel = hs.functions.get_hash_parameter("debug") || hs.functions.storage("get","debuglevel") || 0;
+hs.showstartuplog = hs.functions.get_hash_parameter("showdebug") || 0;
+
+debug(2,"[start] xxAPI² load");
 $(document).ready(function() {
+    debug(3,"[start] document.ready");
     var _has_appcache = $("html[manifest$=appcache]").length > 0;
+    if (_has_appcache) {
+        debug(3,"[start] HTML5 Manifest active");
+    }
+    
     hs.functions.element_loader([
         "libs/fastclick.js",
         "libs/xml2json.min.js",
@@ -3826,13 +3852,18 @@ $(document).ready(function() {
             if(fail) {
                 alert("failed to load all require javascript libraries");
             }
+            debug(5,"[start]fix base")
             hs.functions.fix_base()
+            debug(5,"[start] fix base done")
             $("base").attr("href","");
             hs.functions.element_loader([
                 "custom.css",
                 "custom.js"
                 ],_has_appcache,
-                hs.functions.start_client()
+                function(fail) {
+                    debug(3,"[start] hsclient")
+                    hs.functions.start_client();
+                }
             );
         }
     );
