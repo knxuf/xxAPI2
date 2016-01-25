@@ -3627,7 +3627,7 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
         debug(5,"[start] element_loader finished loading " + url + " from (" + _queue.length + ")");
     };
     var _timer = setTimeout(function() {
-        debug(1,"[start] Error element_loader: failed loading",_queue);
+        debug(1,"[start] Error element_loader: failed loading " + _queue.join(", "));
     },3000);
     var _getid = function(filename) {
         return filename.replace(/http[s]?:\/\/.*?\//,"").replace(/\./g,"_").replace(/\//g,"_");
@@ -3638,7 +3638,6 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
     var _cache = typeof cache == "undefined" ? true : cache;
     var _queue = [];
     var _i,_filename, _id, _type, _element, _old_elem;
-    $.ajaxSetup({ cache: _cache });
     for (_i=0; _i < urls.length; _i++) {
         _filename = _base + urls[_i];
         debug(3,"[start] element_loader loading " + _filename);
@@ -3648,18 +3647,24 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
         _type = _type[_type.length -1];
         switch(_type) {
             case "js":
-                $.getScript(_filename)
-                    .done(function(xhr) {
+                $.ajax({
+                    url: _filename,
+                    cache: _cache,
+                    async: true,
+                    dataType: 'script',
+                })
+                .done(function(xhr) {
                         _finish(_getid(this.url));
                     })
-                    .fail(function(xhr) {
+                .fail(function(xhr) {
+                        debug(1,"[start] failed loading [getscript] " + this.url);
                         _finish(_getid(this.url,true));
                     }
                 );
                 break;
             case "css":
                 _old_elem = $("#" + _id);
-                if(_base != "") {
+                if(_cache) {
                     _element = $("<link />", {
                         "id"    : _id,
                         "rel"   : "stylesheet",
@@ -3670,18 +3675,20 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                         _finish(this.id);
                     });
                     _element.one("error", function() {
-                            _finish(this.id,true);
+                        debug(1,"[start] failed loading [link]" + this.id);
+                        _finish(this.id,true);
                     });
                 } else {
                     // HS Fix for Content Type not text/css
                     _element = $("<style />", {
                         "id"    : _id,
-                    }).html(hs.functions.storage("get","CACHE_FILE_" + _id) || "");
+                    });
                     _element.load(_filename,function(content,status,xhr) {
                         _finish(this.id,status != "success");
                         if(status == "success") {
                             _old_elem.remove();
-                            hs.functions.storage("set","CACHE_FILE_" + _id,content);
+                        } else {
+                            debug(1,"[start] failed loading [style] " + this.id + " " + status);
                         }
                     });
                 }
@@ -3847,14 +3854,14 @@ $(document).ready(function() {
         "libs/jquery.knob.min.js",
         "libs/xxapi.css",
         "libs/theme.css"
-        ],_has_appcache,
+        ],true,
         function(fail) {
             if(fail) {
                 alert("failed to load all require javascript libraries");
             }
-            debug(5,"[start]fix base")
+            debug(3,"[start] fix base")
             hs.functions.fix_base()
-            debug(5,"[start] fix base done")
+            debug(3,"[start] fix base done")
             $("base").attr("href","");
             hs.functions.element_loader([
                 "custom.css",
