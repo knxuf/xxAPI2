@@ -45,7 +45,7 @@ $.base64 = {
 var xxAPI = {};
 xxAPI.version = "2.032";
 xxAPI.functions = {};
-performance = window.performance || $ // make performance.now() work in any case
+var performance = window.performance || $ // make performance.now() work in any case
 xxAPI.events = {
     "lastclick" : {
         "top"   : 0,
@@ -3641,9 +3641,13 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
     var _i,_filename, _id, _type, _element, _old_elem;
     for (_i=0; _i < urls.length; _i++) {
         _filename = _base + urls[_i];
-        debug(3,"[start] element_loader loading " + _filename);
         _id = _getid(_filename);
         _queue.push(_id);
+    }
+    for (_i=0; _i < urls.length; _i++) {
+        _filename = _base + urls[_i];
+        debug(3,"[start] element_loader loading " + _filename);
+        _id = _getid(_filename);
         _type = _filename.toLowerCase().split(".");
         _type = _type[_type.length -1];
         switch(_type) {
@@ -3666,13 +3670,17 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                 break;
             case "css":
                 _old_elem = $("#" + _id);
+                if (!_cache) {
+                    _filename += "?_" + $.now();
+                }
                 if(_base != "") {
-                    _finish(_id);
+                    debug(3,"[start] add [link] " + _filename);
                     _element = $("<link />", {
                         "id"    : _id,
                         "rel"   : "stylesheet",
                         "href"  : _filename
                     });
+                    _finish(_id);
                     _element.on("load", function() {
                         debug(5,"[start] loaded [link] " + this.id);
                         _old_elem.remove();
@@ -3682,6 +3690,7 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                     });
                 } else {
                     // HS Fix for Content Type not text/css
+                    debug(3,"[start] add [style] " + _filename);
                     var _content = hs.functions.storage("get","CACHE_FILE_" + _id) || "";
                     _element = $("<style />", {
                         "id"    : _id,
@@ -3689,7 +3698,10 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                     _finish(_id);
                     _element.load(_filename,function(content,status,xhr) {
                         if(status == "success") {
-                            debug(5,"[start] loaded [style] " + this.id);
+                            debug(3,"[start] loaded [style] " + this.id,xhr);
+                            if (_content != content) {
+                                _element.html(content)
+                            }
                             _old_elem.remove();
                             hs.functions.storage("set","CACHE_FILE_" + _id,content);
                         } else {
@@ -3720,11 +3732,14 @@ hs.functions.storage = function ( command, name, value ) {
             }
             return _json;
         case "set":
-            localStorage.setItem(name,JSON.stringify(value || ""));return;
+            localStorage.setItem(name,JSON.stringify(value || ""));
+            return;
         case "remove":
-            localStorage.removeItem(name);return;
+            localStorage.removeItem(name);
+            return;
         case "clear":
-            localStorage.clear();return;
+            localStorage.clear();
+            return;
     };
 }
 
