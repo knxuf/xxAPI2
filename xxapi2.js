@@ -43,7 +43,7 @@ $.base64 = {
 }
 
 var xxAPI = {};
-xxAPI.version = "2.030";
+xxAPI.version = "2.031";
 xxAPI.functions = {};
 performance = window.performance || $ // make performance.now() work in any case
 xxAPI.events = {
@@ -1341,11 +1341,13 @@ hs.functions.hs_session = function(target,start_page) {
         //delete hs.session[target_item];
         var _session = hs.session[target];
         _session.start_page = start_page;
-        hs.functions.load_page({ 
-            "session"   : _session,
-            "page_id"   : _session.start_page
-        });
-        return;
+        if (parseInt(_session.start_page)) {
+            hs.functions.load_page({ 
+                "session"   : _session,
+                "page_id"   : _session.start_page
+            });
+            return;
+        }
     }
     hs.session[target] = this;
     // Session 
@@ -2669,7 +2671,7 @@ hs.functions.reconnect = function( oarg ) {
     var _waittime = Math.min(2000 * (hs.connection.failure -1) ,60000); // max 60sec
     $.each(hs.session,function(index,session) {
         session.connection_status = "reconnect";
-        session.ajax_queue.stop(true);
+        session.ajax_queue.clearQueue();
         session.ajax_xhr.abort('reconnect');
         debug(3,"clear_session",session);
         // remove all session except main VISU session
@@ -2742,7 +2744,7 @@ hs.functions.fix_xml = function ( xml ) {
 hs.functions.login_init = function( oarg ) {
     debug(5,"[start] login_init:",oarg);
     oarg.session.connection_status = "init";
-    oarg.session.ajax_queue.stop(true);
+    oarg.session.ajax_queue.clearQueue();
     var _cmd = "init";
     var _url =  "/hsgui?cmd=" + _cmd;
     _url += "&user=" + hs.auth.username;
@@ -2950,7 +2952,7 @@ hs.functions.load_page = function( oarg ) {
             hs.functions.make_request( oarg );
             return
         }
-    } 
+    }
     hs.functions.make_request( {
         "session"     : oarg.session,
         "cmd"         : "gv&id=" + oarg.page_id + _extra_request,
@@ -3654,6 +3656,7 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                     dataType: 'script',
                 })
                 .done(function(xhr) {
+                        debug(5,"[start] loaded [getscript] " + this.url);
                         _finish(_getid(this.url));
                     })
                 .fail(function(xhr) {
@@ -3664,29 +3667,32 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                 break;
             case "css":
                 _old_elem = $("#" + _id);
-                if(_cache) {
+                if(_base != "") {
+                    _finish(_id);
                     _element = $("<link />", {
                         "id"    : _id,
                         "rel"   : "stylesheet",
                         "href"  : _filename
                     });
-                    _element.one("load", function() {
+                    _element.on("load", function() {
+                        debug(5,"[start] loaded [link] " + this.id);
                         _old_elem.remove();
-                        _finish(this.id);
                     });
-                    _element.one("error", function() {
-                        debug(1,"[start] failed loading [link]" + this.id);
-                        _finish(this.id,true);
+                    _element.on("error", function() {
+                        debug(1,"[start] failed loading [link] " + this.id);
                     });
                 } else {
                     // HS Fix for Content Type not text/css
+                    var _content = hs.functions.storage("get","CACHE_FILE_" + _id) || "";
                     _element = $("<style />", {
                         "id"    : _id,
-                    });
+                    }).html(_content);
+                    _finish(_id);
                     _element.load(_filename,function(content,status,xhr) {
-                        _finish(this.id,status != "success");
                         if(status == "success") {
+                            debug(5,"[start] loaded [style] " + this.id);
                             _old_elem.remove();
+                            hs.functions.storage("set","CACHE_FILE_" + _id,content);
                         } else {
                             debug(1,"[start] failed loading [style] " + this.id + " " + status);
                         }
