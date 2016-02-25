@@ -43,7 +43,7 @@ $.base64 = {
 }
 
 var xxAPI = {};
-xxAPI.version = "2.031";
+xxAPI.version = "2.032";
 xxAPI.functions = {};
 performance = window.performance || $ // make performance.now() work in any case
 xxAPI.events = {
@@ -2598,9 +2598,6 @@ hs.functions.error_handler = function( oarg ) {
     debug(5,"error_handler: (" + oarg.cmd + ")", oarg.xhttpobj);
     oarg.error = ""
     if (typeof oarg.xhttpobj != 'undefined') {
-        if (!navigator.onLine) {
-            oarg.error = "offline";
-        }
         if (oarg.xhttpobj.status != 200) {
             switch (oarg.xhttpobj.status) {
                 case 0: oarg.error = "connreset"; break;
@@ -2680,13 +2677,15 @@ hs.functions.reconnect = function( oarg ) {
         }
     });
 
-    setTimeout(function() {
-        if(hs.session.VISU.connection_status != "connected") {
-            hs.functions.login_init({ 
-                "session"   : hs.session.VISU
-            });
-        }
-    },_waittime + 1);
+    if (navigator.onLine) {
+        setTimeout(function() {
+            if(hs.session.VISU.connection_status != "connected") {
+                hs.functions.login_init({ 
+                    "session"   : hs.session.VISU
+                });
+            }
+        },_waittime + 1);
+    }
 }
 
 hs.functions.swap_object = function( obj ) {
@@ -3773,6 +3772,21 @@ $(document).on("keydown",  function(e) {
     }
 });
 
+hs.functions.checkonline = function(e) {
+    debug(3,"xxAPI is " + e.type + "/" + (navigator.onLine ? "online" : "offline"));
+    var _online = e.type == "online";
+    hs.gui.hidden = !_online;
+    if (_online) {
+        hs.functions.popup_overlay(false,false);
+        hs.functions.reconnect("Online");
+    } else {
+        hs.functions.popup_overlay(true,true);
+    }
+};
+
+window.addEventListener("online",hs.functions.checkonline,true);
+window.addEventListener("offline",hs.functions.checkonline,true);
+
 $(document).on("visibilitychange",  function() {
     if(document.hidden) {
         debug(4,"xxAPI is hidden, delayed refresh");
@@ -3781,6 +3795,8 @@ $(document).on("visibilitychange",  function() {
     }
     hs.gui.hidden = document.hidden;
 });
+
+
 
 $(document).on("touchmove", function(e) {
     var _visual_width  = hs.functions.get_orientation() == "landscape" ? screen.height : screen.width;
