@@ -43,7 +43,7 @@ $.base64 = {
 }
 
 var xxAPI = {};
-xxAPI.version = "2.032";
+xxAPI.version = "2.033";
 xxAPI.functions = {};
 var performance = window.performance || $ // make performance.now() work in any case
 xxAPI.events = {
@@ -424,7 +424,6 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     if(hs.session.hasOwnProperty(_modulname)) {
         if(oarg.item.session.target == _modulname) {
             debug(1,"nested modul " + _modulname,oarg);
-            alert("NESTED MODUL '" + _modulname + "'");
             return;
         }
 
@@ -2815,6 +2814,8 @@ hs.functions.async.logged_in = function(  oarg ) {
     }
     hs.gui.hashes = oarg.json.HS.HASH;
 
+    hs.functions.storage("set","hashes",hs.gui.hashes);
+
     // remove old pages after reconnect
     debug(4,"Remove old pages",hs.gui.pages);
     $.each(hs.gui.pages,function(index,page) {
@@ -3150,6 +3151,8 @@ hs.functions.async.getfont = function( oarg ) {
             };
         }
     );
+    hs.functions.storage("set","fonts",hs.gui.fonts);
+    hs.functions.storage("set","systemfonts",hs.gui.systemfonts);
 };
 
 hs.functions.async.getattr = function( oarg ) {
@@ -3174,6 +3177,7 @@ hs.functions.async.getattr = function( oarg ) {
             hs.gui.attr.lbleftw + hs.gui.attr.lbrightw
         )
     );
+    hs.functions.storage("set","attributes",hs.gui.attr);
 };
 
 hs.functions.login_dialog = function( oarg ) {
@@ -3606,11 +3610,40 @@ hs.functions.temp2rgb = function (low, high, temp) {
 hs.functions.post_loading = function () {
 }
 
+hs.functions.load_css = function ( id, url, callback ) {
+    var _element = $("<link />", {
+        "id"    : id,
+        "rel"   : "stylesheet",
+        "href"  : url
+    });
+    var sheet = "sheet";
+    var cssRules = "cssRules";
+    if (!("sheet" in _element[0])) {
+        sheet = "styleSheet";
+        cssRules = "rules";
+    }
+    var _interval_id = setInterval(function() {
+        try {
+            if (_element[0][sheet] && _element[0][sheet][cssRules].length) {
+                debug(3,"[start] loaded css " + url);
+                clearInterval(_interval_id);
+                clearTimeout(_timeout_id);
+                callback(_element[0].id,false);
+            }
+        } catch(e) {
+        }
+    },10),_timeout_id = setTimeout(function() {
+            debug(1,"[start] failed loading css " + url);
+            clearInterval(_interval_id);
+            callback(_element[0].id,true);
+    },1500);
+    return _element;
+}
+
 hs.functions.element_loader = function ( urls, cache, callback ) {
     var _failure = false;
-    var _finish = function(url, failure) {
-        url = url.split("?")[0];
-        var _index = _queue.indexOf(url);
+    var _finish = function(id, failure) {
+        var _index = _queue.indexOf(id);
         if(_index < 0) {
             return;
         }
@@ -3625,7 +3658,7 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                 callback(_failure);
             }
         }
-        debug(5,"[start] element_loader finished loading " + url + " from (" + _queue.length + ")");
+        debug(5,"[start] element_loader finished loading " + id + " from (" + _queue.length + ")");
     };
     var _timer = setTimeout(function() {
         debug(1,"[start] Error element_loader: failed loading " + _queue.join(", "));
@@ -3657,14 +3690,15 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                     cache: _cache,
                     async: true,
                     dataType: 'script',
+                    context: _id
                 })
-                .done(function(xhr) {
-                        debug(5,"[start] loaded [getscript] " + this.url);
-                        _finish(_getid(this.url));
+                .success(function(data,status,xhr) {
+                        debug(5,"[start] loaded [getscript] " + this);
+                        _finish(this,false);
                     })
-                .fail(function(xhr) {
-                        debug(1,"[start] failed loading [getscript] " + this.url);
-                        _finish(_getid(this.url,true));
+                .error(function(xhr,status) {
+                        debug(1,"[start] failed loading [getscript] " + this + "/" + status);
+                        _finish(this,true);
                     }
                 );
                 break;
@@ -3675,38 +3709,31 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                 }
                 if(_base != "") {
                     debug(3,"[start] add [link] " + _filename);
-                    _element = $("<link />", {
-                        "id"    : _id,
-                        "rel"   : "stylesheet",
-                        "href"  : _filename
-                    });
-                    _finish(_id);
-                    _element.on("load", function() {
-                        debug(5,"[start] loaded [link] " + this.id);
-                        _old_elem.remove();
-                    });
-                    _element.on("error", function() {
-                        debug(1,"[start] failed loading [link] " + this.id);
-                    });
+                    _element = hs.functions.load_css(_id,_filename,_finish);
                 } else {
                     // HS Fix for Content Type not text/css
                     debug(3,"[start] add [style] " + _filename);
                     var _content = hs.functions.storage("get","CACHE_FILE_" + _id) || "";
                     _element = $("<style />", {
                         "id"    : _id,
-                    }).html(_content);
-                    _finish(_id);
-                    _element.load(_filename,function(content,status,xhr) {
-                        if(status == "success") {
-                            debug(3,"[start] loaded [style] " + this.id,xhr);
-                            if (_content != content) {
-                                _element.html(content)
-                            }
-                            _old_elem.remove();
-                            hs.functions.storage("set","CACHE_FILE_" + _id,content);
-                        } else {
-                            debug(1,"[start] failed loading [style] " + this.id + " " + status);
-                        }
+                    }).text(_content);
+                    $.ajax({
+                        url: _filename,
+                        cache: _cache,
+                        async: true,
+                        dataType: 'text',
+                        context: _element[0]
+                    })
+                    .success(function(data,status,xhr) {
+                        debug(3,"[start] loaded [style] " + this.id,xhr);
+                        _old_elem.remove();
+                        this.innerHTML = xhr.responseText
+                        hs.functions.storage("set","CACHE_FILE_" + this.id,xhr.responseText);
+                        _finish(this.id,false);
+                    })
+                    .error(function(xhr,status) {
+                        debug(1,"[start] failed loading [style] " + this.id + " " + status,xhr);
+                        _finish(this.id,true);
                     });
                 }
                 if(!$.contains(document, _element[0])) {
@@ -3850,6 +3877,12 @@ hs.functions.start_client = function() {
     hs.auth.password = hs.functions.storage("get","password") || hs.functions.get_hash_parameter("pass");
     hs.auth.gui_design = hs.functions.storage("get","gui_design") || hs.functions.get_hash_parameter("design") ;
     hs.auth.gui_refresh = hs.functions.get_hash_parameter('refresh') || hs.auth.gui_refresh ;
+    
+    hs.gui.hashes = hs.functions.storage("get","hashes") || hs.gui.hashes;
+
+    hs.gui.fonts = hs.functions.storage("get","fonts") || hs.gui.fonts;
+    hs.gui.systemfonts = hs.functions.storage("get","systemfonts") || hs.gui.systemfonts;
+    hs.gui.attr = hs.functions.storage("get","attributes") || hs.gui.attr;
 
     if (hs.auth.username == null || hs.auth.password == null || hs.auth.gui_design == null) {
         hs.functions.login_dialog()
@@ -3876,7 +3909,6 @@ $(document).ready(function() {
     if (_has_appcache) {
         debug(3,"[start] HTML5 Manifest active");
     }
-    
     hs.functions.element_loader([
         "libs/fastclick.js",
         "libs/xml2json.min.js",
