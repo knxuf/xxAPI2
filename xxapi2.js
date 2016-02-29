@@ -3717,6 +3717,9 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                     _element = $("<style />", {
                         "id"    : _id,
                     }).text(_content);
+                    if (_content.length > 0) {
+                        _finish(_id,false);
+                    }
                     $.ajax({
                         url: _filename,
                         cache: _cache,
