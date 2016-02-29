@@ -3707,7 +3707,7 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                 if (!_cache) {
                     _filename += "?_" + $.now();
                 }
-                if(_base != "disabled") {
+                if(_base == "disabled") {
                     debug(3,"[start] add [link] " + _filename);
                     _element = hs.functions.load_css(_id,_filename,_finish);
                 } else {
