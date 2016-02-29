@@ -1321,7 +1321,7 @@ function debug(level,msg,obj) {
 
 hs.functions.xxapi_check = function( oarg ) {
     if (oarg.item.type == "ICO") {
-        oarg.item.text = xxAPI.registered_icons[oarg.item.image] || '';
+        oarg.item.text = xxAPI.registered_icons[oarg.item.image] || oarg.item.text;
     }
     if (oarg.item.text.match(/^XX.*\*/) == null) {
         return;
@@ -1411,7 +1411,7 @@ hs.functions.hs_item = function( oarg ) {
     
     oarg.item.color       = hs.functions.get_hexcolor( oarg.json._fcol ) || oarg.item.color || "transparent";
     oarg.item.bg_color    = hs.functions.get_hexcolor( oarg.json._bgcol || oarg.json._col) || oarg.item.bg_color || "transparent";
-    oarg.item.text        = oarg.json._txt ||   "";
+    oarg.item.text        = oarg.json._txt || oarg.json._val ||  "";
     oarg.item.html        = null;
     oarg.item.image       = oarg.json._ico || null;
     oarg.item.url         = oarg.json._url || null;
@@ -2855,7 +2855,7 @@ hs.functions.update = function() {
             session.active_page.next_update = hs.functions.get_next_update(session.active_page) ;
             hs.functions.make_request( {
                 "session"     : session,
-                "cmd"         : "gvu&id=" + session.active_page.page_id,
+                "cmd"         : "gvu&id=" + session.active_page.page_id + "&det=1",
                 "page_id"     : session.active_page.page_id
             });
         }
@@ -2948,14 +2948,14 @@ hs.functions.load_page = function( oarg ) {
                 hs.functions.add_history( oarg );
                 document.title = "xxAPI - " + _page.text1;
             }
-            oarg.cmd = "gv&id=" + oarg.page_id + _extra_request;
+            oarg.cmd = "gv&id=" + oarg.page_id + "&det=1" + _extra_request;
             hs.functions.make_request( oarg );
             return
         }
     }
     hs.functions.make_request( {
         "session"     : oarg.session,
-        "cmd"         : "gv&id=" + oarg.page_id + _extra_request,
+        "cmd"         : "gv&id=" + oarg.page_id + "&det=1" + _extra_request,
         "page_id"     : oarg.page_id
     });
 };
