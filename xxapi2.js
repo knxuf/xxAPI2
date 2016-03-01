@@ -43,7 +43,7 @@ $.base64 = {
 }
 
 var xxAPI = {};
-xxAPI.version = "2.033";
+xxAPI.version = "2.034";
 xxAPI.functions = {};
 var performance = window.performance || $ // make performance.now() work in any case
 xxAPI.events = {
@@ -3124,7 +3124,7 @@ hs.functions.logout = function() {
 //        "session"   : _item.session,
 //        "cmd"       : "logout"
 //    });
-    window.location.href += "?logout=1";
+    window.location.href = (window.location.href.replace(window.location.hash,"") + "?logout=1");
 }
 
 hs.functions.async.getfont = function( oarg ) {
@@ -3237,7 +3237,7 @@ hs.functions.login_form = function(errortype) {
             hs.gui.modal_popup = this;
             $('#login_form > select[name="cl"]').attr('tabindex', 3);
             $('#login_form > select[name="cl"]').css("width", "100%");
-            if (hs.auth.gui_design != null) {
+            if (hs.auth.gui_design.length > 0 && hs.gui.designs_html.match(hs.auth.gui_design)) {
                 $('#login_form > select[name="cl"]').val(hs.auth.gui_design);
             } else {
                 $('#login_form > select[name="cl"]').val(
