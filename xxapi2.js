@@ -3912,13 +3912,8 @@ $("html").on("touchmove",function(jQevent) {
         }
 });
 
-debug(2,"[start] xxAPI² load");
-$(document).ready(function() {
-    debug(3,"[start] document.ready");
-    var _has_appcache = $("html[manifest$=appcache]").length > 0;
-    if (_has_appcache) {
-        debug(3,"[start] HTML5 Manifest active");
-    }
+hs.functions.load_libraries = function() {
+    debug(3,"[start] load libraries");
     hs.functions.element_loader([
         "libs/fastclick.js", // https://github.com/ftlabs/fastclick
         "libs/xml2json.min.js", // https://github.com/abdmob/x2js
@@ -3936,7 +3931,10 @@ $(document).ready(function() {
         ],true,
         function(fail) {
             if(fail) {
-                alert("failed to load all require javascript libraries");
+                if(confirm("failed to load all required javascript libraries\n\nReload?")) {
+                    window.location.reload();
+                }
+
             }
             debug(3,"[start] fix base")
             hs.functions.fix_base()
@@ -3945,7 +3943,7 @@ $(document).ready(function() {
             hs.functions.element_loader([
                 "custom.css",
                 "custom.js"
-                ],_has_appcache,
+                ],hs.has_appcache,
                 function(fail) {
                     debug(3,"[start] hsclient")
                     hs.functions.start_client();
@@ -3953,4 +3951,13 @@ $(document).ready(function() {
             );
         }
     );
+}
+
+debug(2,"[start] xxAPI² load");
+$(document).ready(function() {
+    hs.has_appcache = $("html[manifest$=appcache]").length > 0;
+    if (hs.has_appcache) {
+        debug(3,"[start] HTML5 Manifest active");
+    }
+    hs.functions.load_libraries()
 });
