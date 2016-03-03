@@ -43,7 +43,7 @@ $.base64 = {
 }
 
 var xxAPI = {};
-xxAPI.version = "2.034";
+xxAPI.version = "2.035";
 xxAPI.functions = {};
 var performance = window.performance || $ // make performance.now() work in any case
 xxAPI.events = {
@@ -139,8 +139,13 @@ xxAPI.functions.XXAPICONFIG = function ( oarg ) {
     _html += "<tr><td class='xxapi_config_name'>jQuery:</td><td class='xxapi_config_value'>" + $.md5(hs.functions.stringify($)) + "<td><tr>";
     _html += "<tr><td class='xxapi_config_name'>HSClient:</td><td class='xxapi_config_value'>" + $.md5(hs.functions.stringify(hs.functions)) + "<td><tr>";
     _html += "<tr><td class='xxapi_config_name'>xxAPI:</td><td class='xxapi_config_value'>" + $.md5(hs.functions.stringify(xxAPI.functions)) + "<td><tr>";
-    _html += "<tr><td class='xxapi_config_name'>Debuglevel</td><td class='xxapi_config_value'><input type='number' min='0' max='5' value='" + hs.debuglevel + "' onchange='hs.functions.set_debuglevel(this.value);'><td><tr>";
+    _html += "<tr><td class='xxapi_config_name'>Debuglevel</td><td class='xxapi_config_value'><select onchange='hs.functions.set_debuglevel(this.value);'>";
+    for(var _o=0;_o<6;_o++) {
+        _html += "<option"+ (_o == hs.debuglevel ? " selected": "") + ">" + _o + "</option>";
+    }
+    _html += "</select><td><tr>";
     _html += "<tr><td colspan='2'><button class='simplemodal-close' onclick='window.applicationCache.update(); window.location.reload();'>Reload Cache</button></td></tr>";
+    _html += "<tr><td colspan='2'><button class='simplemodal-close' onclick='window.localStorage.clear()'>Clear LocalStorage</button><td><tr>";
     _html += "<tr><td colspan='2'><button class='simplemodal-close' onclick='hs.functions.logout();'>Logout</button><td><tr>";
     //_html += "<tr><td colspan='2'><button class='simplemodal-close'>Close</button><td><tr>";
     _html += "</table>";
@@ -3225,7 +3230,7 @@ hs.functions.login_form = function(errortype) {
     _form_html += "<label for'remember'>&#160;</label>";
     _form_html += "<button type='submit' tabindex='4'>Login</button>";
     _form_html += "<div class='wide'>";
-    _form_html += "<input name='remember' tabindex='5' type='checkbox'" + ((hs.auth.username != null) == (hs.functions.storage("get","username") == hs.auth.username) ? " checked": "" ) + ">";
+    _form_html += "<input name='remember' tabindex='5' type='checkbox'" + ((hs.functions.storage("get","rememberpass")) ? " checked": "" ) + ">";
     _form_html += "Kennwort speichern</div>";
     _form_html += "</form>";
     var _form_div = $('<div />').html(_form_html);
@@ -3254,12 +3259,14 @@ hs.functions.login_form = function(errortype) {
                 hs.auth.gui_design = $('#login_form > [name="cl"]').val();
                 debug(5,"CHECKED: ",$('#login_form  input[name="remember"]').prop("checked"));
                 if ($('#login_form  input[name="remember"]').prop("checked")) {
+                    hs.functions.storage("set","rememberpass",true);
                     hs.functions.storage("set","username",hs.auth.username);
                     hs.functions.storage("set","password",hs.auth.password);
                     hs.functions.storage("set","gui_design",hs.auth.gui_design);
                 } else {
-                    hs.functions.storage("clear");
-                    debug(4,"Clear Storage");
+                    hs.functions.storage("set","rememberpass",false);
+                    //hs.functions.storage("remove","username");
+                    hs.functions.storage("remove","password");
                 }
                 new hs.functions.hs_session("VISU");
                 //$('#login_form',elements));
@@ -3747,13 +3754,14 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
 }
 
 hs.functions.storage = function ( command, name, value ) {
-    if(typeof Storage == 'undefined') {
+    if(window.localStorage === undefined) {
         // no support
+        debug(1,"localStorage not supported");
         return;
     }
     switch(command) {
         case "get":
-            var _json = localStorage.getItem(name);
+            var _json = window.localStorage.getItem(name);
             try {
                 _json = JSON.parse(_json);
             } catch(e) {
@@ -3762,13 +3770,17 @@ hs.functions.storage = function ( command, name, value ) {
             }
             return _json;
         case "set":
-            localStorage.setItem(name,JSON.stringify(value || ""));
+            if(value == undefined || value == NaN || value.toString().length == 0) {
+                window.localStorage.removeItem(name);
+            } else {
+                window.localStorage.setItem(name,JSON.stringify(value));
+            }
             return;
         case "remove":
-            localStorage.removeItem(name);
+            window.localStorage.removeItem(name);
             return;
         case "clear":
-            localStorage.clear();
+            window.localStorage.clear();
             return;
     };
 }
@@ -3878,7 +3890,7 @@ hs.functions.start_client = function() {
     }
     hs.auth.username = hs.functions.storage("get","username") || hs.functions.get_hash_parameter("user");
     hs.auth.password = hs.functions.storage("get","password") || hs.functions.get_hash_parameter("pass");
-    hs.auth.gui_design = hs.functions.storage("get","gui_design") || hs.functions.get_hash_parameter("design") ;
+    hs.auth.gui_design = hs.functions.storage("get","gui_design") || hs.functions.get_hash_parameter("design") || "";
     hs.auth.gui_refresh = hs.functions.get_hash_parameter('refresh') || hs.auth.gui_refresh ;
     
     hs.gui.hashes = hs.functions.storage("get","hashes") || hs.gui.hashes;
