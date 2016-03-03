@@ -3926,7 +3926,6 @@ $(document).ready(function() {
         "libs/jquery.simplemodal.js", // http://www.ericmmartin.com/projects/simplemodal
         "libs/position-calculator.min.js", // https://github.com/tlindig/position-calculator
         "libs/iscroll.js", // https://github.com/cubiq/iscroll
-        "libs/jquery.touchSwipe.min.js", // https://github.com/mattbryson/TouchSwipe-Jquery-Plugin
         "libs/jquery.lazyload.min.js", // https://github.com/tuupola/jquery_lazyload
         "libs/jquery.nouislider.min.css", 
         "libs/jquery.nouislider.pips.min.css",
