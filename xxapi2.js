@@ -3913,17 +3913,18 @@ $(document).ready(function() {
         debug(3,"[start] HTML5 Manifest active");
     }
     hs.functions.element_loader([
-        "libs/fastclick.js",
-        "libs/xml2json.min.js",
-        "libs/jquery.md5.js",
-        "libs/jquery.simplemodal.js",
-        "libs/position-calculator.min.js",
-        "libs/iscroll.js",
-        "libs/jquery.lazyload.min.js",
-        "libs/jquery.nouislider.min.css",
+        "libs/fastclick.js", // https://github.com/ftlabs/fastclick
+        "libs/xml2json.min.js", // https://github.com/abdmob/x2js
+        "libs/jquery.md5.js", // https://github.com/placemarker/jQuery-MD5
+        "libs/jquery.simplemodal.js", // http://www.ericmmartin.com/projects/simplemodal
+        "libs/position-calculator.min.js", // https://github.com/tlindig/position-calculator
+        "libs/iscroll.js", // https://github.com/cubiq/iscroll
+        "libs/jquery.touchSwipe.min.js", // https://github.com/mattbryson/TouchSwipe-Jquery-Plugin
+        "libs/jquery.lazyload.min.js", // https://github.com/tuupola/jquery_lazyload
+        "libs/jquery.nouislider.min.css", 
         "libs/jquery.nouislider.pips.min.css",
-        "libs/jquery.nouislider.all.min.js",
-        "libs/jquery.knob.min.js",
+        "libs/jquery.nouislider.all.min.js", // https://github.com/leongersen/noUiSlider
+        "libs/jquery.knob.min.js", // https://github.com/aterrien/jQuery-Knob
         "libs/xxapi.css",
         "libs/theme.css"
         ],true,
