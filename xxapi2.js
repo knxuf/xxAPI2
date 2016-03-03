@@ -3905,6 +3905,13 @@ hs.functions.start_client = function() {
 hs.debuglevel = hs.functions.get_hash_parameter("debug") || hs.functions.storage("get","debuglevel") || 0;
 hs.showstartuplog = hs.functions.get_hash_parameter("showdebug") || 0;
 
+$("html").on("touchmove",function(jQevent) {
+    var event = jQevent.originalEvent;
+        if (event && event.touches && event.touches.length != 2) {
+            event.preventDefault();
+        }
+});
+
 debug(2,"[start] xxAPI² load");
 $(document).ready(function() {
     debug(3,"[start] document.ready");
