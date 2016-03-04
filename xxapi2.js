@@ -43,7 +43,7 @@ $.base64 = {
 }
 
 var xxAPI = {};
-xxAPI.version = "2.035";
+xxAPI.version = "2.036";
 xxAPI.functions = {};
 var performance = window.performance || $ // make performance.now() work in any case
 xxAPI.events = {
@@ -3617,34 +3617,25 @@ hs.functions.temp2rgb = function (low, high, temp) {
 hs.functions.post_loading = function () {
 }
 
-hs.functions.load_css = function ( id, url, callback ) {
-    var _element = $("<link />", {
-        "id"    : id,
-        "rel"   : "stylesheet",
-        "href"  : url
+hs.functions.ajaxload_css = function (id, url, callback) {
+    debug(3,"[start] ajaxload css " + id);
+    $.ajax({
+        url: url,
+        cache: true, // url already tagged with date
+        async: true,
+        dataType: 'script',
+    }).success(function(data,status,xhr) {
+        var _element = $("<style />", {
+            "id"    : id,
+            "type"  : "text/css"
+        }).text(data);
+        $("head:first").append(_element);
+        debug(3,"[start] loaded as [style] "+ id);
+        callback(id,false);
+    }).error(function(xhr,status) {
+        debug(1,"[start] failed loading as [style] " + id + " / " + status);
+        callback(id,true);
     });
-    var sheet = "sheet";
-    var cssRules = "cssRules";
-    if (!("sheet" in _element[0])) {
-        sheet = "styleSheet";
-        cssRules = "rules";
-    }
-    var _interval_id = setInterval(function() {
-        try {
-            if (_element[0][sheet] && _element[0][sheet][cssRules].length) {
-                debug(3,"[start] loaded css " + url);
-                clearInterval(_interval_id);
-                clearTimeout(_timeout_id);
-                callback(_element[0].id,false);
-            }
-        } catch(e) {
-        }
-    },10),_timeout_id = setTimeout(function() {
-            debug(1,"[start] failed loading css " + url);
-            clearInterval(_interval_id);
-            callback(_element[0].id,true);
-    },1500);
-    return _element;
 }
 
 hs.functions.element_loader = function ( urls, cache, callback ) {
@@ -3704,51 +3695,46 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                         _finish(this,false);
                     })
                 .error(function(xhr,status) {
-                        debug(1,"[start] failed loading [getscript] " + this + "/" + status);
+                        debug(1,"[start] failed loading [getscript] " + this + " / " + status);
                         _finish(this,true);
                     }
                 );
                 break;
             case "css":
-                _old_elem = $("#" + _id);
+                _old_elem = $("#" + _id).remove();
                 if (!_cache) {
                     _filename += "?_" + $.now();
                 }
-                if(_base == "disabled") {
-                    debug(3,"[start] add [link] " + _filename);
-                    _element = hs.functions.load_css(_id,_filename,_finish);
-                } else {
-                    // HS Fix for Content Type not text/css
-                    debug(3,"[start] add [style] " + _filename);
-                    var _content = hs.functions.storage("get","CACHE_FILE_" + _id) || "";
-                    _element = $("<style />", {
-                        "id"    : _id,
-                    }).text(_content);
-                    if (_content.length > 0) {
-                        _finish(_id,false);
-                    }
-                    $.ajax({
-                        url: _filename,
-                        cache: _cache,
-                        async: true,
-                        dataType: 'text',
-                        context: _element[0]
-                    })
-                    .success(function(data,status,xhr) {
-                        debug(3,"[start] loaded [style] " + this.id,xhr);
-                        _old_elem.remove();
-                        this.innerHTML = xhr.responseText
-                        hs.functions.storage("set","CACHE_FILE_" + this.id,xhr.responseText);
-                        _finish(this.id,false);
-                    })
-                    .error(function(xhr,status) {
-                        debug(1,"[start] failed loading [style] " + this.id + " " + status,xhr);
-                        _finish(this.id,true);
-                    });
-                }
+                debug(3,"[start] add [link] " + _filename);
+                var _element = $("<link />", {
+                    "id"    : _id,
+                    "rel"   : "stylesheet",
+                    "type"  : "text/css",
+                    "href"  : _filename
+                }).on("load",function(event) {
+                    var _id = event.target.id;
+                    var _filename = event.target.href;
+                    try { // Firefox issues Security Error
+                        if(event.target.sheet && event.target.sheet.cssRules && event.target.sheet.cssRules.length == 0) {
+                            debug(1,"[start] invalid length [link] " + _id);
+                            hs.functions.ajaxload_css(_id,_filename,_finish);
+                            $(event.target).remove();
+                            return;
+                        }
+                    } catch (e) {};
+                    debug(3,"[start] loaded [link] "+ _id,event.target);
+                    _finish(_id,false);
+                }).on("error",function(event) {
+                    var _id = event.target.id;
+                    var _filename = event.target.href;
+                    debug(2,"[start] failed loading [link] " + _id + " / trying with ajax",event);
+                    $(event.target).remove();
+                    hs.functions.ajaxload_css(_id,_filename,_finish);
+                });
                 if(!$.contains(document, _element[0])) {
                     $("head:first").append(_element);
                 }
+
         }
     }
 }
