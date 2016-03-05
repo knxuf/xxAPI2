@@ -79,6 +79,7 @@ hs.options = {
     "dateformat"    : "%ddd% %dd%.%MM%.%YYYY% %HH%:%mm%:%ss%",
     "timezone"      : -1,
     "sliderstep_px" : 10,
+    "visualclickdelay"  : 800,
     "temp_colors"   : {
         "one"   : [52, 152, 219],
         "two"   : [137, 224, 223],
@@ -2073,7 +2074,10 @@ hs.functions.default_click_element = function ( obj ) {
             $(this).addClass("activevisuelement");
         },
         "mouseup touchend": function() {
-            $(this).removeClass("activevisuelement");
+            var _this = $(this);
+            window.setTimeout(function() {
+                _this.removeClass("activevisuelement");
+            },hs.options.visualclickdelay);
         }
     });
 }
@@ -2992,7 +2996,7 @@ hs.functions.mouse_event = function( oarg ) {
             case "mouseup"      :
             case "mouseleave"   :
             case "blur"         :
-            case "touchend"     : $(".visuelement").removeClass("activevisuelement"); break;
+            case "touchend"     : window.setTimeout(function() {oarg.item.object.removeClass("activevisuelement");},hs.options.visualclickdelay); break;
         }
     }
 }
