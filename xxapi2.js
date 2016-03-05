@@ -3619,18 +3619,22 @@ hs.functions.post_loading = function () {
 
 hs.functions.ajaxload_css = function (id, url, callback) {
     debug(3,"[start] ajaxload css " + id);
+    var _content = hs.functions.storage("get","CACHE_FILE_" + id) || "";
+    var _element = $("<style />", {
+        "id"    : id,
+        "type"  : "text/css"
+    }).text(_content);
+    $("head:first").append(_element);
     $.ajax({
         url: url,
         cache: true, // url already tagged with date
         async: true,
-        dataType: 'script',
+        dataType: 'text',
+        context: _element
     }).success(function(data,status,xhr) {
-        var _element = $("<style />", {
-            "id"    : id,
-            "type"  : "text/css"
-        }).text(data);
-        $("head:first").append(_element);
         debug(3,"[start] loaded as [style] "+ id);
+        this.text(data)
+        hs.functions.storage("set","CACHE_FILE_" + id,data);
         callback(id,false);
     }).error(function(xhr,status) {
         debug(1,"[start] failed loading as [style] " + id + " / " + status);
@@ -3704,6 +3708,10 @@ hs.functions.element_loader = function ( urls, cache, callback ) {
                 _old_elem = $("#" + _id).remove();
                 if (!_cache) {
                     _filename += "?_" + $.now();
+                }
+                if (navigator.userAgent.match(/(iPod|iPhone|iPad)/)) {
+                    hs.functions.ajaxload_css(_id,_filename,_finish);
+                    continue;
                 }
                 debug(3,"[start] add [link] " + _filename);
                 var _element = $("<link />", {
