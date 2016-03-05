@@ -3633,8 +3633,10 @@ hs.functions.ajaxload_css = function (id, url, callback) {
         context: _element
     }).success(function(data,status,xhr) {
         debug(3,"[start] loaded as [style] "+ id);
-        this.text(data)
-        hs.functions.storage("set","CACHE_FILE_" + id,data);
+        if (data != this.text()) {
+            this.text(data)
+            hs.functions.storage("set","CACHE_FILE_" + id,data);
+        }
         callback(id,false);
     }).error(function(xhr,status) {
         debug(1,"[start] failed loading as [style] " + id + " / " + status);
