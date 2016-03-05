@@ -2955,7 +2955,7 @@ hs.functions.load_page = function( oarg ) {
                 _page.object.css("z-index","50");
                 _page.object.fadeIn(20);
                 hs.functions.add_history( oarg );
-                document.title = "xxAPI - " + _page.text1;
+                document.title = "xxAPI² - " + _page.text1;
             }
             oarg.cmd = "gv&id=" + oarg.page_id + "&det=1" + _extra_request;
             hs.functions.make_request( oarg );
