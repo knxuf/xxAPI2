@@ -77,7 +77,7 @@ hs.options = {
     "autoscale"     : true,
     "scaledown"     : false,
     "dateformat"    : "%ddd% %dd%.%MM%.%YYYY% %HH%:%mm%:%ss%",
-    "timezone"      : 0,
+    "timezone"      : null,
     "sliderstep_px" : 10,
     "visualclickdelay"  : 800,
     "temp_colors"   : {
@@ -3498,7 +3498,7 @@ hs.functions.date_from_hs = function (dstr) {
     if (_match == null) {
         return $.now();
     }
-    if (hs.options.timezone == 0) {
+    if (hs.options.timezone === null) {
         // Homeserver und Client gleiche Zeitzone
         return new Date(
             _match[1], // Year
