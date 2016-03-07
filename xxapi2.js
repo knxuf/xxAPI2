@@ -3890,8 +3890,8 @@ window.addEventListener('load', function(e) {
 });
 
 hs.functions.start_client = function() {
-    $.x2js = new X2JS();
-    $.xml2json = $.x2js.xml2json;
+    var _x2js = new X2JS();
+    $.xml2json = _x2js.xml2json;
 
     FastClick.attach(document.body);
 
