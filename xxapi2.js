@@ -77,7 +77,7 @@ hs.options = {
     "autoscale"     : true,
     "scaledown"     : false,
     "dateformat"    : "%ddd% %dd%.%MM%.%YYYY% %HH%:%mm%:%ss%",
-    "timezone"      : -1,
+    "timezone"      : 0,
     "sliderstep_px" : 10,
     "visualclickdelay"  : 800,
     "temp_colors"   : {
@@ -3498,14 +3498,26 @@ hs.functions.date_from_hs = function (dstr) {
     if (_match == null) {
         return $.now();
     }
-    return new Date(
-        _match[1] + "-" +  // Year
-        _match[2] + "-" +  // Month
-        _match[3] + "T" +  // Day
-        _match[4] + ":" +  // Hour
-        _match[5] + ":" +  // Minute
-        _match[6]          // Seconds
-    ).diffhour(hs.options.timezone);
+    if (hs.options.timezone == 0) {
+        // Homeserver und Client gleiche Zeitzone
+        return new Date(
+            _match[1], // Year
+            _match[2], // Month
+            _match[3], // Day
+            _match[4], // Hour
+            _match[5], // Minute
+            _match[6]  // Seconds
+        );
+    } else {
+        return new Date(Date.UTC(
+            _match[1], // Year
+            _match[2], // Month
+            _match[3], // Day
+            _match[4], // Hour
+            _match[5], // Minute
+            _match[6]  // Seconds
+        )).diffhour((hs.options.timezone*-1));
+    }
 }
 
 Date.prototype.diffhour = function (hours) {
