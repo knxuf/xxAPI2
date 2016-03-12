@@ -1357,6 +1357,7 @@ hs.functions.hs_session = function(target,start_page) {
     hs.session[target] = this;
     // Session 
     this.target = target;
+    this.default_target = null;
     this.target_obj = $("#" + target);
     this.start_page = start_page || null;
     this.auth = {
@@ -2963,7 +2964,7 @@ hs.functions.load_page = function( oarg ) {
         }
     }
     hs.functions.make_request( {
-        "session"     : oarg.session,
+        "session"     : hs.session[oarg.session.default_target] || oarg.session,
         "cmd"         : "gv&id=" + oarg.page_id + "&det=1" + _extra_request,
         "page_id"     : oarg.page_id
     });
