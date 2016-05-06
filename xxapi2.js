@@ -2964,7 +2964,7 @@ hs.functions.load_page = function( oarg ) {
         }
     }
     hs.functions.make_request( {
-        "session"     : hs.session[oarg.session.default_target] || oarg.session,
+        "session"     : oarg.session,
         "cmd"         : "gv&id=" + oarg.page_id + "&det=1" + _extra_request,
         "page_id"     : oarg.page_id
     });
@@ -3048,6 +3048,7 @@ hs.functions.check_click = function( oarg ) {
         case 1: 
             // 1 = Seitenaufruf (optional Befehl)
             oarg.page_id = oarg.item.open_page;
+            oarg.session = hs.session[oarg.session.default_target] || oarg.session;
             hs.functions.load_page( oarg );
             break;
         case 7:
