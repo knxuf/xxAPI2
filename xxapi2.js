@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, KNX-User-Forum e.V.
+ * Copyright 2016, KNX-User-Forum e.V.
  * 
  *     This file is part of xxAPI2.
  * 
@@ -43,7 +43,7 @@ $.base64 = {
 }
 
 var xxAPI = {};
-xxAPI.version = "2.037";
+xxAPI.version = "2.038";
 xxAPI.functions = {};
 var performance = window.performance || $ // make performance.now() work in any case
 xxAPI.events = {
@@ -3504,7 +3504,7 @@ hs.functions.date_from_hs = function (dstr) {
         // Homeserver und Client gleiche Zeitzone
         return new Date(
             _match[1], // Year
-            _match[2], // Month
+            _match[2] -1, // Month
             _match[3], // Day
             _match[4], // Hour
             _match[5], // Minute
@@ -3513,7 +3513,7 @@ hs.functions.date_from_hs = function (dstr) {
     } else {
         return new Date(Date.UTC(
             _match[1], // Year
-            _match[2], // Month
+            _match[2] -1, // Month
             _match[3], // Day
             _match[4], // Hour
             _match[5], // Minute
