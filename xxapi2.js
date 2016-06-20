@@ -43,7 +43,7 @@ $.base64 = {
 }
 
 var xxAPI = {};
-xxAPI.version = "2.038";
+xxAPI.version = "2.039";
 xxAPI.functions = {};
 var performance = window.performance || $ // make performance.now() work in any case
 xxAPI.events = {
@@ -436,9 +436,12 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
         if(oarg.item.object) {
             oarg.item.object.append(hs.session[_modulname].target_obj);
         } else {
-            oarg.item.html = hs.session[_modulname].target_obj;
+            if (hs.session[_modulname].target_obj.length > 0) {
+                oarg.item.html =  hs.session[_modulname].target_obj;
+            }
         }
-    } else {
+    }
+    if (!oarg.item.html){
         oarg.item.html = $("<div />", {
             "id"        : _modulname
         });
@@ -1345,6 +1348,7 @@ hs.functions.hs_session = function(target,start_page) {
     if (hs.session.hasOwnProperty(target)) {
         //delete hs.session[target_item];
         var _session = hs.session[target];
+        _session.target_obj = $("#" + target);
         _session.start_page = start_page;
         if (parseInt(_session.start_page)) {
             hs.functions.load_page({ 
