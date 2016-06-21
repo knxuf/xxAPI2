@@ -2466,8 +2466,7 @@ hs.functions.get_url = function( oarg ) {
 hs.functions.make_request = function ( oarg ) {
     // based on jquery-ajaxQueue
     debug(5,"make_request (" + oarg.session.target + "): " + oarg.cmd + " / url=" + oarg.url);
-    var jqXHR,
-        dfd = $.Deferred(),
+    var dfd = $.Deferred(),
         promise = dfd.promise();
     var ajaxOpts = {
         "cache"         : true,
@@ -2497,12 +2496,12 @@ hs.functions.make_request = function ( oarg ) {
     // add the abort method
     promise.abort = function( statusText ) {
 
-        // proxy abort to the jqXHR if it is active
+        // proxy abort to the XHR if it is active
         if ( oarg.session.ajax_xhr ) {
             return oarg.session.ajax_xhr.abort( statusText );
         }
 
-        // if there wasn't already a jqXHR we need to remove from queue
+        // if there wasn't already a XHR we need to remove from queue
         var queue = ajax_queue.queue(),
             index = $.inArray( doRequest, queue );
 
@@ -2721,7 +2720,6 @@ hs.functions.entity = new (function() {
 
     this.encode_regex = new RegExp("[" + Object.keys(map).join("") + "]","g");
     this.decode_regex = new RegExp("[" + Object.keys(rmap).join("") + "]","g");
-    var entityobj = this;
     this.encode = function ( text ) {
         return text.replace(this.encode_regex, function (entity) {
             return map[entity];
@@ -3788,7 +3786,7 @@ hs.functions.storage = function ( command, name, value ) {
             }
             return _json;
         case "set":
-            if(value == undefined || value == NaN || value.toString().length == 0) {
+            if(value == undefined || value.toString().length == 0) {
                 window.localStorage.removeItem(name);
             } else {
                 window.localStorage.setItem(name,JSON.stringify(value));
