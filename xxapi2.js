@@ -1722,8 +1722,8 @@ hs.functions.hs_page = function( oarg ) {
     oarg.page.qanz       = parseInt(oarg.json.HS.VISU._bg);
     oarg.page.title      = oarg.json.HS.VISU._txt1;
     oarg.page.text       = oarg.json.HS.VISU._txt2;
-    oarg.page.width      = hs.gui.attr.visu_width;
-    oarg.page.height     = hs.gui.attr.visu_height;
+    oarg.page.width      = "100%";
+    oarg.page.height     = "100%";
     oarg.page.items      = {};
     oarg.page.object = $("<div />", {
         "id"            : oarg.page.id,
