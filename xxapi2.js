@@ -939,8 +939,13 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
     oarg.item.hidden = true;
     
     if(!oarg.item.page.is_modul && !oarg.item.page.is_popup) {
-        hs.gui.attr.visu_width = oarg.page.width;
-        hs.gui.attr.visu_height = oarg.page.height;
+        if(oarg.args[1] == "VISU") {
+            hs.gui.attr.initial_visu_width = oarg.page.width;
+            hs.gui.attr.initial_visu_height = oarg.page.height;
+        } else {
+            hs.gui.attr.visu_width = oarg.page.width;
+            hs.gui.attr.visu_height = oarg.page.height;
+        }
     }
     
     if (oarg.args.length > 2 && !oarg.item.page.object.is(":visible")) {
