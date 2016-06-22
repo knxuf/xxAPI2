@@ -80,6 +80,7 @@ hs.options = {
     "timezone"      : null,
     "sliderstep_px" : 10,
     "visualclickdelay"  : 800,
+    "itemdiscardmode": 2, // discard items outside visu / 0 = don't discard / 1 = discard only html / 2 = discard html + xxapi
     "temp_colors"   : {
         "one"   : [52, 152, 219],
         "two"   : [137, 224, 223],
@@ -443,7 +444,9 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     }
     if (!oarg.item.html){
         oarg.item.html = $("<div />", {
-            "id"        : _modulname
+            "id"        : _modulname,
+            "width"     : oarg.item.width,
+            "height"    : oarg.item.height
         });
     }
     var _active_page;
@@ -940,8 +943,14 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
     
     if(!oarg.item.page.is_modul && !oarg.item.page.is_popup) {
         if(oarg.args[1] == "VISU") {
-            hs.gui.attr.initial_visu_width = oarg.page.width;
-            hs.gui.attr.initial_visu_height = oarg.page.height;
+            var _resolution = "{0}x{1}".format(screen.width,screen.height);
+            debug(3,"check Visu resize for " + _resolution,oarg);
+            if (oarg.args.length == 2 || $.inArray(_resolution,oarg.args) > -1) {
+                hs.gui.attr.initial_visu_width = oarg.page.width + oarg.item.width;
+                hs.gui.attr.initial_visu_height = oarg.page.height + oarg.item.height;
+                debug(3,"Visu resized to " + hs.gui.attr.initial_visu_width + "x" + hs.gui.attr.initial_visu_height);
+            }
+            return;
         } else {
             hs.gui.attr.visu_width = oarg.page.width;
             hs.gui.attr.visu_height = oarg.page.height;
@@ -1422,7 +1431,10 @@ hs.functions.hs_item = function( oarg ) {
         oarg.item.indent      = parseInt(oarg.json._bord  ||  0);
         oarg.item.info        = hs.functions.get_item_info( oarg );
     }
-
+    if (hs.options.itemdiscardmode == 2 && (oarg.item.left > oarg.item.page.width || oarg.item.top > oarg.item.page.height)) {
+        debug(4,"discard item " + oarg.item.uid + " outside visu",oarg);
+        return;
+    }
     oarg.item.json = oarg.json;
     
     oarg.item.color       = hs.functions.get_hexcolor( oarg.json._fcol ) || oarg.item.color || "transparent";
@@ -1454,8 +1466,11 @@ hs.functions.hs_item = function( oarg ) {
         }
         oarg.item.cmd = "create";
         hs.functions.xxapi_check( oarg );
-        
-        if (oarg.item.object == null) {
+        if(hs.options.itemdiscardmode == 1 && (oarg.item.left > oarg.item.page.width || oarg.item.top > oarg.item.page.height)) {
+            debug(4,"discard html item " + oarg.item.uid + " outside visu",oarg);
+            return;
+        }
+        if (oarg.item.object == null ) {
             debug(5,"Create HTML Element " + oarg.item.uid,oarg);
             oarg.item.object = $("<div />", {
                 "id"        : oarg.item.uid,
@@ -1727,8 +1742,8 @@ hs.functions.hs_page = function( oarg ) {
     oarg.page.qanz       = parseInt(oarg.json.HS.VISU._bg);
     oarg.page.title      = oarg.json.HS.VISU._txt1;
     oarg.page.text       = oarg.json.HS.VISU._txt2;
-    oarg.page.width      = "100%";
-    oarg.page.height     = "100%";
+    oarg.page.width      = oarg.page.is_modul ? oarg.session.target_obj.width() : hs.gui.attr.visu_width;
+    oarg.page.height     = oarg.page.is_modul ? oarg.session.target_obj.height() : hs.gui.attr.visu_height;
     oarg.page.items      = {};
     oarg.page.object = $("<div />", {
         "id"            : oarg.page.id,
@@ -1747,8 +1762,8 @@ hs.functions.hs_page = function( oarg ) {
     oarg.page.object.css({
         "position"  : "absolute",
         "overflow"  : "hidden",
-        "width"     : oarg.page.width,
-        "height"    : oarg.page.height
+        "width"     : "100%",
+        "height"    : "100%"
     })
     
     if (!oarg.page.hidden) {
@@ -3598,6 +3613,15 @@ hs.functions.format_date = function ( format, date ) {
         return _date[capture] || match;
     });
 }
+
+String.prototype.format = function() {
+    var args = arguments;
+    return this.replace(/{(\d+)}/g, function(match, number) { 
+        return typeof args[number] != 'undefined'
+        ? args[number]
+        : match;
+    });
+};
 
 hs.functions.temp2rgb = function (low, high, temp) {
     var _tempdiff = high-low;
