@@ -3889,14 +3889,6 @@ window.alert = function(msg) {
     setTimeout(function() { broken_alert(msg); },0);
 }
 
-window.addEventListener('load', function(e) {
-    window.applicationCache.addEventListener('updateready', function (e) {
-        if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
-            window.applicationCache.swapCache();
-            window.location.reload();
-        }
-    });
-});
 
 hs.functions.start_client = function() {
     var _x2js = new X2JS();
@@ -3991,6 +3983,12 @@ $(document).ready(function() {
     hs.has_appcache = $("html[manifest$=appcache]").length > 0;
     if (hs.has_appcache) {
         debug(3,"[start] HTML5 Manifest active");
+        window.applicationCache.addEventListener('updateready', function (e) {
+            if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+                window.applicationCache.swapCache();
+                window.location.reload();
+            }
+        });
     }
     hs.functions.load_libraries()
 });
