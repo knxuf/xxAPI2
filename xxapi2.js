@@ -428,6 +428,7 @@ xxAPI.functions.XXMARK = function ( oarg ) {
 xxAPI.functions.XXMODUL = function ( oarg ) {
     debug(2,"XXMODUL",oarg);
     var _modulname = "MODUL_" + oarg.args[1].toUpperCase();
+    oarg.item.indent = 0;
     if(hs.session.hasOwnProperty(_modulname)) {
         if(oarg.item.session.target == _modulname) {
             debug(1,"nested modul " + _modulname,oarg);
@@ -441,6 +442,12 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
                 oarg.item.html =  hs.session[_modulname].target_obj;
             }
         }
+    }
+    if (oarg.item.width + oarg.item.left > oarg.item.page.width) {
+        oarg.item.width = oarg.item.page.width - oarg.item.left;
+    }
+    if (oarg.item.height + oarg.item.top > oarg.item.page.height) {
+        oarg.item.height = oarg.item.page.height - oarg.item.top;
     }
     if (!oarg.item.html){
         oarg.item.html = $("<div />", {
