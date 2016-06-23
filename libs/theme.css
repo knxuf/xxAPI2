@@ -36,6 +36,7 @@ div.popupdisplay {
     border-radius: 15px;
     height: 60px;
     width: calc(100% - 24px);
+    top: 10px;
     color: black;
     left: 10px;
     font-size: 22px;
