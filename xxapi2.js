@@ -2309,9 +2309,13 @@ hs.functions.popup_lister = function ( oarg ) {
         "position"  : "relative",
         "overflow"  : "hidden"
     });
+    var _extra_request = "";
+    if (oarg.action == "click" && typeof oarg.item != 'undefined' && oarg.item.has_command) {
+        _extra_request = "&cmdid=" + oarg.item.id + "&cmdpos=0";
+    }
     hs.functions.make_request({
         "session"   : oarg.session,
-        "cmd"       : _cmd + "&id=" + oarg.item.id + "&dir=0&cnt=1000",
+        "cmd"       : _cmd + "&id=" + oarg.item.id + "&dir=0&cnt=1000" + _extra_request,
         "item"      : oarg.item,
         "page_id"   : oarg.page_id,
         "result"    : {
@@ -2649,9 +2653,13 @@ hs.functions.get_item_info = function ( oarg ) {
          });
          
     }
+    var _extra_request = "";
+    if (oarg.action == "click" && typeof oarg.item != 'undefined' && oarg.item.has_command) {
+        _extra_request = "&cmdid=" + oarg.item.id + "&cmdpos=0";
+    }
     hs.functions.make_request({
         "session"   : oarg.session,
-        "cmd"       : "getpag&id=" + oarg.item.id,
+        "cmd"       : "getpag&id=" + oarg.item.id + _extra_request,
         "item"      : oarg.item,
         "page_id"   : oarg.page_id
      });
@@ -3064,6 +3072,7 @@ hs.functions.mouse_event = function( oarg ) {
 
 hs.functions.check_click = function( oarg ) {
     debug(3,"check_click",oarg);
+    oarg.action = "click";
     //var _session_position =  oarg.item.session.target_obj.position();
     xxAPI.events.lastclick.event = oarg.item.event = oarg.item.event || {};
     xxAPI.events.lastclick.top = oarg.item.event.pageY // - _session_position.top;
