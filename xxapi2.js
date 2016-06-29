@@ -90,9 +90,11 @@ hs.options = {
     }
 }
 
-hs.datestrings = {
+hs.language = {
     "monthnames"    : [ "","Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
-    "weekdaynames"  : [ "Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag" ]
+    "weekdaynames"  : [ "Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag" ],
+    "shortweekdaynames" : [ "So","Mo","Di","Mi","Do","Fr","Sa" ],
+    "filternames" : [ "Immer","Normale Tage","Feiertage","Urlaub","Nie" ]
 }
 
 hs.gui = {};
@@ -2240,8 +2242,15 @@ hs.functions.popup_image = function ( oarg ) {
     }
 }
 
-hs.functions.popup_timer = function ( oarg ) {
+hs.functions.popup_timer = function ( oarg, callback ) {
     debug(3,"popup_timer",oarg);
+    if(!callback) {
+        oarg.item.item_callback = function() {
+            hs.functions.popup_timer( oarg ,true);
+        }
+        hs.functions.get_item_info( oarg );
+        return;
+    }
 }
 
 hs.functions.popup_lister = function ( oarg ) {
@@ -2567,6 +2576,7 @@ hs.functions.async.handler = function( oarg ) {
         case "vcu"      : hs.functions.async.gv( oarg ); break;
         
         case "getpag"   : hs.functions.item_handler( oarg ); break;
+        case "getuhr"   : hs.functions.item_handler( oarg ); break;
         case "getcama"  : hs.functions.camarchive_handler( oarg ); break;
         case "getmsg"   : hs.functions.default_list_handler( oarg ); break;
         case "getbud"   : hs.functions.default_list_handler( oarg ); break;
@@ -2595,7 +2605,19 @@ hs.functions.item_handler = function( oarg ) {
         case 18: _elem = "UHR"; break; // Universal Zeitschaltuhr
         default: return;
     }
-    hs.gui.items[_id] = {}
+    if(!hs.gui.items.hasOwnProperty(_id)) {
+        hs.gui.items[_id] = {};
+    }
+    if(oarg.item.action_id == 18 && oarg.cmd == "getuhr") { // UHR
+        hs.gui.items[_id]["_aktiv"] = oarg.item.info["_aktiv"] = oarg.json.HS.PAG._aktiv*1;
+        if(oarg.item.info.hasOwnProperty("evt")) { // clear old events
+            delete hs.gui.items[_id]["evt"];
+            delete oarg.item.info["evt"];
+        }
+        if(!oarg.item.info.hasOwnProperty("aktionen")) {
+            
+        }
+    }
     $.each(oarg.json.HS[_elem],
         function(attr,val) {
              hs.gui.items[_id][attr.toLowerCase()] = oarg.item.info[attr.toLowerCase()] = isNaN(val*1) ? val : val*1;
@@ -2618,6 +2640,15 @@ hs.functions.get_item_info = function ( oarg ) {
         return null;
     }
     var _id = "PAGE_" + oarg.item.page_id + "_" + oarg.item.type + "_" + oarg.item.id;
+    if(oarg.item.action_id == 18) {
+        hs.functions.make_request({
+            "session"   : oarg.session,
+            "cmd"       : "getuhr&cnt=100&dir=1&id=" + oarg.item.id,
+            "item"      : oarg.item,
+            "page_id"   : oarg.page_id
+         });
+         
+    }
     hs.functions.make_request({
         "session"   : oarg.session,
         "cmd"       : "getpag&id=" + oarg.item.id,
@@ -3593,11 +3624,11 @@ hs.functions.get_date_object = function ( date ) {
     $.extend(_date,{
         "YY"    : _date.YYYY.toString().substring(2),
         "MM"    : hs.functions.string_padding(_date.M,2,"0",true),
-        "MMM"   : hs.datestrings.monthnames[_date.M].substring(0,3),
-        "MMMM"  : hs.datestrings.monthnames[_date.M],
+        "MMM"   : hs.language.monthnames[_date.M].substring(0,3),
+        "MMMM"  : hs.language.monthnames[_date.M],
         "dd"    : hs.functions.string_padding(_date.d,2,"0",true),
-        "ddd"   : hs.datestrings.weekdaynames[_date.w ].substring(0,2),
-        "dddd"  : hs.datestrings.weekdaynames[_date.w ],
+        "ddd"   : hs.language.weekdaynames[_date.w ].substring(0,2),
+        "dddd"  : hs.language.weekdaynames[_date.w ],
         "HH"    : hs.functions.string_padding(_date.H,2,"0",true),
         "ii"    : hs.functions.string_padding(_date.i,2,"0",true),
         "p"     : _date.H > 12 ? "P" : "A",
@@ -3683,7 +3714,7 @@ hs.functions.ajaxload_css = function (id, url, callback) {
     $("head:first").append(_element);
     $.ajax({
         url: url,
-        cache: true, // url already tagged with date
+        cache: false, // url already tagged with date
         async: true,
         dataType: 'text',
         context: _element
