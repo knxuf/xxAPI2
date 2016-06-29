@@ -81,6 +81,7 @@ hs.options = {
     "sliderstep_px" : 10,
     "visualclickdelay"  : 800,
     "itemdiscardmode": 2, // discard items outside visu / 0 = don't discard / 1 = discard only html / 2 = discard html + xxapi
+    "fadeouttime"   : 200,
     "temp_colors"   : {
         "one"   : [52, 152, 219],
         "two"   : [137, 224, 223],
@@ -1312,7 +1313,7 @@ xxAPI.xxtemplates.xxknob = function ( obj ) {
     });
     obj.popupbox.append(obj.contentdiv);
     obj.popupbox.on("touchend mouseup",function() {
-        obj.popupbox.fadeOut("fast",function() {
+        obj.popupbox.fadeOut(hs.options.fadeouttime,function() {
             obj.popupbox.remove();
             hs.functions.popup_overlay(false,false,obj.oarg);
         });
@@ -1684,7 +1685,7 @@ hs.functions.load_image = function ( oarg ) {
                 oarg.item.next_update = hs.functions.get_next_update ( oarg.item );
                 oarg.item.object.prepend( this );
                 if (_child != null) {
-                    _child.fadeOut(20,function() {
+                    _child.fadeOut(hs.options.fadeouttime,function() {
                         _child.attr("src","");
                         _child.remove();
                     });
