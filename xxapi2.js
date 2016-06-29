@@ -1771,8 +1771,8 @@ hs.functions.hs_page = function( oarg ) {
     oarg.page.object.css({
         "position"  : "absolute",
         "overflow"  : "hidden",
-        "width"     : "100%",
-        "height"    : "100%"
+        "width"     : oarg.page.width,
+        "height"    : oarg.page.height
     })
     
     if (!oarg.page.hidden) {
