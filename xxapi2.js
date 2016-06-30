@@ -1670,7 +1670,8 @@ hs.functions.load_image = function ( oarg ) {
         "width"     : oarg.item.width,
         "height"    : oarg.item.height,
         "css"       : {
-            "position"  : "relative"
+            "position"  : "absolute",
+            "display"   : "block"
         },
         "on"        : {
             "dragstart" : function () { return false; },
