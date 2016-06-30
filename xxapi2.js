@@ -2311,13 +2311,12 @@ hs.functions.popup_lister = function ( oarg ) {
         "position"  : "relative",
         "overflow"  : "hidden"
     });
-    var _extra_request = "";
     if (oarg.action == "click" && typeof oarg.item != 'undefined' && oarg.item.has_command) {
-        _extra_request = "&cmdid=" + oarg.item.id + "&cmdpos=0";
+        hs.functions.get_item_info(oarg);
     }
     hs.functions.make_request({
         "session"   : oarg.session,
-        "cmd"       : _cmd + "&id=" + oarg.item.id + "&dir=0&cnt=1000" + _extra_request,
+        "cmd"       : _cmd + "&id=" + oarg.item.id + "&dir=0&cnt=1000",
         "item"      : oarg.item,
         "page_id"   : oarg.page_id,
         "result"    : {
