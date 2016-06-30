@@ -2343,7 +2343,7 @@ hs.functions.popup_lister = function ( oarg ) {
     _div.append(_title);
     _scrolldiv.append($("<div class='scroller'/>").append(_list));
     _div.append(_scrolldiv);
-    hs.functions.popup_overlay(true);
+    hs.functions.popup_overlay(true,false,oarg);
     $("#POPUP").append(_div);
     _div.center();
     _scrolldiv.center(_div,"left");
