@@ -3298,7 +3298,7 @@ hs.functions.login_form = function(errortype) {
     _form_html += "<form id='login_form' action='#' accept-charset='utf-8'  autocomplete='off'>";
     _form_html += "<h2>xxAPI Login</h2>";
     _form_html += "<label for='username'>Benutzer</label>";
-    _form_html += "<input name='username' class='textinput' tabindex='1' type='text' value='" + (hs.auth.username == null ? "" : hs.auth.username) + "'>";
+    _form_html += "<input autocomplete='off' autocorrect='off' autocapitalize='off' spellcheck='false' name='username' class='textinput' tabindex='1' type='text' value='" + (hs.auth.username == null ? "" : hs.auth.username) + "'>";
     _form_html += "<label for='password'>Passwort</label>";
     _form_html += "<input name='password' class='textinput' tabindex='2'type='password' >";
     _form_html += "<label for='cl'>Design</label>";
