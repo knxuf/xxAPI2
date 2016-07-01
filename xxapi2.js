@@ -946,10 +946,15 @@ xxAPI.functions.XXREGICON = function ( oarg ) {
 */
 xxAPI.functions.XXPAGE = function ( oarg ) {
     debug(2,"XXPAGE",oarg);
+    oarg.item.hidden = true;
+    if(oarg.item.page.is_modul && !oarg.item.page.is_popup) {
+        debug(2,"XXPAGE inside Modul ignored",oarg);
+        return;
+    }
+
     oarg.item.page.width = oarg.item.left;
     oarg.item.page.height = oarg.item.top;
     oarg.item.page.is_popup = oarg.args[1] == "POPUP";
-    oarg.item.hidden = true;
     
     if(!oarg.item.page.is_modul && !oarg.item.page.is_popup) {
         if(oarg.args[1] == "VISU") {
