@@ -437,7 +437,6 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
             debug(1,"nested modul " + _modulname,oarg);
             return;
         }
-
         if(oarg.item.object) {
             oarg.item.object.append(hs.session[_modulname].target_obj);
         } else {
@@ -469,7 +468,8 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     }
     if(_active_page != _page) {
         if(parseInt(_active_page)) {
-            //hs.session[_modulname].target_obj.empty()
+            debug(4,"XXMODUL hide old pages",{"pages":hs.session[_modulname].target_obj.find(".visupage")});
+            hs.session[_modulname].target_obj.find(".visupage").css("visibility","hidden");
         }
         setTimeout(function() {
             new hs.functions.hs_session(_modulname,_page,oarg.item.width,oarg.item.height);
@@ -1757,7 +1757,7 @@ hs.functions.hs_page = function( oarg ) {
     if (hs.gui.pages.hasOwnProperty(this.id)) {
         debug(4,"update existing Page (" + oarg.page_id + "): ",oarg);
         oarg.page = hs.gui.pages[this.id];
-        
+        oarg.page.object.css("visibility","visible");
         hs.functions.loop_items( oarg );
 
         if (oarg.cmd == "gv" && !oarg.page.hidden) {
@@ -1796,8 +1796,9 @@ hs.functions.hs_page = function( oarg ) {
     oarg.page.object.css({
         "position"  : "absolute",
         "overflow"  : "hidden",
-        "width"     : "100%",
-        "height"    : "100%"
+        "visibility": "visible",
+        "width"     : oarg.page.is_popup ? oarg.page.width : "100%",
+        "height"    : oarg.page.is_popup ? oarg.page.height : "100%"
     })
     
     if (!oarg.page.hidden) {
