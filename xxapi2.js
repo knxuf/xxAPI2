@@ -469,7 +469,7 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     }
     if(_active_page != _page) {
         if(parseInt(_active_page)) {
-            hs.session[_modulname].target_obj.empty()
+            //hs.session[_modulname].target_obj.empty()
         }
         setTimeout(function() {
             new hs.functions.hs_session(_modulname,_page,oarg.item.width,oarg.item.height);
