@@ -468,8 +468,8 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     }
     if(_active_page != _page) {
         if(parseInt(_active_page)) {
-            debug(4,"XXMODUL hide old pages",{"pages":hs.session[_modulname].target_obj.find(".visupage")});
-            hs.session[_modulname].target_obj.find(".visupage").css("visibility","hidden");
+            //debug(4,"XXMODUL hide old pages",{"pages":hs.session[_modulname].target_obj.find(".visupage")});
+            //hs.session[_modulname].target_obj.find(".visupage").css("visibility","hidden");
         }
         setTimeout(function() {
             new hs.functions.hs_session(_modulname,_page,oarg.item.width,oarg.item.height);
