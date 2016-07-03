@@ -468,9 +468,15 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
         _page = xxAPI.marked_pages[oarg.args[2]] || _page;
     }
     if(_active_page != _page) {
+        if(parseInt(_active_page)) {
+            hs.session[_modulname].target_obj.empty()
+        }
         setTimeout(function() {
-            new hs.functions.hs_session(_modulname,_page);
+            new hs.functions.hs_session(_modulname,_page,oarg.item.width,oarg.item.height);
         },0);
+    } else {
+        hs.session[_modulname]._width = oarg.item.width;
+        hs.session[_modulname]._height = oarg.item.height;
     }
     oarg.item.click = false;
     oarg.item.text = '';
@@ -1372,11 +1378,15 @@ hs.functions.xxapi_check = function( oarg ) {
     }
 }
 
-hs.functions.hs_session = function(target,start_page) {
+hs.functions.hs_session = function(target,start_page,session_width,session_height) {
     target = target || "VISU";
     if (hs.session.hasOwnProperty(target)) {
         //delete hs.session[target_item];
         var _session = hs.session[target];
+        if(parseInt(session_width) && parseInt(session_height)) {
+            _session._width = session_width;
+            _session._height = session_height;
+        }
         _session.target_obj = $("#" + target);
         _session.start_page = start_page;
         if (parseInt(_session.start_page)) {
@@ -1388,7 +1398,7 @@ hs.functions.hs_session = function(target,start_page) {
         }
     }
     hs.session[target] = this;
-    // Session 
+    // Session
     this.target = target;
     this.default_target = null;
     this.target_obj = $("#" + target);
@@ -1401,7 +1411,15 @@ hs.functions.hs_session = function(target,start_page) {
         "glob_key1"     : "",
         "glob_key2"     : ""
     };
-    
+    debug(2,"Session_width: " + session_width + "/" + hs.gui.attr.visu_width);
+    this._width = session_width;
+    this._height = session_height;
+    this.width = function() {
+        return this._width || hs.gui.attr.visu_width;
+    };
+    this.height = function() {
+        return this._height || hs.gui.attr.visu_height;
+    };
     this.ajax_queue = $({});
     this.update_timer = null;
 
@@ -1446,7 +1464,7 @@ hs.functions.hs_item = function( oarg ) {
         oarg.item.indent      = parseInt(oarg.json._bord  ||  0);
         oarg.item.info        = hs.functions.get_item_info( oarg );
     }
-    if (hs.options.itemdiscardmode == 2 && (oarg.item.left > oarg.item.page.width || oarg.item.top > oarg.item.page.height)) {
+    if (hs.options.itemdiscardmode == 2 && (oarg.item.left > oarg.session.width() || oarg.item.top > oarg.session.height())) {
         debug(3,"discard item " + oarg.item.uid + " outside visu",oarg);
         return;
     }
@@ -1481,7 +1499,7 @@ hs.functions.hs_item = function( oarg ) {
         }
         oarg.item.cmd = "create";
         hs.functions.xxapi_check( oarg );
-        if(hs.options.itemdiscardmode == 1 && (oarg.item.left > oarg.item.page.width || oarg.item.top > oarg.item.page.height)) {
+        if(hs.options.itemdiscardmode == 1 && (oarg.item.left > oarg.session.width || oarg.item.top > oarg.session.height)) {
             debug(3,"discard html item " + oarg.item.uid + " outside visu",oarg);
             return;
         }
@@ -1758,8 +1776,8 @@ hs.functions.hs_page = function( oarg ) {
     oarg.page.qanz       = parseInt(oarg.json.HS.VISU._bg);
     oarg.page.title      = oarg.json.HS.VISU._txt1;
     oarg.page.text       = oarg.json.HS.VISU._txt2;
-    oarg.page.width      = oarg.page.is_modul ? oarg.session.target_obj.width() : hs.gui.attr.visu_width;
-    oarg.page.height     = oarg.page.is_modul ? oarg.session.target_obj.height() : hs.gui.attr.visu_height;
+    oarg.page.width      = oarg.session.width();
+    oarg.page.height     = oarg.session.height();
     oarg.page.items      = {};
     oarg.page.object = $("<div />", {
         "id"            : oarg.page.id,
@@ -1778,8 +1796,8 @@ hs.functions.hs_page = function( oarg ) {
     oarg.page.object.css({
         "position"  : "absolute",
         "overflow"  : "hidden",
-        "width"     : oarg.page.width,
-        "height"    : oarg.page.height
+        "width"     : "100%",
+        "height"    : "100%"
     })
     
     if (!oarg.page.hidden) {
