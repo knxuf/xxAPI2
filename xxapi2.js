@@ -781,7 +781,7 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
         oarg.item.click = false;
     }
     if($.isEmptyObject(oarg.item.info)) {
-        debug(4,"XXKNOB no item info " + oarg.item.uid,oarg);
+        debug(2,"XXKNOB no item info " + oarg.item.uid,oarg);
         oarg.item.item_callback = function() {
             oarg.iscallback = true;
             xxAPI.functions.XXKNOB( oarg );
@@ -1019,7 +1019,7 @@ hs.functions.open_at_mouseclick = function ( object, offset ) {
         var _result = _calculator.calculate();
         var _top  = _result.moveBy.y;
         var _left = _result.moveBy.x;
-        debug(4,"calculated_position " + _top + "/" +_left + "(" + offset.y + "/" + offset.x + ")",{"result" : _result, "object" : object, "target" : xxAPI.events.lastclick.event.currentTarget });
+        debug(5,"calculated_position " + _top + "/" +_left + "(" + offset.y + "/" + offset.x + ")",{"result" : _result, "object" : object, "target" : xxAPI.events.lastclick.event.currentTarget });
         object.css({
             "position"      : "absolute",
             "visibility"    : "visible",
@@ -1447,7 +1447,7 @@ hs.functions.hs_item = function( oarg ) {
         oarg.item.info        = hs.functions.get_item_info( oarg );
     }
     if (hs.options.itemdiscardmode == 2 && (oarg.item.left > oarg.item.page.width || oarg.item.top > oarg.item.page.height)) {
-        debug(4,"discard item " + oarg.item.uid + " outside visu",oarg);
+        debug(3,"discard item " + oarg.item.uid + " outside visu",oarg);
         return;
     }
     oarg.item.json = oarg.json;
@@ -1482,7 +1482,7 @@ hs.functions.hs_item = function( oarg ) {
         oarg.item.cmd = "create";
         hs.functions.xxapi_check( oarg );
         if(hs.options.itemdiscardmode == 1 && (oarg.item.left > oarg.item.page.width || oarg.item.top > oarg.item.page.height)) {
-            debug(4,"discard html item " + oarg.item.uid + " outside visu",oarg);
+            debug(3,"discard html item " + oarg.item.uid + " outside visu",oarg);
             return;
         }
         if (oarg.item.object == null ) {
@@ -1592,11 +1592,11 @@ hs.functions.update_item = function ( oarg ) {
 
     if ( $.inArray(oarg.item.type, ["TXT"]) > -1) {
         if (oarg.item.s_color != oarg.item.color) {
-            debug(4,"COLOR CHANGED '" + oarg.item.s_color + "' != '" + oarg.item.color + "'")
+            debug(4,"COLOR (" + oarg.item.uid + ") changed to '" + oarg.item.color + "'")
             oarg.item.object.css("color",oarg.item.color);
         }
         if (oarg.item.s_text != oarg.item.text) {
-            debug(4,"TEXT CHANGED '" + oarg.item.s_text + "' != '" + oarg.item.text + "'")
+            debug(4,"TEXT (" + oarg.item.uid + ") changed to '" + oarg.item.text + "'")
             if (oarg.item.html == null) {
                 oarg.item.object.children().replaceWith($("<span />").text(oarg.item.text));
             } else {
@@ -1607,7 +1607,7 @@ hs.functions.update_item = function ( oarg ) {
     }
     if ( $.inArray(oarg.item.type, ["TXT","BOX"]) > -1) {
         if (oarg.item.s_bg_color != oarg.item.bg_color) {
-            debug(4,"BOX/TEXT BGCOLORT changed '" + oarg.item.s_bg_color + "' != '" + oarg.item.bg_color + "'");
+            debug(4,"BGCOLOR BOX/TEXT (" + oarg.item.uid + ")  changed to '" + oarg.item.bg_color + "'");
             oarg.item.object.css({
                 "background-color"  : oarg.item.bg_color,
                 "border-color"      : oarg.item.bg_color
@@ -1616,13 +1616,13 @@ hs.functions.update_item = function ( oarg ) {
     }
     if ( $.inArray(oarg.item.type, ["ICO"]) > -1) {
         if (oarg.item.s_image != oarg.item.image) {
-            debug(4,"ICO changed");
+            debug(4,"ICO (" + oarg.item.uid + ") changed # " + oarg.item.image);
             hs.functions.load_image( oarg );
         }
     }
     if ( $.inArray(oarg.item.type, ["CAM"]) > -1) {
         if (oarg.item.s_url != oarg.item.url) {
-            debug(4,"URL changed");
+            debug(4,"URL (" + oarg.item.uid + ") changed # " + oarg.item.url );
             hs.functions.load_image( oarg );
         }
     }
@@ -1737,7 +1737,7 @@ hs.functions.hs_page = function( oarg ) {
         hs.gui.attr.visu_width = hs.gui.attr.initial_visu_width;
     }
     if (hs.gui.pages.hasOwnProperty(this.id)) {
-        debug(5,"update existing Page: ",oarg);
+        debug(4,"update existing Page (" + oarg.page_id + "): ",oarg);
         oarg.page = hs.gui.pages[this.id];
         
         hs.functions.loop_items( oarg );
@@ -1747,7 +1747,7 @@ hs.functions.hs_page = function( oarg ) {
         }
         return oarg.page;
     }
-    debug(4,"create new Page: ",oarg);
+    debug(4,"create new Page (" + oarg.page_id + "): ",oarg);
     oarg.page.next_update = hs.functions.get_next_update( oarg.page );
     hs.gui.pages[oarg.page.id] = oarg.page;
     oarg.page.hidden     = false;
@@ -1917,7 +1917,7 @@ hs.functions.write_input = function ( input, value ) {
 }
 
 hs.functions.set_validinput = function ( input, value, deny_invalid_pattern) {
-    debug(5,"set_validinput " + value,input);
+    debug(4,"set_validinput " + value,input);
     if(typeof value == 'function') {
         value = value(0,input.val());
     }
@@ -1954,7 +1954,7 @@ hs.functions.set_validinput = function ( input, value, deny_invalid_pattern) {
 }
 
 hs.functions.stringdot2object = function ( obj, text ) {
-    debug(4,"string to obj " + text,obj);
+    debug(5,"string to obj " + text,obj);
     return text.split(".").reduce(function(_obj,_index) {
       return typeof _obj == "object" ? _obj[_index] : undefined;
     },obj);
@@ -2424,7 +2424,7 @@ hs.functions.camarchive_handler = function( oarg ) {
 }
 
 hs.functions.default_list_handler = function( oarg ) {
-    debug(5,"camarchive_handler",oarg);
+    debug(5,"default_list_handler",oarg);
     var _list = oarg.result.list;
     var _json;
     var _class;
@@ -2598,7 +2598,7 @@ hs.functions.async.handler = function( oarg ) {
 };
 
 hs.functions.item_handler = function( oarg ) {
-    debug(4,"item_handler",oarg);
+    debug(5,"item_handler",oarg);
     var _id = "PAGE_" + oarg.item.page_id + "_" + oarg.item.type + "_" + oarg.item.id;
     var _elem = "";
     switch(oarg.item.action_id) {
@@ -2705,7 +2705,7 @@ hs.functions.error_handler = function( oarg ) {
             if (oarg.error == "") {
                 var _xml = oarg.xhttpobj.responseText;
                 if (_xml.match(/<HS>.*?<ITEMS>[^]*?<\/ITEMS>/gm)) {
-                    debug(4,"fix item order", { "_xml" : _xml });
+                    debug(5,"fix item order", { "_xml" : _xml });
                     if (typeof oarg.xhttpobj.responseXML == 'undefined') {
                         _xml = hs.functions.fix_xml(oarg.xhttpobj.responseText);
                     }
@@ -2935,7 +2935,7 @@ hs.functions.update = function() {
             return;
         }
         if (session.active_page.next_update && session.active_page.next_update + _delay <= _now) {
-            debug(4,"Update " + session.active_page.id,session);
+            debug(5,"Update " + session.active_page.id,session);
             session.active_page.next_update = hs.functions.get_next_update(session.active_page) ;
             hs.functions.make_request( {
                 "session"     : session,
@@ -2947,7 +2947,7 @@ hs.functions.update = function() {
             if($.inArray(item.type,["CAM","GRAF","ICO"]) > -1) {
                 if(item.next_update && item.next_update + _delay <= _now) {
                     item.next_update = null;
-                    debug(4,"Update " + item.uid,item);
+                    debug(5,"Update " + item.uid,item);
                     hs.functions.load_image({
                         "item" : item
                     });
@@ -3014,7 +3014,7 @@ hs.functions.do_valset = function ( oarg ) {
 }
 
 hs.functions.load_page = function( oarg ) {
-    debug(4,"load_page (" + oarg.session.target + "): " + oarg.page_id + " (" + oarg.command_id + ")", oarg);
+    debug(4,"load_page (" + oarg.session.target + "): " + oarg.page_id, oarg);
 
     var _extra_request = "";
     if (typeof oarg.item != 'undefined' && oarg.item.has_command) {
@@ -3045,7 +3045,7 @@ hs.functions.load_page = function( oarg ) {
 };
 
 hs.functions.async.gv = function( oarg ) {
-    debug(4,"async.gv (" + oarg.session.target + "): ",oarg);
+    debug(5,"async.gv (" + oarg.session.target + "): ",oarg);
     if (oarg.session.target == "VISU" && oarg.json.HS.VISU && (oarg.json.HS.VISU._pop*1) > 0) {
         debug(3,"visu_alarm",oarg);
         setTimeout(function() {
@@ -3944,9 +3944,9 @@ window.addEventListener("offline",hs.functions.checkonline,true);
 
 $(document).on("visibilitychange",  function() {
     if(document.hidden) {
-        debug(4,"xxAPI is hidden, delayed refresh");
+        debug(3,"xxAPI is hidden, delayed refresh");
     } else {
-        debug(4,"xxAPI is visible, normal refresh");
+        debug(3,"xxAPI is visible, normal refresh");
     }
     hs.gui.hidden = document.hidden;
 });
@@ -3992,7 +3992,7 @@ hs.functions.start_client = function() {
     if (hs.auth.username == null || hs.auth.password == null || hs.auth.gui_design == null) {
         hs.functions.login_dialog()
     } else {
-        debug(5,"[start] Main Session")
+        debug(3,"[start] Main Session")
         new hs.functions.hs_session("VISU");
         if (hs.showstartuplog > 0 && hs.debug_cache.length > 0) {
             setTimeout(function(){
