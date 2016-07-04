@@ -977,7 +977,9 @@ xxAPI.functions.XXPAGE = function ( oarg ) {
             hs.gui.attr.visu_height = oarg.page.height;
         }
     }
-    
+    if(oarg.item.page.is_popup) {
+        oarg.item.page.centered = true;
+    }
     if (oarg.args.length > 2 && !oarg.item.page.object.is(":visible")) {
         var _match = null;
         var _regex =new RegExp(/([-\w]+)[:](.*?);/g);
@@ -1770,7 +1772,7 @@ hs.functions.hs_page = function( oarg ) {
     hs.gui.pages[oarg.page.id] = oarg.page;
     oarg.page.hidden     = false;
     oarg.page.is_popup   = false;
-    oarg.page.centered   = true;
+    oarg.page.centered   = false;
     oarg.page.bg_image   = oarg.json.HS.VISU._bg;
     oarg.page.icon       = oarg.json.HS.VISU._ico;
     oarg.page.qanz       = parseInt(oarg.json.HS.VISU._bg);
@@ -1815,12 +1817,14 @@ hs.functions.fade_page = function( oarg ) {
         $("#POPUP").append(oarg.page.object);
         hs.functions.popup_overlay(true,false,oarg);
     } else {
+        debug(4,"Fade Page " + oarg.page.page_id,oarg);
         oarg.session.target_obj.prepend(oarg.page.object);
         if(oarg.session.active_page && oarg.session.active_page.page_id != oarg.page.page_id) {
             $.each($(oarg.session.target_obj).children(),function() {
                 if(this == oarg.page.object[0]) {
                     return;
                 }
+                debug(4,"Detach Element " + this.id,$(this));
                 $(this).detach();
             });
             $.each($("#POPUP").children(),function() {
