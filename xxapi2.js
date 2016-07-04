@@ -1635,13 +1635,13 @@ hs.functions.update_item = function ( oarg ) {
         }
     }
     if ( $.inArray(oarg.item.type, ["ICO"]) > -1) {
-        if (oarg.item.s_image != oarg.item.image) {
+        if (oarg.item.image && oarg.item.s_image != oarg.item.image) {
             debug(4,"ICO (" + oarg.item.uid + ") changed # " + oarg.item.image);
             hs.functions.load_image( oarg );
         }
     }
     if ( $.inArray(oarg.item.type, ["CAM"]) > -1) {
-        if (oarg.item.s_url != oarg.item.url) {
+        if (oarg.item.url && oarg.item.s_url != oarg.item.url) {
             debug(4,"URL (" + oarg.item.uid + ") changed # " + oarg.item.url );
             hs.functions.load_image( oarg );
         }
