@@ -1,3 +1,7 @@
+html {
+    -webkit-user-select: none;
+}
+
 body {
     width:  auto;
     height: auto;
