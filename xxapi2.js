@@ -633,6 +633,74 @@ xxAPI.functions.XXIMG = function ( oarg ) {
 
 xxAPI.functions.XXGAUGE = function ( oarg ) {
     debug(2,"XXGAUGE",oarg);
+    oarg.item.text = "";
+    var _is_vertical = oarg.item.width < oarg.item.height;
+    var _reversed = oarg.item.align == "right";
+    if (!oarg.item.xxapi.gauge) {
+        oarg.item.xxapi.gauge_options = {
+            "min"   : 0,
+            "max"   : 100,
+            "prec"  : 0,
+            "click" : 1,
+            "gradient" : ""
+        };
+        debug(5,"XXGAUGE: create object",oarg);
+        if(oarg.item.action_id != 9) {
+            if(oarg.args.length > 2) {
+                oarg.item.xxapi.gauge_options = $.extend(oarg.item.xxapi.gauge_options, hs.functions.option_parser(oarg.args[2],oarg.item.xxapi.gauge_options));
+            }
+            oarg.item.action_id = 9
+            oarg.item.info = {
+                "_min"  : oarg.item.xxapi.gauge_options.min,
+                "_max"  : oarg.item.xxapi.gauge_options.max,
+                "_prec" : oarg.item.xxapi.gauge_options.prec,
+                "_txt2" : "",
+            };
+        } else {
+            oarg.item.click = oarg.item.xxapi.gauge_options.click;
+        }
+        var _text2 = oarg.item.info._txt2 || "";
+        if(_text2.match(/^XXOPTIONS\*/)) {
+            oarg.item.xxapi.gauge_options = $.extend(oarg.item.xxapi.gauge_options, hs.functions.option_parser(_text2.substring(10),oarg.item.xxapi.gauge_options));
+        }
+        var _posx = _reversed ? "top" : "bottom";
+        var _posy = _reversed ? "right" : "left"
+        oarg.item.xxapi.gauge_container = $("<div />",{
+            "css" : {
+                "position"  : "absolute",
+                "overflow"  : "hidden"
+            }
+        });
+        oarg.item.xxapi.gauge_container.css(_posx,"0px");
+        oarg.item.xxapi.gauge_container.css(_posy,"0px");
+        oarg.item.xxapi.gauge = $("<div />",{
+            "position"  : "absolute",
+            "width" : oarg.item.width,
+            "height" : oarg.item.height,
+        });
+        oarg.item.xxapi.gauge.css(_posx,"0px");
+        oarg.item.xxapi.gauge.css(_posy,"0px");
+        oarg.item.xxapi.gauge_container.append(oarg.item.xxapi.gauge);
+        oarg.item.html = oarg.item.xxapi.gauge_container;
+        oarg.item.customcss = {
+            "line-height" : "inherit"
+        }
+    } 
+    debug(5,"XXGAUGE: update values",oarg);
+    var _min = oarg.item.info._min
+    var _max = oarg.item.info._max
+    var _value = parseInt(oarg.args[1]) || 0;
+    var _percent = ((_value - _min) / (_max - _min) * 100) || 0;
+
+    // update
+    oarg.item.xxapi.gauge_container.css("width", _is_vertical ? "100%" : _percent + "%");
+    oarg.item.xxapi.gauge_container.css("height", _is_vertical ? _percent  + "%" : "100%");
+    oarg.item.xxapi.gauge.css("background", oarg.item.xxapi.gauge_options.gradient || oarg.item.color);
+}
+
+xxAPI.functions.XXGAUGEOLD = function ( oarg ) {
+    debug(2,"XXGAUGE",oarg);
+    oarg.item.text = "";
     var _options = {
         "min"   : 0,
         "max"   : 100,
