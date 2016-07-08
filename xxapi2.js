@@ -353,23 +353,13 @@ xxAPI.functions.XXEXECUTE = function ( oarg ) {
 
 hs.functions.fix_hsjavascript = function ( broken ) {
     var _jscode = broken || "";
-    _jscode = _jscode.replace(/\s\?\s/g, " $?$ ");
-    _jscode = _jscode.replace(/\[/g, "<");
-    _jscode = _jscode.replace(/\(\?/g, "\(\"");
-    _jscode = _jscode.replace(/\{\?/g, "\{\"");
-    _jscode = _jscode.replace(/=\?/g, "=\"");
-    _jscode = _jscode.replace(/\? /g, "\" ");
-    _jscode = _jscode.replace(/\?:/g, "\":");
-    _jscode = _jscode.replace(/:\?/g, ":\"");
-    _jscode = _jscode.replace(/\?[,]/g, "\",");
-    _jscode = _jscode.replace(/\?[;]/g, "\";");
-    _jscode = _jscode.replace(/\?[\+]/g, "\"\+");
-    _jscode = _jscode.replace(/[\+]\?/g, "\+\"");
-    _jscode = _jscode.replace(/[,]\?/g, ",\"");
-    _jscode = _jscode.replace(/\?\)/g, "\"\)");
-    _jscode = _jscode.replace(/\?\}/g, "\"\}");
-    _jscode = _jscode.replace(/\]/g, ">");
-    _jscode = _jscode.replace(/\$\?\$/g, "?");
+    _jscode = _jscode.replace(/(\?\w+\?)/g, function(match,capture) {
+        return '"' + capture.slice(1,-1) + '"';
+    });
+    _jscode = _jscode.replace(/(\[\w+\])/g,function(match,capture) {
+        return '<' + capture.slice(1,-1) + '>';
+    });
+    _jscode = _jscode.replace(/##/g, "||");
     return _jscode;
 }
 
