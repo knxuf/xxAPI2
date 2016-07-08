@@ -1118,6 +1118,70 @@ hs.functions.open_at_mouseclick = function ( object, offset ) {
 }
 
 /*
+    * XXIF is a function to evaluate an if statement
+    * it can be used to execute the "Action" set on the item property page
+    * and also execute the commands on the "Befehle" tab
+    * if argument 1 evaluates to "true"
+    
+    * Argument 1 is the if that will be evaluated
+    * special names $screen$/$user$/$orientation$ can be used to check for the 
+    * screen resolution as "1024x768" ($screen$) / the current user "username" ($user$)
+    * or the orientation as landscape/portrait ($orientation$)
+    * Quotes are made using ? and the or doublepipe (||) will be made with ##
+    * Argument 2... can be a common xxAPI function 
+    * if Argument 2 is used / "Action" and "Befehle" is not executed by the if but are
+    * passed through to the appended xxAPI function
+    
+    XXIF*$user$==?admin? && $orientation$ == ?landscape?
+    XXIF*$screen$ == ?1024x768? ## $screen$ == ?768x1024?*XXDOMODULCLICK*QTR*WETTER
+
+*/
+xxAPI.functions.XXIF = function ( oarg ) {
+    debug(2,"XXIF",oarg);
+    oarg.item.hidden = true;
+    if(oarg.args.length < 2) {
+        return;
+    }
+    var _resources = {
+        "screen" : "{0}x{1}".format(screen.width,screen.height),
+        "user"   : hs.auth.username,
+        "orientation"  : hs.functions.get_orientation()
+    };
+    var _regex = new RegExp(/\$(\w+)\$/,"g");
+    var _args = oarg.args[1].replace(_regex,function(match,capture) {
+        var _res = _resources[capture.toLowerCase()];
+        if (_res) {
+            return '"' + _res + '"';
+        }
+        return capture;
+    });
+    _args = hs.functions.fix_hsjavascript(_args);
+    debug(5,"XXIF args",{ "args" :_args});
+    try {
+        var _result = eval(_args);
+    } catch(e) {
+        debug(1,"XXIF: eval error",{"oarg":oarg,"args":_args,"error":e});
+    }
+    if (_result == false) {
+        return;
+    }
+    if (oarg.args.length > 2) {
+        var _rest = oarg.args.splice(2)
+        oarg.item.hidden = false;
+        oarg.item.text = _rest.join("*");
+        hs.functions.xxapi_check( oarg );
+    } else {
+        if (oarg.item.open_page > 0) {
+            oarg.item.page.hidden = true;
+            window.setTimeout(function() {
+                oarg.page_id = oarg.item.open_page;
+                hs.functions.load_page( oarg );
+            },1);
+        }
+    }
+}
+
+/*
     * Text prefixed with XXWRAPTEXT is wraped inside the item text.
     
     * Argument 1 is the text that is to be wraped
