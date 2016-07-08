@@ -502,6 +502,25 @@ xxAPI.functions.XXMODULCLICK = function ( oarg ) {
 }
 
 /*
+    * XXDOMODULCLICK is used to change a modulpage programaticaly
+    * commands are also executed
+    
+    * Argument [1,3,5 ....] is the name of the module that will be changed
+    * Argument [2,4,6 ....] (can be blank) is the XXMARK'ed pagename
+    *  (if blank the Visu-Page from "Seite aufrufen" is used)
+    
+*/
+xxAPI.functions.XXDOMODULCLICK = function ( oarg ) {
+    debug(2,"XXDOMODULCLICK",oarg);
+    oarg.item.text = "";
+    oarg.item.action_id = oarg.item.has_command ? 0 : -1;
+    var _args = oarg.args.slice(1);
+    for (var i = 0; i <_args.length; i+=2) {
+        xxAPI.functions.modul_click( _args[i],_args[i+1], oarg);
+    }
+}
+
+/*
     * xxAPI.functions.modul_click is a Helperfunction to change Modulepages with XXEXECUTE
     
     * Argument 1 is the name of the module
