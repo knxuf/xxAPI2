@@ -637,6 +637,9 @@ xxAPI.functions.XXIMG = function ( oarg ) {
     oarg.item.url = hs.functions.format_date(oarg.args[1]);
     if(oarg.args.length > 2) {
         oarg.item.refresh = oarg.args[2]*1;
+        if(oarg.item.refresh == 0) {
+            oarg.item.refresh = Infinity;
+        }
     }
 }
 
