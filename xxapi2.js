@@ -701,7 +701,7 @@ xxAPI.functions.XXGAUGE = function ( oarg ) {
     debug(5,"XXGAUGE: update values",oarg);
     var _min = oarg.item.info._min
     var _max = oarg.item.info._max
-    var _value = parseInt(oarg.args[1]) || 0;
+    var _value = Number(oarg.args[1]) || 0;
     var _percent = ((_value - _min) / (_max - _min) * 100) || 0;
 
     // update
@@ -747,7 +747,7 @@ xxAPI.functions.XXSLIDER = function ( oarg ) {
         return;
     }
     oarg.item.text = "";
-    var _value = parseInt(oarg.args[1]) || 0;
+    var _value = Number(oarg.args[1]) || 0;
     if(oarg.item.xxapi.hasOwnProperty("slider")) {
         oarg.item.xxapi.slider.val(_value);
     } else {
@@ -848,7 +848,7 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
         return;
     }
     oarg.item.text = "";
-    oarg.item.value = parseInt(oarg.args[1]);
+    oarg.item.value = Number(oarg.args[1]);
     if(oarg.item.xxapi.hasOwnProperty("knob_input")) {
         oarg.item.xxapi.knob_input.val(oarg.item.value).trigger("change");
     } else {
