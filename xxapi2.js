@@ -1808,10 +1808,25 @@ hs.functions.load_image = function ( oarg ) {
     if (oarg.item.type == "CAM") {
         if (oarg.item.url) {
             _url =  oarg.item.url;
-            if (oarg.item.auth) {
-                _url = $.base64.decode(oarg.item.auth) + "@" + _url;
-            }
-            _url = _url.match(/http[s]?:\/\/.*/) ? _url : "http://" + _url;
+            _url = _url.replace(new RegExp(/^(http[s]?:\/\/)?([\w]*[.]+[\w.]*)?(\/.*|[^].*)/),function(match,proto,host,uri) {
+                debug(5,"load_image - fix url", { "match" : match, "proto" : proto, "host" : host, "uri" : uri });
+                if (!host) {
+                    // auth local client uri
+                    return uri.indexOf("/gui") == 0 ? hs.functions.get_url ({ 
+                        "session"   : oarg.item.session, 
+                        "url"       : uri, 
+                        "cmd"       : ""
+                    }) : uri;
+                }
+                if (!proto) {
+                    proto = "http://";
+                }
+                if (oarg.item.auth) {
+                    // add basic auth
+                    host = $.base64.decode(oarg.item.auth) + "@" + host;
+                }
+                return proto + host + uri;
+            });
         } else {
             _url = hs.functions.get_url ({ 
                 "session"   : oarg.item.session, 
