@@ -424,13 +424,15 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     oarg.item.indent = 0;
     if(hs.session.hasOwnProperty(_modulname)) {
         if(oarg.item.session.target == _modulname) {
-            debug(1,"nested modul " + _modulname,oarg);
+            debug(1,"XXMODUL: nested modul " + _modulname,oarg);
             return;
         }
         if(oarg.item.object) {
+            debug(5,"XXMODUL: modul has object",hs.session[_modulname]);
             oarg.item.object.append(hs.session[_modulname].target_obj);
         } else {
             if (hs.session[_modulname].target_obj.length > 0) {
+                debug(5,"XXMODUL: modul has session",oarg);
                 oarg.item.html =  hs.session[_modulname].target_obj;
             }
         }
@@ -452,19 +454,19 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
     if(hs.session[_modulname] && hs.session[_modulname].active_page) {
         _active_page = hs.session[_modulname].active_page.page_id;
     }
-    var _page = oarg.item.open_page || xxAPI.marked_pages[oarg.args[1]] || _active_page;
+    //          Seite aufrufen                               XXMODULNAME
+    var _page = oarg.item.open_page || _active_page || xxAPI.marked_pages[oarg.args[1]];
     if(oarg.args.length > 2) {
+        //          XXMARKed Page
         _page = xxAPI.marked_pages[oarg.args[2]] || _page;
     }
-    if(_active_page != _page) {
-        if(parseInt(_active_page)) {
-            //debug(4,"XXMODUL hide old pages",{"pages":hs.session[_modulname].target_obj.find(".visupage")});
-            //hs.session[_modulname].target_obj.find(".visupage").css("visibility","hidden");
-        }
+    if(Number(_page) && _active_page != _page) {
+        debug(5,"XXMODUL: different_pages: " + _active_page + " != " + _page, oarg);
         setTimeout(function() {
             new hs.functions.hs_session(_modulname,_page,oarg.item.width,oarg.item.height);
         },0);
     } else {
+        debug(5,"XXMODUL: same page: " + _active_page + " == " + _page, oarg);
         hs.session[_modulname]._width = oarg.item.width;
         hs.session[_modulname]._height = oarg.item.height;
     }
