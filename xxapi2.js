@@ -67,6 +67,7 @@ xxAPI.xxtemplates = {
 // Homeserver Object
 var hs = {};
 hs.debug_cache = [];
+hs.cached_load_count = -1;
 hs.functions = {};
 hs.functions.async = {};
 hs.session = {};  // keyname ist target
@@ -4239,17 +4240,65 @@ hs.functions.load_libraries = function() {
     );
 }
 
+hs.functions.progressbar = function(element,percent) {
+    debug(1,"progressbar " + percent);
+    var _width = percent * element.width() / 100;
+    element.find('div').animate({ width: _width }, 0).html(percent + "% ");
+}
+
 debug(2,"[start] xxAPI² load");
+
+window.applicationCache.addEventListener('progress', function (e) {
+    if (Number(hs.cached_files_count)) {
+        $("#PROGRESSINFO").html(hs.cached_files[hs.cached_load_count - 1]);
+        var _percent = parseInt(hs.cached_load_count / hs.cached_files_count * 100);
+        hs.functions.progressbar($("#PROGRESSBAR"), _percent);
+        debug(5,"APPCACHE: download " + hs.cached_files[hs.cached_load_count - 1] + "  -  "+ hs.cached_load_count + "/" + hs.cached_files_count + " :: " + _percent);
+    }
+    hs.cached_load_count++;
+});
+
 $(document).ready(function() {
     hs.has_appcache = $("html[manifest$=appcache]").length > 0;
     if (hs.has_appcache) {
         debug(3,"[start] HTML5 Manifest active");
+        $("html").css({
+            "width"     : "100vh",
+            "height"    : "100vh",
+            "background-color"  : "#000000",
+            "color"             : "#FFFFFF"
+        });
         window.applicationCache.addEventListener('updateready', function (e) {
             if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
                 window.applicationCache.swapCache();
                 window.location.reload();
             }
         });
+        window.applicationCache.addEventListener('noupdate', function (e) {
+            $("#POPUP").html(""); 
+            hs.functions.load_libraries(); 
+        });
+        window.applicationCache.addEventListener('cached', function (e) {
+            $("#POPUP").html(""); 
+            hs.functions.load_libraries();
+        });
+        window.applicationCache.addEventListener('checking', function (e) {
+            $("#POPUP").html("Check"); 
+        });
+        window.applicationCache.addEventListener('downloading', function (e) {
+            $.ajax({
+                url         : $("html").attr("manifest"),
+                dataType    : "text",
+                cache       : false,
+                success     : function( content ) {
+                    hs.cached_files = content.match(/^(?:[/]|http[s]?:\/\/)?\w+[/.?]+.*/gm);
+                    hs.cached_files_count = hs.cached_files.length;
+                }
+            });
+            $("#POPUP").html("<div id='PROGRESSBAR' style='position: absolute; top: 50%; text-align: right; width: 90vw; max-width: 400px;'><div style='background-color: grey; width: 0%; border-radius: 15px; padding-right: 10px;'/></div><div id='PROGRESSINFO' style='position: absolute; bottom: 5px;'/>"); 
+        });
+            
+    } else {
+        hs.functions.load_libraries();
     }
-    hs.functions.load_libraries()
 });
