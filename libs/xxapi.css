@@ -11,8 +11,8 @@ body {
 }
 
 #POPUP {
-    width:      100%;
-    height:     100%;
+    width:      inherit;
+    height:     inherit;
     z-index:    1000;
     display:    none;
 }
