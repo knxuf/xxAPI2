@@ -4283,7 +4283,26 @@ $(document).ready(function() {
             hs.functions.load_libraries();
         });
         window.applicationCache.addEventListener('checking', function (e) {
-            $("#POPUP").html("Check"); 
+            if(navigator.onLine) {
+                $("#POPUP").html("Check");
+            } else {
+                hs.functions.load_libraries();
+            }
+        });
+        window.applicationCache.addEventListener('obsolete', function (e) {
+            debug(1,"Appcache: Removed");
+            $("#POPUP").html(""); 
+            hs.functions.load_libraries();
+        });
+        window.applicationCache.addEventListener('error', function (e) {
+            debug(1,"Appcache: Error",e);
+            $("#POPUP").html(""); 
+            if(!navigator.onLine) {
+                hs.functions.load_libraries();
+            }
+            if(confirm("Appcache error: start anyway?")) {
+                hs.functions.load_libraries();
+            }
         });
         window.applicationCache.addEventListener('downloading', function (e) {
             $.ajax({
