@@ -202,7 +202,10 @@ xxAPI.functions.XXSCRIPT = function( oarg ) {
     if (oarg.item.open_page > 0) {
         window.setTimeout(function() {
             oarg.page_id = oarg.item.open_page;
-            hs.functions.load_page( oarg );
+            hs.functions.load_page({
+                "session"   : oarg.session, 
+                "page_id"   :  xxAPI.marked_pages[xxAPI.start_page] || oarg.page_id
+            });
         },1);
     }
 }
@@ -4167,7 +4170,7 @@ hs.functions.start_client = function() {
     hs.auth.password = hs.functions.storage("get","password") || hs.functions.get_hash_parameter("pass");
     hs.auth.gui_design = hs.functions.storage("get","gui_design") || hs.functions.get_hash_parameter("design") || "";
     hs.auth.gui_refresh = hs.functions.get_hash_parameter('refresh') || hs.auth.gui_refresh ;
-    
+    xxAPI.start_page =  hs.functions.get_hash_parameter("startpage");
     hs.gui.hashes = hs.functions.storage("get","hashes") || hs.gui.hashes;
 
     hs.gui.fonts = hs.functions.storage("get","fonts") || hs.gui.fonts;
