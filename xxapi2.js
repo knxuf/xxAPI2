@@ -1617,7 +1617,8 @@ hs.functions.hs_item = function( oarg ) {
         oarg.item.indent      = parseInt(oarg.json._bord  ||  0);
         oarg.item.info        = hs.functions.get_item_info( oarg );
     }
-    if (hs.options.itemdiscardmode == 2 && (oarg.item.left > oarg.session.width() || oarg.item.top > oarg.session.height())) {
+    oarg.item.text        = oarg.json._txt || oarg.json._val ||  "";
+    if (!(typeof oarg.item.text == "string" && oarg.item.text.indexOf("XXPAGE*") === 0) && hs.options.itemdiscardmode == 2 && (oarg.item.left > oarg.session.width() || oarg.item.top > oarg.session.height())) {
         debug(3,"discard item " + oarg.item.uid + " outside visu",oarg);
         return;
     }
@@ -1625,7 +1626,6 @@ hs.functions.hs_item = function( oarg ) {
     
     oarg.item.color       = hs.functions.get_hexcolor( oarg.json._fcol ) || oarg.item.color || "transparent";
     oarg.item.bg_color    = hs.functions.get_hexcolor( oarg.json._bgcol || oarg.json._col) || oarg.item.bg_color || "transparent";
-    oarg.item.text        = oarg.json._txt || oarg.json._val ||  "";
     oarg.item.html        = null;
     oarg.item.image       = oarg.json._ico || null;
     oarg.item.url         = oarg.json._url || null;
