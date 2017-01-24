@@ -70,6 +70,7 @@ hs.debug_cache = [];
 hs.cached_load_count = -1;
 hs.functions = {};
 hs.functions.async = {};
+hs.post_load_functions = [];
 hs.session = {};  // keyname ist target
 
 // Globale
@@ -200,13 +201,13 @@ xxAPI.functions.XXSCRIPT = function( oarg ) {
     debug(2,"XXSCRIPT");
     oarg.item.page.hidden = true;
     if (oarg.item.open_page > 0) {
-        window.setTimeout(function() {
+        hs.post_load_functions.push(function() {
             oarg.page_id = oarg.item.open_page;
             hs.functions.load_page({
                 "session"   : oarg.session, 
                 "page_id"   :  xxAPI.marked_pages[xxAPI.start_page] || oarg.page_id
             });
-        },1);
+        });
     }
 }
 
@@ -2088,6 +2089,17 @@ hs.functions.loop_items = function ( oarg ) {
             }
         }
     );
+    hs.post_load_functions = $.grep(hs.post_load_functions, function(_func,_index) {
+        debug(5,"loop_items: post_load_function",_func);
+        if(typeof _func === 'function') {
+            try {
+                _func();
+            } catch (e) {
+                debug(1,"post_load_function error",e);
+            }
+        }
+        return false;
+    });
 }
 
 hs.functions.write_input = function ( input, value ) {
