@@ -747,6 +747,38 @@ xxAPI.functions.XXGAUGEOLD = function ( oarg ) {
     
 }
 
+xxAPI.functions.XXHISTOGRAM = function ( oarg ) {
+    debug(2,"XXHISTOGRAM",oarg);
+    oarg.item.text = "";
+    var _values = oarg.args[1].split(",");
+    var _step = 1 / _values.length;
+    if(!oarg.item.xxapi.canvas) {
+        oarg.item.xxapi.canvas =  $("<canvas />",{
+            "css" : {
+                "background-color"  : oarg.item.bg_color,
+            }
+        });
+        oarg.item.xxapi.canvas.attr("width",oarg.item.width);
+        oarg.item.xxapi.canvas.attr("height",oarg.item.height);
+    }
+    var _ctx = oarg.item.xxapi.canvas[0].getContext("2d");
+    var _gradient;
+    if (oarg.item.width > oarg.item.height) {
+        _gradient = _ctx.createLinearGradient(0,0,oarg.item.width,0);
+    } else {
+        _gradient = _ctx.createLinearGradient(0,oarg.item.height,0,0);
+    }
+    for(var _i=0;_i<_values.length;_i++) {
+        _gradient.addColorStop(_step*_i,hs.functions.get_rgba_color(oarg.item.color,_values[_i]));
+    }
+    if (!oarg.item.html){
+        oarg.item.html = oarg.item.xxapi.canvas;
+    } 
+    _ctx.clearRect(0,0,oarg.item.width,oarg.item.height);
+    _ctx.fillStyle = _gradient;
+    _ctx.fillRect(0,0,oarg.item.width,oarg.item.height);
+}
+
 xxAPI.functions.XXSLIDER = function ( oarg ) {
     debug(2,"XXSLIDER",oarg);
     if(oarg.item.action_id != 9) {
@@ -3569,6 +3601,7 @@ hs.functions.number2align = function(align) {
     };
     return ""
 }
+
 hs.functions.get_hexcolor = function(numcolor) {
     var _hex = "";
     if (typeof numcolor == 'undefined') {
@@ -3581,6 +3614,12 @@ hs.functions.get_hexcolor = function(numcolor) {
         _hex = "transparent";
     }
     return _hex;
+}
+
+hs.functions.get_rgba_color = function(hex,alpha) {
+    alpha = alpha || 1;
+    var _res = /^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return _res ? "rgba(" + parseInt(_res[1],16) +  ","  + parseInt(_res[2],16) + "," + parseInt(_res[3],16) + "," + alpha + ")"  : "rgba(0,0,0,0)";
 }
 
 hs.functions.string_padding = function(str, len, pad, prefix) {
