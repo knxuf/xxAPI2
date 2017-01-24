@@ -1215,10 +1215,10 @@ xxAPI.functions.XXIF = function ( oarg ) {
     } else {
         if (oarg.item.open_page > 0) {
             oarg.item.page.hidden = true;
-            window.setTimeout(function() {
+            hs.post_load_functions.push(function() {
                 oarg.page_id = oarg.item.open_page;
                 hs.functions.load_page( oarg );
-            },1);
+            });
         }
     }
 }
