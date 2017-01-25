@@ -1847,7 +1847,7 @@ hs.functions.load_image = function ( oarg ) {
     if (oarg.item.type == "CAM") {
         if (oarg.item.url) {
             _url =  oarg.item.url;
-            _url = _url.replace(new RegExp(/^(http[s]?:\/\/)?([\w]*[.]+[\w.]*)?(\/.*|[^].*)/),function(match,proto,host,uri) {
+            _url = _url.replace(new RegExp(/^(http[s]?:\/\/)?([\w:]+@)?([\w]*[.]+[\w.]*)?(\/.*|[^].*)/),function(match,proto,auth,host,uri) {
                 debug(5,"load_image - fix url", { "match" : match, "proto" : proto, "host" : host, "uri" : uri });
                 if (!host) {
                     // auth local client uri
@@ -1857,14 +1857,17 @@ hs.functions.load_image = function ( oarg ) {
                         "cmd"       : ""
                     }) : uri;
                 }
+                if (!auth) {
+                    auth = "";
+                }
                 if (!proto) {
                     proto = "http://";
                 }
                 if (oarg.item.auth) {
                     // add basic auth
-                    host = $.base64.decode(oarg.item.auth) + "@" + host;
+                    auth = $.base64.decode(oarg.item.auth) + "@";
                 }
-                return proto + host + uri;
+                return proto + auth + host + uri;
             });
         } else {
             _url = hs.functions.get_url ({ 
