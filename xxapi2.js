@@ -1650,7 +1650,7 @@ hs.functions.hs_item = function( oarg ) {
         oarg.item.info        = hs.functions.get_item_info( oarg );
     }
     oarg.item.text        = oarg.json._txt || oarg.json._val ||  "";
-    if (!(typeof oarg.item.text == "string" && oarg.item.text.indexOf("XXPAGE*") === 0) && hs.options.itemdiscardmode == 2 && (oarg.item.left > oarg.session.width() || oarg.item.top > oarg.session.height())) {
+    if (!(typeof oarg.item.text == "string" && oarg.item.text.match(/^(XXPAGE|XXSCRIPT)\*/)) && hs.options.itemdiscardmode == 2 && (oarg.item.left > oarg.session.width() || oarg.item.top > oarg.session.height())) {
         debug(3,"discard item " + oarg.item.uid + " outside visu",oarg);
         return;
     }
