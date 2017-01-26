@@ -717,36 +717,6 @@ xxAPI.functions.XXGAUGE = function ( oarg ) {
     oarg.item.xxapi.gauge.css("background", oarg.item.xxapi.gauge_options.gradient || oarg.item.color);
 }
 
-xxAPI.functions.XXGAUGEOLD = function ( oarg ) {
-    debug(2,"XXGAUGE",oarg);
-    oarg.item.text = "";
-    var _options = {
-        "min"   : 0,
-        "max"   : 100,
-        "prec"  : 0,
-        "extended"  : false
-    };
-    var _txtoptions = "disabled=true;handle=false;extended=false;";
-    if(oarg.item.action_id != 9) {
-        if(oarg.args.length > 2) {
-            _options = $.extend(oarg.item.xxapi.slider_options, hs.functions.option_parser(oarg.args[2],_options));
-        }
-        oarg.item.action_id = 9
-        oarg.item.info = {
-            "_min"  : _options.min,
-            "_max"  : _options.max,
-            "_prec" : _options.prec,
-        };
-    }
-    var _text2 = oarg.item.info._txt2 || "";
-    if(!_text2.match(/^XXOPTIONS\*/)) {
-        oarg.item.info._txt2 = "XXOPTIONS*";
-    }
-    oarg.item.info._txt2 += _txtoptions;
-    xxAPI.functions.XXSLIDER( oarg );
-    
-}
-
 xxAPI.functions.XXHISTOGRAM = function ( oarg ) {
     debug(2,"XXHISTOGRAM",oarg);
     oarg.item.text = "";
