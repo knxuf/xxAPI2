@@ -43,7 +43,7 @@ $.base64 = {
 }
 
 var xxAPI = {};
-xxAPI.version = "2.041";
+xxAPI.version = "2.042";
 xxAPI.functions = {};
 var performance = window.performance || $ // make performance.now() work in any case
 xxAPI.events = {
@@ -722,28 +722,47 @@ xxAPI.functions.XXHISTOGRAM = function ( oarg ) {
     oarg.item.text = "";
     var _values = oarg.args[1].split(",");
     var _step = 1 / _values.length;
+    var _options = {
+        "border-radius"     : 0,
+        "negative-color"    : "",
+        "invert"            : 0
+    };
+    if(oarg.args.length > 2) {
+        _options = $.extend(_options,hs.functions.option_parser(oarg.args[2],_options));
+    }
     if(!oarg.item.xxapi.canvas) {
         oarg.item.xxapi.canvas =  $("<canvas />",{
-            "css" : {
-                "background-color"  : oarg.item.bg_color,
-            }
         });
         oarg.item.xxapi.canvas.attr("width",oarg.item.width);
         oarg.item.xxapi.canvas.attr("height",oarg.item.height);
     }
+    oarg.item.xxapi.canvas.css({
+        "background-color"  : oarg.item.bg_color,
+        "border-radius"     : parseInt(_options["border-radius"] || 0) + "px"
+    });
+
     var _ctx = oarg.item.xxapi.canvas[0].getContext("2d");
     var _gradient;
     if (oarg.item.width > oarg.item.height) {
-        _gradient = _ctx.createLinearGradient(0,0,oarg.item.width,0);
+        _gradient = _ctx.createLinearGradient(_options.invert ? oarg.item.width : 0 ,0,_options.invert ? 0 : oarg.item.width,0);
     } else {
-        _gradient = _ctx.createLinearGradient(0,oarg.item.height,0,0);
+        _gradient = _ctx.createLinearGradient(0,_options.invert ? 0 : oarg.item.height,0,_options.invert ? oarg.item.height : 0);
     }
     for(var _i=0;_i<_values.length;_i++) {
-        _gradient.addColorStop(_step*_i,hs.functions.get_rgba_color(oarg.item.color,_values[_i]));
+        var _val = parseFloat(_values[_i]);
+        var _color = oarg.item.color;
+        if (_val < 0) {
+            _val*=-1;
+            _color = _options["negative-color"] || _color;
+        }
+        _gradient.addColorStop(_step*_i,hs.functions.get_rgba_color(_color,_val.toString()));
     }
     if (!oarg.item.html){
         oarg.item.html = oarg.item.xxapi.canvas;
     } 
+    oarg.item.customcss = {
+        "border-radius" : parseInt(_options["border-radius"] || 0) + "px"
+    }
     _ctx.clearRect(0,0,oarg.item.width,oarg.item.height);
     _ctx.fillStyle = _gradient;
     _ctx.fillRect(0,0,oarg.item.width,oarg.item.height);
