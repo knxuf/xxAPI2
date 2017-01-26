@@ -4112,17 +4112,6 @@ hs.functions.fix_base = function() {
     }
 }
 
-hs.functions.fix_old_start = function() {
-    if($("#VISUCONTAINER").length == 0) {
-        var _container = $("<div />",{
-            "id"    : "VISUCONTAINER"
-        });
-        _container.prependTo($("body"));
-        $("#VISU").detach().appendTo(_container);
-        $("#POPUP").detach().appendTo(_container);
-    }
-}
-
 $(window).on('orientationchange', function(event) {
     hs.functions.set_viewport();
     //hs.functions.get_orientation();
@@ -4185,7 +4174,6 @@ hs.functions.start_client = function() {
 
     FastClick.attach(document.body);
 
-    hs.functions.fix_old_start();
     if(hs.functions.get_query_parameter("logout")) {
         hs.functions.storage("remove","password");
         window.location.replace(location.protocol + '//' + location.host + location.pathname);
