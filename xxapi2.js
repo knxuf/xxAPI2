@@ -748,7 +748,7 @@ xxAPI.functions.XXHISTOGRAM = function ( oarg ) {
     } else {
         _gradient = _ctx.createLinearGradient(0,_options.invert ? 0 : oarg.item.height,0,_options.invert ? oarg.item.height : 0);
     }
-    for(var _i=0;_i<_values.length;_i++) {
+    for(var _i=0;_i<_values.length-1;_i++) {
         var _val = parseFloat(_values[_i]);
         var _color = oarg.item.color;
         if (_val < 0) {
