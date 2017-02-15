@@ -465,7 +465,13 @@ xxAPI.functions.XXMODUL = function ( oarg ) {
         //          XXMARKed Page
         _page = xxAPI.marked_pages[oarg.args[2]] || _page;
     }
-    if(Number(_page) && _active_page != _page) {
+    if (!Number(_page)) {
+        delete oarg.item.html;
+        oarg.item.text = "NO MODULPAGE";
+        debug(1,"XXMODUL: module page not found",oarg);
+        return;
+    }
+    if(_active_page != _page) {
         debug(5,"XXMODUL: different_pages: " + _active_page + " != " + _page, oarg);
         setTimeout(function() {
             new hs.functions.hs_session(_modulname,_page,oarg.item.width,oarg.item.height);
