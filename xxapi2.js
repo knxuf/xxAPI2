@@ -358,7 +358,7 @@ xxAPI.functions.XXEXECUTE = function ( oarg ) {
 
 hs.functions.fix_hsjavascript = function ( broken ) {
     var _jscode = broken || "";
-    _jscode = _jscode.replace(/(\?\w+\?)/g, function(match,capture) {
+    _jscode = _jscode.replace(/(\?[\w\s.#:*<>^=~]+\?)/g, function(match,capture) {
         return '"' + capture.slice(1,-1) + '"';
     });
     _jscode = _jscode.replace(/(\[\w+\])/g,function(match,capture) {
@@ -3656,6 +3656,23 @@ hs.functions.get_query_parameter = function(item) {
 hs.functions.get_hash_parameter = function(item) {    
     var svalue = location.hash.match(new RegExp("[#\&]" + item + "=([^\&]*)(\&?|$)","i"));
     return svalue ? svalue[1] : svalue;
+}
+
+hs.functions.get_style = function(css_selector) {
+    var _regex = new RegExp(css_selector);
+    var _ret;
+    var _rules = [].map.call(document.styleSheets, function(item) {
+        return [].slice.call(item.cssRules);
+    }).reduce(function(a, b) {
+        return b.concat(a);
+    })
+    $.each(_rules,function(index,value) {
+        if(_regex.exec(value.selectorText || "")) {
+            _ret = value
+            return false;
+        }
+    });
+    return _ret ? _ret.style : {};
 }
 
 jQuery.fn.reverse = [].reverse;
