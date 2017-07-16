@@ -1660,6 +1660,7 @@ hs.functions.hs_item = function( oarg ) {
     oarg.item.image       = oarg.json._ico || null;
     oarg.item.url         = oarg.json._url || null;
     oarg.item.auth        = oarg.json._auth || null;
+    oarg.item.image_onload = null;
 
     if (oarg.page.items.hasOwnProperty(oarg.item.uid)) {
         oarg.item.cmd = "update";
@@ -1904,6 +1905,9 @@ hs.functions.load_image = function ( oarg ) {
                 if (this.naturalWidth == 0 && this.naturalHeight == 0) {
                     debug(1,"Error: Image '" + this.src + "' failed",{ "img" : this, "item" : oarg.item });
                     this.remove();
+                }
+                if (typeof oarg.item.image_onload === 'function') {
+                    oarg.item.image_onload(oarg);
                 }
                 oarg.item.image_loading = false;
                 oarg.item.image_object = $(this);
