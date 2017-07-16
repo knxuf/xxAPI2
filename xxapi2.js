@@ -3423,7 +3423,7 @@ hs.functions.check_click = function( oarg ) {
         case 23:
             // 23 = Menü
             //hs.functions.make_request({ session:session,cmd:"gl&id=" + hs.user.start_list + "&frm=1&cnt=5"} );
-            alert("Menü noch nicht implementiert")
+            alert("Menü noch nicht implementiert");
             break;
         case 25:
             // 25 = Logout
