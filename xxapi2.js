@@ -1239,6 +1239,47 @@ xxAPI.functions.XXWRAPTEXT = function ( oarg ) {
     oarg.item.html = $("<p>").append( _elem.html(_text)).html();
 }
 
+/*
+    * Text prefixed with XXBOUNCETEXT bounces from left to right and back if it don't fit
+    
+    * Argument 1 is the text that is to be bounced
+    XXBOUNCETEXT*The quick brown fox jumps over the lazy dog
+    * Argument 2 is the speed the text moves
+
+*/
+xxAPI.functions.XXBOUNCETEXT = function ( oarg ) {
+    debug(2,"XXBOUNCETEXT",oarg);
+    oarg.item.text = "";
+    var _text = oarg.args[1];
+    var _speed = oarg.args[2] || 30;
+    var _item = oarg.item;
+    setTimeout(function() {
+        var _elem = $(_item.object.children()[0]);
+        _elem.css({
+            "position"  : "relative",
+            "left"      : 0
+        });
+        _elem.stop(true,false);
+        _elem.html(_text);
+        var _maxleft = _elem.width() - _item.width;
+        if (_maxleft > 0) {
+            xxAPI.functions.element_slide_left(_elem,_maxleft,_speed);
+        }
+    },0);
+}
+xxAPI.functions.element_slide_left = function(obj,maxleft,speed) {
+    obj.animate({left: -maxleft}, {
+        duration: maxleft / speed * 1000,
+        complete: function() { xxAPI.functions.element_slide_right(obj, maxleft, speed); }
+    });
+}
+xxAPI.functions.element_slide_right = function(obj,maxleft,speed) {
+    obj.animate({left: 0}, {
+        duration: maxleft / speed * 1000,
+        complete: function() { xxAPI.functions.element_slide_left(obj, maxleft, speed); }
+    });
+}
+
 xxAPI.functions.geolocation_callback = function ( position ) {
     debug(2,"GEOLOCATION Received",position);
     xxAPI.functions.geolocation_send("timestamp",position.timestamp);
