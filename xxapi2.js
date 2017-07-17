@@ -1257,13 +1257,18 @@ xxAPI.functions.XXBOUNCETEXT = function ( oarg ) {
         var _elem = $(_item.object.children()[0]);
         _elem.css({
             "position"  : "relative",
-            "left"      : 0
+            "left"      : 0,
+            "font-size" : "inherit"
         });
         _elem.stop(true,false);
         _elem.html(_text);
         var _maxleft = _elem.width() - _item.width;
         if (_maxleft > 0) {
-            xxAPI.functions.element_slide_left(_elem,_maxleft,_speed);
+            if (_maxleft < 15 ) {
+                _elem.css("font-size",parseInt(_elem.css("font-size")) - 1 + "px");
+            } else {
+                xxAPI.functions.element_slide_left(_elem,_maxleft,_speed);
+            }
         }
     },0);
 }
