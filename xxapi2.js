@@ -1260,28 +1260,34 @@ xxAPI.functions.XXBOUNCETEXT = function ( oarg ) {
             "left"      : 0,
             "font-size" : "inherit"
         });
-        _elem.stop(true,false);
+        _elem.stop(true,true);
         _elem.html(_text);
         var _maxleft = _elem.width() - _item.width;
         if (_maxleft > 0) {
             if (_maxleft < 15 ) {
                 _elem.css("font-size",parseInt(_elem.css("font-size")) - 1 + "px");
             } else {
-                xxAPI.functions.element_slide_left(_elem,_maxleft,_speed);
+                xxAPI.functions.element_slide_left(_elem,_item,_speed);
             }
         }
     },0);
 }
-xxAPI.functions.element_slide_left = function(obj,maxleft,speed) {
-    obj.animate({left: -maxleft}, {
-        duration: maxleft / speed * 1000,
-        complete: function() { xxAPI.functions.element_slide_right(obj, maxleft, speed); }
+xxAPI.functions.element_slide_left = function(obj,item,speed) {
+    var _maxleft = obj.width() - item.width;
+    obj.animate({left: -_maxleft}, {
+        duration: _maxleft / speed * 1000,
+        complete: function() { 
+            xxAPI.functions.element_slide_right(obj, item, speed); 
+        }
     });
 }
-xxAPI.functions.element_slide_right = function(obj,maxleft,speed) {
+xxAPI.functions.element_slide_right = function(obj,item,speed) {
+    var _maxleft = obj.width() - item.width;
     obj.animate({left: 0}, {
-        duration: maxleft / speed * 1000,
-        complete: function() { xxAPI.functions.element_slide_left(obj, maxleft, speed); }
+        duration: _maxleft / speed * 1000,
+        complete: function() { 
+            xxAPI.functions.element_slide_left(obj, item, speed); 
+        }
     });
 }
 
