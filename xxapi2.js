@@ -980,7 +980,8 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
     
     * Argument 1 (optional) is the time in milliseconds 
     * Argument 2 (optonal) is an integer used to bitshift the values
-    * Argument 3 (optonal) is Javascript code executed on longpress
+    * Argument 3 (optonal) is values (1/2/4 see above) on which to open the page  
+    * Argument 4 (optonal) is Javascript code executed on longpress
      XXLONGPRESS*
 */
 xxAPI.functions.XXLONGPRESS = function ( oarg ) {
@@ -991,13 +992,9 @@ xxAPI.functions.XXLONGPRESS = function ( oarg ) {
     }
     oarg.item.xxapi.longpress_time = null;
     oarg.item.xxapi.longpress_timer = null;
-    oarg.item.xxapi.longpress_bit = 0;
-    if (oarg.args.length > 2) {
-        oarg.item.xxapi.longpress_bit = parseInt(oarg.args[2]) || 0;
-    }
-    if (oarg.args.length > 3) {
-        oarg.item.xxapi.longpress_code = oarg.args.slice(3).join("*"); //FIXME
-    }
+    oarg.item.xxapi.longpress_bit = oarg.args.length > 2 ? parseInt(oarg.args[2]) || 0 : 0;
+    oarg.item.xxapi.openpage_behaviour = oarg.args.length > 3 ? parseInt(oarg.args[3]) : 2;
+    oarg.item.xxapi.longpress_code = oarg.args.length > 4 ? oarg.args.slice(4).join("*") : null; //FIXME
 
     oarg.item.eventcode["touchstart"] = oarg.item.eventcode["mousedown"] = function( oarg ) {
         oarg.item.xxapi.longpress_time = $.now() + _longpress_duration;
@@ -1035,8 +1032,28 @@ xxAPI.functions.longpress_event = function( presstype, oarg ) {
         "longpress"     : 2,
         "longpressup"   : 4
     };
-    oarg.item.value = _typeval[presstype]<<oarg.item.xxapi.longpress_bit;
-    hs.functions.do_valset( oarg );
+    if(oarg.item.xxapi.longpress_code) {
+        var _jscode = hs.functions.fix_hsjavascript( oarg.item.xxapi.longpress_code );
+        try {
+            var _func = new Function('item','presstype','"use strict"; ' + _jscode);
+            _func( oarg.item, presstype );
+        } catch (e) {
+            debug(1,"XXLONGPRESS_JS_ERROR:",{
+                "e"      : e,
+                "oarg"   : oarg,
+                "jscode" : _jscode
+            });
+        }
+    }
+    if(oarg.item.action_id == 9) {
+        oarg.item.value = _typeval[presstype]<<oarg.item.xxapi.longpress_bit;
+        hs.functions.do_valset( oarg );
+    }
+    if (oarg.item.open_page > 0 && _typeval[presstype] == oarg.item.xxapi.openpage_behaviour) {
+        debug(1,"OPEN LONGPRESS PAGE",oarg);
+        oarg.page_id = oarg.item.open_page;
+        hs.functions.load_page( oarg );
+    }
 }
 
 /*
