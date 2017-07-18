@@ -1290,6 +1290,9 @@ xxAPI.functions.XXBOUNCETEXT = function ( oarg ) {
     },0);
 }
 xxAPI.functions.element_slide_left = function(obj,item,speed) {
+    if (!obj.is(":visible")) {
+        return;
+    }
     var _maxleft = obj.width() - item.width;
     obj.animate({left: -_maxleft}, {
         duration: _maxleft / speed * 1000,
@@ -1299,6 +1302,9 @@ xxAPI.functions.element_slide_left = function(obj,item,speed) {
     });
 }
 xxAPI.functions.element_slide_right = function(obj,item,speed) {
+    if (!obj.is(":visible")) {
+        return;
+    }
     var _maxleft = obj.width() - item.width;
     obj.animate({left: 0}, {
         duration: _maxleft / speed * 1000,
