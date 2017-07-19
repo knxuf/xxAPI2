@@ -1702,7 +1702,6 @@ hs.functions.hs_item = function( oarg ) {
     this.page = oarg.page;
     this.uid = this.session.target + "_PAGE_" + this.page_id + "_" + this.type + "_" + this.id;
     oarg.item = this;
-    
     if (this.page.items.hasOwnProperty(this.uid)) {
 
         oarg.item = this.page.items[this.uid];
@@ -1725,6 +1724,7 @@ hs.functions.hs_item = function( oarg ) {
     oarg.item.text        = oarg.json._txt || oarg.json._val ||  "";
     if (!(typeof oarg.item.text == "string" && oarg.item.text.match(/^(XXPAGE|XXSCRIPT)\*/)) && hs.options.itemdiscardmode == 2 && (oarg.item.left > oarg.session.width() || oarg.item.top > oarg.session.height())) {
         debug(3,"discard item " + oarg.item.uid + " outside visu",oarg);
+        oarg.item.page.items[oarg.item.uid] = oarg.item;
         return;
     }
     oarg.item.json = oarg.json;
@@ -1760,6 +1760,7 @@ hs.functions.hs_item = function( oarg ) {
         hs.functions.xxapi_check( oarg );
         if(hs.options.itemdiscardmode == 1 && (oarg.item.left > oarg.session.width || oarg.item.top > oarg.session.height)) {
             debug(3,"discard html item " + oarg.item.uid + " outside visu",oarg);
+            oarg.item.page.items[oarg.item.uid] = oarg.item;
             return;
         }
         if (oarg.item.object == null ) {
