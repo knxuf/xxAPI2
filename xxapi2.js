@@ -976,11 +976,11 @@ xxAPI.functions.XXKNOB = function ( oarg ) {
         1 = click
         2 = longpress
         4 = longpress stopped
-    * which can be bitshiftet with optinal Argument 2
+    * which can be bitshiftet with optinal Argument 2 ( 8 / 16 / 32 )
     
     * Argument 1 (optional) is the time in milliseconds 
     * Argument 2 (optonal) is an integer used to bitshift the values
-    * Argument 3 (optonal) is values (1/2/4 see above) on which to open the page  
+    * Argument 3 (optonal) is values (1/2/4 see above) on which to open the page  / execute command (8/16/32)
     * Argument 4 (optonal) is Javascript code executed on longpress
      XXLONGPRESS*
 */
@@ -1049,10 +1049,19 @@ xxAPI.functions.longpress_event = function( presstype, oarg ) {
         oarg.item.value = _typeval[presstype]<<oarg.item.xxapi.longpress_bit;
         hs.functions.do_valset( oarg );
     }
-    if (oarg.item.open_page > 0 && _typeval[presstype] == oarg.item.xxapi.openpage_behaviour) {
-        debug(1,"OPEN LONGPRESS PAGE",oarg);
-        oarg.page_id = oarg.item.open_page;
-        hs.functions.load_page( oarg );
+
+    // not for "Befehl" or "Werteingabe"
+    if ($.inArray(oarg.item.action_id,[0,9]) == -1 && _typeval[presstype] == (oarg.item.xxapi.openpage_behaviour & 0x7)) {
+        var _has_cmd = oarg.item.has_command;
+        // prevent commands from execute
+        oarg.item.has_command = false;
+        hs.functions.check_click( oarg );
+        // restore
+        oarg.item.has_command = _has_cmd;
+    }
+
+    if(oarg.item.has_command && _typeval[presstype] == (oarg.item.xxapi.openpage_behaviour >> 3)) {
+        hs.functions.do_command( oarg );
     }
 }
 
@@ -1744,7 +1753,14 @@ hs.functions.hs_item = function( oarg ) {
         // xxAPI
         oarg.item.xxapi = {};
         oarg.item.customcss = {};
-        oarg.item.eventcode = {};
+        oarg.item.eventcode = {
+            "mousedown" : null,
+            "mouseup"   : null,
+            "touchstart": null,
+            "touchend"  : null,
+            "mouseleave": null,
+            "blur"      : null
+        };
         oarg.item.hidden = false;
         oarg.item.object = null;
         oarg.item.title = "";
@@ -1781,7 +1797,7 @@ hs.functions.hs_item = function( oarg ) {
                 
             });
 
-            $.each( $.merge(["mousedown","mouseup","touchstart","touchend","mouseleave","blur"],Object.keys(oarg.item.eventcode)) ,function(index, value) {
+            $.each( Object.keys(oarg.item.eventcode) ,function(index, value) {
                 oarg.item.object.on(value,function (event) {
                     oarg.item.event = event;
                     hs.functions.mouse_event( oarg )
@@ -1795,7 +1811,7 @@ hs.functions.hs_item = function( oarg ) {
                 });
                 oarg.item.object.addClass("visuclickelement");
             } else {
-                if(Object.keys(oarg.item.eventcode).length != 0) {
+                if(hs.functions.has_functions(oarg.item.eventcode)) {
                     oarg.item.object.addClass("visuclickelement");
                 }
                 if(oarg.item.action_id == 20) {
@@ -3669,6 +3685,15 @@ hs.functions.login_form = function(errortype) {
         }
     });
 
+}
+
+hs.functions.has_functions = function(obj) {
+    for (var i in obj) {
+        if (typeof obj[i] == 'function') {
+            return true;
+        }
+    }
+    return false;
 }
 
 hs.functions.number2align = function(align) {
