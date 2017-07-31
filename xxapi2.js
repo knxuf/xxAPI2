@@ -993,7 +993,7 @@ xxAPI.functions.XXLONGPRESS = function ( oarg ) {
     oarg.item.xxapi.longpress_time = null;
     oarg.item.xxapi.longpress_timer = null;
     oarg.item.xxapi.longpress_bit = oarg.args.length > 2 ? parseInt(oarg.args[2]) || 0 : 0;
-    oarg.item.xxapi.openpage_behaviour = oarg.args.length > 3 ? parseInt(oarg.args[3]) : 2;
+    oarg.item.xxapi.longpress_behaviour = oarg.args.length > 3 ? parseInt(oarg.args[3]) : 2;
     oarg.item.xxapi.longpress_code = oarg.args.length > 4 ? oarg.args.slice(4).join("*") : null; //FIXME
 
     oarg.item.eventcode["touchstart"] = oarg.item.eventcode["mousedown"] = function( oarg ) {
@@ -1051,7 +1051,7 @@ xxAPI.functions.longpress_event = function( presstype, oarg ) {
     }
 
     // not for "Befehl" or "Werteingabe"
-    if ($.inArray(oarg.item.action_id,[0,9]) == -1 && _typeval[presstype] == (oarg.item.xxapi.openpage_behaviour & 0x7)) {
+    if ($.inArray(oarg.item.action_id,[0,9]) == -1 && _typeval[presstype] == (oarg.item.xxapi.longpress_behaviour & 0x7)) {
         var _has_cmd = oarg.item.has_command;
         // prevent commands from execute
         oarg.item.has_command = false;
@@ -1060,7 +1060,7 @@ xxAPI.functions.longpress_event = function( presstype, oarg ) {
         oarg.item.has_command = _has_cmd;
     }
 
-    if(oarg.item.has_command && _typeval[presstype] == (oarg.item.xxapi.openpage_behaviour >> 3)) {
+    if(oarg.item.has_command && _typeval[presstype] == (oarg.item.xxapi.longpress_behaviour >> 3)) {
         hs.functions.do_command( oarg );
     }
 }
