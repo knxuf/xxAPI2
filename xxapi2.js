@@ -68,6 +68,7 @@ xxAPI.xxtemplates = {
 var hs = {};
 hs.debug_cache = [];
 hs.cached_load_count = -1;
+hs.libraries_loaded = false;
 hs.functions = {};
 hs.functions.async = {};
 hs.post_load_functions = [];
@@ -4366,6 +4367,9 @@ $("html").on("touchmove",function(jQevent) {
 
 hs.functions.load_libraries = function() {
     debug(3,"[start] load libraries");
+    if(hs.libraries_loaded) {
+        return;
+    }
     hs.functions.element_loader([
         "libs/fastclick.js", // https://github.com/ftlabs/fastclick
         "libs/xml2json.min.js", // https://github.com/abdmob/x2js
@@ -4389,6 +4393,7 @@ hs.functions.load_libraries = function() {
 
             }
             debug(3,"[start] fix base")
+            hs.libraries_loaded = true;
             hs.functions.fix_base()
             debug(3,"[start] fix base done")
             $("base").attr("href","");
