@@ -77,7 +77,7 @@ hs.session = {};  // keyname ist target
 // Globale
 hs.user = null;
 hs.options = {
-    "autoscale"     : true,
+    "autoscale"     : false,
     "scaledown"     : false,
     "dateformat"    : "%ddd% %dd%.%MM%.%YYYY% %HH%:%mm%:%ss%",
     "timezone"      : null,
@@ -3869,6 +3869,7 @@ jQuery.fn.in_dom = function(callback, options) {
 };
 
 hs.functions.set_viewport = function() {
+    return;
     debug(5,"Set Viewport",hs.gui.attr);
     $("#VISUCONTAINER").css({
         "display"   : "block",
@@ -3886,6 +3887,7 @@ hs.functions.set_viewport = function() {
     var _scale_min = Math.min( _scaleto_width, _scaleto_height);
     var _scale_max = Math.max( _scaleto_width, _scaleto_height, 1.0);
     var _viewport_meta = 
+        "viewport-fit=cover," + 
         "width="          +  hs.gui.attr.visu_width +
         (_scale_min > 1 ? "" : ",initial-scale=" + _scale_min) +
         ",minimum-scale=" + _scale_min +
@@ -4418,19 +4420,20 @@ hs.functions.progressbar = function(element,percent) {
 
 debug(2,"[start] xxAPI² load");
 
-window.applicationCache.addEventListener('progress', function (e) {
-    if (Number(hs.cached_files_count)) {
-        $("#PROGRESSINFO").html(hs.cached_files[hs.cached_load_count - 1]);
-        var _percent = parseInt(hs.cached_load_count / hs.cached_files_count * 100);
-        hs.functions.progressbar($("#PROGRESSBAR"), _percent);
-        debug(5,"APPCACHE: download " + hs.cached_files[hs.cached_load_count - 1] + "  -  "+ hs.cached_load_count + "/" + hs.cached_files_count + " :: " + _percent);
-    }
-    hs.cached_load_count++;
-});
-
+if(window.applicationCache !== undefined) {
+    window.applicationCache.addEventListener('progress', function (e) {
+        if (Number(hs.cached_files_count)) {
+            $("#PROGRESSINFO").html(hs.cached_files[hs.cached_load_count - 1]);
+            var _percent = parseInt(hs.cached_load_count / hs.cached_files_count * 100);
+            hs.functions.progressbar($("#PROGRESSBAR"), _percent);
+            debug(5,"APPCACHE: download " + hs.cached_files[hs.cached_load_count - 1] + "  -  "+ hs.cached_load_count + "/" + hs.cached_files_count + " :: " + _percent);
+        }
+        hs.cached_load_count++;
+    });
+}
 $(document).ready(function() {
     hs.has_appcache = $("html[manifest$=appcache]").length > 0;
-    if (hs.has_appcache) {
+    if (hs.has_appcache && window.applicationCache !== undefined ) {
         debug(3,"[start] HTML5 Manifest active");
         $("html").css({
             "width"     : "100vh",
@@ -4438,6 +4441,7 @@ $(document).ready(function() {
             "background-color"  : "#000000",
             "color"             : "#FFFFFF"
         });
+        
         window.applicationCache.addEventListener('updateready', function (e) {
             if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
                 window.applicationCache.swapCache();
